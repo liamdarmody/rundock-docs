@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 40" role="img" aria-label="Rundock (placeholder logo)">
+  <rect width="200" height="40" fill="none"/>
+  <text x="0" y="26" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">Rundock</text>
+  <text x="100" y="26" font-family="system-ui, -apple-system, Segoe UI, sans-serif" font-size="10" font-weight="400" fill="#FFFFFF" opacity="0.5">[placeholder]</text>
+</svg>
