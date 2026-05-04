@@ -1,0 +1,149 @@
+---
+title: 'Create your first agent'
+description: 'Walk through creating a new agent from scratch, with concrete instructions text you can adapt.'
+---
+
+This guide walks through creating an agent from scratch. The example is a Research Assistant: a specialist that finds supporting facts, statistics, and references for the rest of the team. Substitute your own role if it fits better, but stay with one concrete example all the way through. Generic guides produce generic agents.
+
+If you have not yet completed first-run setup, do that first: [First-run setup](/first-run).
+
+## Before you start
+
+You need:
+
+- Rundock open with a workspace selected.
+- A clear sense of what role you are creating. One sentence describing what the agent is for. If you cannot describe it in one sentence, the role is too vague to write good instructions for. Refine the role first.
+
+## 1. Open the agents panel
+
+Open the agents panel in Rundock and start the new-agent flow. Or, if Doc is in the conversation, ask Doc to help you create one. Either route writes the same markdown file to your workspace.
+
+## 2. Name and role
+
+<Steps>
+  <Step title="Slug">
+    Use lowercase, hyphenated. The slug becomes the filename and the identifier other agents use to reference this one.
+
+    Example: `research-assistant`
+  </Step>
+  <Step title="Display name">
+    Short, memorable, character-style. This appears on the org chart card. Two to ten characters works well.
+
+    Example: `Ari` (or `Research Assistant` if you prefer descriptive names).
+  </Step>
+  <Step title="Role">
+    Two to four words. Sits beneath the display name on the org chart card.
+
+    Example: `Research Assistant`
+  </Step>
+</Steps>
+
+## 3. Write the instructions
+
+This is the most important part. The frontmatter is identity. The instructions body is behaviour.
+
+Good instructions focus on the role, not on technique. They tell the agent who it is, what it handles, what it does not handle, and how it should sound. They do not try to teach the agent how to do its job. The model already knows how to research, write, or analyse: it needs to know what role it is playing.
+
+Paste this into the instructions field as a starting point and adapt the bracketed parts:
+
+```markdown
+You are the Research Assistant. You find supporting facts, statistics,
+and references for the rest of the team. When the Content Writer or
+another agent needs evidence for a draft, they hand the question to you.
+
+Return findings as short bullet points with sources. Do not write prose.
+The agent that called you will use your output as raw material.
+
+Be precise about provenance. Always include the source name and a date
+where possible. If a stat is hard to verify, say so rather than
+softening the number.
+
+Stay in your lane. You do not draft, edit, or publish. If a request is
+outside research, say so briefly and hand it back.
+```
+
+Two notes on the example:
+
+- The first paragraph names the role and the most common hand-off shape ("when X needs Y, they hand it to you"). The orchestrator reads the agent's `description` for routing, but other agents read the body when they decide whether to delegate to this one.
+- The boundary at the bottom is non-optional. Every specialist should have one. Without it, the agent will try to do whatever you ask, even when the work belongs elsewhere.
+
+## 4. Set the org chart position
+
+Pick a position on the chart. The orchestrator is `0`. Specialists are `1`, `2`, `3`, and so on. Use a number that has not been claimed by another agent: collisions produce indeterminate sibling order.
+
+Set `reportsTo` to the slug of the agent this one reports to. For a flat team, this is the orchestrator. For a multi-level team, it is the lead specialist.
+
+You can also set:
+
+- An `icon`: a single unicode character used as the agent's avatar. Avoid characters that look similar at small sizes.
+- A `colour`: a hex value, quoted, for the org chart card and profile header. UK spelling: the field is `colour`, not `color`. Hex values must be quoted because YAML treats a leading `#` as a comment.
+
+## 5. Assign skills (optional)
+
+If your agent should use existing skills, list them in the `skills:` array:
+
+```yaml
+skills:
+  - readwise-highlights
+  - web-search
+```
+
+Use the block form with `- slug` lines. Inline arrays (`skills: [a, b]`) parse as empty.
+
+If you do not have skills to assign yet, skip this. You can add them later. To create a skill from scratch, see [Write a skill](/guides/write-a-skill).
+
+## 6. Save
+
+Save the agent. Rundock writes the markdown file to `.claude/agents/<slug>.md` in your workspace. The agent appears on the org chart in the position you set.
+
+<Note>
+The agent file is just a markdown file. You can edit it directly in any text editor (VS Code, Obsidian, even TextEdit) or through Rundock's interface. Both routes write to the same file.
+</Note>
+
+## 7. Test the agent
+
+Click the new agent on the org chart to open a conversation scoped to it.
+
+Send a real task appropriate to the role. For the Research Assistant example:
+
+```
+Find three statistics that support the claim that solo founders are
+the fastest-growing segment of new business formation in the US since
+2020. Include the source and the year for each.
+```
+
+Read what comes back. Three signals to look for:
+
+1. Did the agent stay in its lane? The Research Assistant should return bullet points with sources, not a polished essay.
+2. Did the agent handle the boundary? If the request is partly outside scope ("research this and then draft a tweet"), the agent should hand the drafting back rather than try it.
+3. Did the agent ask for clarification when the request was ambiguous? An agent that guesses is harder to trust than an agent that asks.
+
+If any of those land wrong, edit the instructions. The change takes effect at the start of the next conversation, not in the active one.
+
+## What good looks like
+
+You know an agent is working when:
+
+- You can talk to it in natural language and it stays in role.
+- The orchestrator delegates the right kinds of work to it without prompting.
+- Other specialists hand off to it when their task needs help in this domain.
+- You stop noticing it. The agent does its job and you focus on the work that needs you.
+
+Drafts get there in two or three iterations. Resist the urge to over-specify on the first pass. Write the role, test it on a real task, fix the one thing that went wrong, retest.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Write a skill" icon="pen" href="/guides/write-a-skill">
+    Add a reusable workflow to one or more agents.
+  </Card>
+  <Card title="Set up a routine" icon="clock" href="/guides/set-up-a-routine">
+    Schedule a prompt to fire automatically on a cadence.
+  </Card>
+  <Card title="Agent file format" icon="file-code" href="/reference/agent-file-format">
+    Every frontmatter field, with a complete worked example.
+  </Card>
+  <Card title="Set up a team workspace" icon="users" href="/guides/team-workspace">
+    Share your agents across a team using a synced folder.
+  </Card>
+</CardGroup>

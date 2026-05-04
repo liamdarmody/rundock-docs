@@ -1,0 +1,193 @@
+---
+title: 'Write a skill'
+description: 'Create a reusable workflow as a skill file and assign it to one or more agents.'
+---
+
+A skill is a reusable workflow. A research process, a writing audit, a sales prep sequence: anything you would describe as "this is how we do X" belongs in a skill. This guide walks through creating one from scratch and assigning it to an agent. The example is a weekly report skill, but the shape applies to any procedure with steps.
+
+If you are not sure whether something should be a skill or part of an agent's body, see [Skills](/concepts/skills) for the call.
+
+## Before you start
+
+You need:
+
+- A clear procedure with discrete steps. If you cannot list the steps, the skill is not ready to write.
+- An agent (or two) that should own the skill.
+- A workspace selected in Rundock.
+
+## 1. Create the skill folder
+
+A skill is a folder, not a flat file. Create the folder under `.claude/skills/` in your workspace. The folder name is the skill's slug.
+
+Use lowercase letters, numbers, and hyphens only. No spaces, no underscores.
+
+```bash
+mkdir -p .claude/skills/weekly-report
+```
+
+<Warning>
+Flat skill files at `.claude/skills/weekly-report.md` are not discovered. Rundock only walks subdirectories looking for `SKILL.md`. The skill must live at `.claude/skills/<slug>/SKILL.md` to be picked up.
+</Warning>
+
+## 2. Create the SKILL.md file
+
+Create a new file at `.claude/skills/weekly-report/SKILL.md`. This is where the skill definition lives.
+
+## 3. Write the frontmatter
+
+Skill frontmatter is lean. Two fields matter:
+
+```yaml
+---
+name: Weekly Report
+description: Compile a structured weekly summary of progress, blockers, and next steps from the last seven days of work.
+---
+```
+
+A few things to know about these fields:
+
+- **`name`** is the display name shown on the agent profile and the skill list. Plain prose is fine, not just a slug-style identifier.
+- **`description`** is one paragraph and it is the **routing signal**. The orchestrator reads this when deciding whether to route work to an agent that owns the skill. Write it as a verb, a clear capability, and the trigger phrase the user is likely to type. A skill with no description is invisible to routing.
+
+<Note>
+Other YAML fields you might be tempted to add (`displayName`, `icon`, `colour`, `model`, `allowed-tools`) are silently ignored by Rundock for skill files. The fields persist on disk but no Rundock surface reads them. Keep skill frontmatter to `name` and `description`.
+</Note>
+
+## 4. Write the skill body
+
+The body is everything after the closing `---` of the frontmatter. It is the instruction set, written for the agent that will run it. There is no implicit context injection at skill load: what you write is what the agent sees.
+
+Write in the second person, addressing the agent. Match the voice of the calling agent: the skill is a leaf instruction, not a standalone personality.
+
+A typical structure:
+
+<Steps>
+  <Step title="When to use">
+    A clear "Use this skill when..." opener so the agent has unambiguous entry criteria.
+  </Step>
+  <Step title="Inputs">
+    What the skill expects to be given (a date range, a topic, a file path).
+  </Step>
+  <Step title="Steps">
+    Numbered, imperative, concrete. Reference specific file paths and tools where relevant. The agent should not have to infer where to read or write.
+  </Step>
+  <Step title="Output format">
+    What the skill should produce, where it should write it, and what shape the output takes.
+  </Step>
+  <Step title="Edge cases">
+    What to do when inputs are missing, sources are unavailable, or the procedure cannot complete.
+  </Step>
+  <Step title="Boundaries">
+    What this skill does NOT do. Critical for keeping the skill leaf-shaped.
+  </Step>
+</Steps>
+
+Here is the body for the weekly report example:
+
+```markdown
+Compile a structured weekly summary covering progress, blockers, and
+next steps from the last seven days of work.
+
+## Use this skill when
+
+The user asks for a weekly report, weekly summary, end-of-week update,
+or "what happened this week".
+
+## Inputs
+
+- **Window** (optional). Default: last 7 days. Accepts natural language
+  ("last 14 days", "since 2026-04-01") or a day count.
+
+## Steps
+
+1. Read the daily notes for every day in the window from `_Daily Notes/`.
+2. Pull all completed tasks from Todoist for the window using the
+   `find-completed-tasks` tool.
+3. Pull all meetings from the window from Granola.
+4. Group findings into three sections:
+   - **Shipped:** what was delivered or published.
+   - **Blockers:** anything that stalled, with a one-line cause.
+   - **Next:** the three most important things for the coming week.
+5. Write the report to `_Daily Notes/weekly/<YYYY-MM-DD>-week.md`.
+
+## Output format
+
+A markdown file with three top-level sections (Shipped, Blockers, Next),
+plain prose under each. No bullet lists in the prose, no fluff openers.
+End with a one-sentence summary of the week.
+
+## Edge cases
+
+- **No daily notes for some days in window:** skip silently.
+- **Todoist unavailable:** note in the Blockers section that task data
+  was unavailable, continue with the rest.
+- **Window has zero meetings:** omit the section header rather than
+  writing "no meetings".
+
+## Boundaries
+
+- This skill writes the report. It does NOT publish, send, or share it.
+- It does NOT modify any task statuses, calendar entries, or meeting
+  notes during the run.
+- It does NOT run on a schedule. If you want it scheduled, attach a
+  routine to the agent that owns it.
+
+## Formatting rules
+
+UK spelling. No em or en dashes.
+```
+
+A few notes on the example:
+
+- The "Use this skill when" opener gives the agent unambiguous entry criteria.
+- The inputs section names a default and describes accepted formats.
+- The steps reference specific file paths, tools, and folder names.
+- The output format describes shape, location, and constraints.
+- The boundaries are explicit. The skill writes the report and stops. It does not publish, modify, or schedule.
+- Length discipline: this whole skill body sits comfortably inside the 100 to 200 line range that live skills cluster around.
+
+## 5. Assign the skill to an agent
+
+Open the agent that should own the skill (the one whose role this skill belongs to).
+
+In the agent's frontmatter, add or extend the `skills:` array:
+
+```yaml
+skills:
+  - weekly-report
+```
+
+Use the block form (`-` lines indented under `skills:`). Inline flow-style arrays (`skills: [weekly-report]`) parse as empty and silently fall through to body-text scanning.
+
+A skill can be assigned to multiple agents. List the same slug in each agent's frontmatter that should own it.
+
+<Note>
+You can also let body-text scanning attach the skill: if the agent's body mentions the skill's slug as a distinct word-boundary token, Rundock auto-attaches it. Use explicit assignment when the relationship is permanent and load-bearing. Let body-text fallback handle weaker references.
+</Note>
+
+## 6. Test the skill
+
+Open a conversation with the agent that owns the skill. Trigger the skill with a request that matches its description:
+
+```
+Run the weekly report.
+```
+
+The agent should pick up the skill, follow the steps, and produce output in the format you defined. If it does not, three things to check:
+
+1. **Is the skill discovered?** Restart Rundock and check the skills panel. If `weekly-report` does not appear, the folder structure or filename is wrong.
+2. **Is the description specific enough?** The orchestrator uses the description for routing. Vague descriptions get vague routing.
+3. **Are the steps concrete enough?** The agent should not have to infer where to read or write. If it asks for clarification, the steps are too thin.
+
+Iterate the body, not the agent. The whole point of a skill is that you can refine the procedure without touching the agent's identity.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Skill file format" icon="file-code" href="/reference/skill-file-format">
+    Every field, with a complete worked example.
+  </Card>
+  <Card title="Skills concept" icon="lightbulb" href="/concepts/skills">
+    When to make a skill versus when to put the instruction in the agent's body.
+  </Card>
+</CardGroup>

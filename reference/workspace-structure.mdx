@@ -1,0 +1,180 @@
+---
+title: 'Workspace structure'
+description: 'The canonical workspace directory layout, with what each path is for and what syncs.'
+---
+
+A Rundock workspace is a folder. This page is the canonical reference for what is inside that folder, where each thing lives, and what syncs across a team versus what stays on the individual machine.
+
+For the concept, see [Workspaces](/concepts/workspaces). For the team setup walkthrough, see [Set up a team workspace](/guides/team-workspace).
+
+## Top-level layout
+
+```
+your-workspace/                   # the workspace folder itself
+├── .claude/                      # agent and skill files (hidden by default)
+│   ├── agents/                   # one markdown file per agent
+│   ├── skills/                   # one folder per skill
+│   └── settings.local.json       # per-user MCP and permission overrides
+├── .mcp.json                     # workspace-level MCP server config (optional)
+├── CLAUDE.md                     # workspace-wide instructions
+└── [knowledge files]             # anything else you add
+
+~/.rundock/                       # per-user state (outside the workspace)
+├── state.json                    # workspace mode, current workspace
+├── secrets/                      # API keys
+├── conversations/                # conversation history
+└── prefs.json                    # per-user preferences
+```
+
+The workspace folder is the unit of sharing. Everything in it is meant to be visible to the team. The `~/.rundock/` directory is per-user and never shared.
+
+## What each path is for
+
+### `.claude/agents/`
+
+One markdown file per agent. The filename without the `.md` extension is the agent's slug.
+
+```
+.claude/agents/
+├── chief-of-staff.md             # the orchestrator
+├── content-lead.md               # specialists
+├── lead-developer.md
+└── ...
+```
+
+Each file has YAML frontmatter at the top (declaring identity, position, icon, colour) and a markdown body underneath (the agent's system prompt). For the full reference, see [Agent file format](/reference/agent-file-format).
+
+### `.claude/skills/`
+
+One folder per skill. The folder name is the skill's slug. Inside each folder, a single `SKILL.md` holds the skill definition.
+
+```
+.claude/skills/
+├── linkedin-hook-generator/
+│   └── SKILL.md
+├── voice-editor/
+│   ├── SKILL.md
+│   └── references/
+│       └── tone-examples.md
+└── ...
+```
+
+The folder shape exists so a skill can keep references, templates, sub-files, and assets next to its definition. For the full reference, see [Skill file format](/reference/skill-file-format).
+
+### `.claude/settings.local.json`
+
+Per-user MCP server permissions and tool overrides for the workspace. Although it sits inside `.claude/`, this file should not sync across team members: it is per-user state. Add it to your sync tool's exclusion list (or to `.gitignore` if you sync via git).
+
+### `.mcp.json`
+
+Workspace-level MCP server configuration. Lists the MCP servers the workspace uses and the connection details. This file syncs across the team (the configuration is shared) but the credentials each MCP server needs come from each user's `~/.rundock/secrets/`.
+
+This file is optional. If your workspace uses no MCP servers, omit it.
+
+### `CLAUDE.md`
+
+Workspace-wide instructions. Rules and context that apply to every agent in the team. House style, file path conventions, naming rules, anything you want every agent to follow.
+
+CLAUDE.md is loaded as part of every agent's context at spawn time. Keep it focused: long, dense rules in CLAUDE.md slow every conversation down. House style and shared file path conventions belong here. Domain-specific procedures belong in skills.
+
+### Knowledge files
+
+Anything else you add to the workspace folder. Brand documents, ICP definitions, voice profiles, pricing pages, reference material your agents need to read. There is no required structure: organise these however suits your work.
+
+A common shape:
+
+```
+your-workspace/
+├── .claude/
+├── CLAUDE.md
+├── 00_Inbox/
+├── 01_Projects/
+├── 02_Areas/
+│   ├── Marketing/
+│   ├── Sales/
+│   └── Engineering/
+└── 03_Reference/
+```
+
+Agents read these files when their instructions tell them to. Rundock does not auto-load them at spawn time: you control which files come into context, by writing it into the agent's body or skill instructions.
+
+### `~/.rundock/`
+
+The per-user directory, outside the workspace folder. Holds:
+
+- **`state.json`**: the current workspace path, the workspace mode (Knowledge or Code), and other per-user UI state.
+- **`secrets/`**: API keys, OAuth tokens, and other credentials. Encrypted at rest.
+- **`conversations/`**: conversation history and session data.
+- **`prefs.json`**: per-user preferences (model choice, theme, permission card behaviour).
+
+This directory is created by Rundock on first launch. You do not move it, share it, or sync it.
+
+<Warning>
+Do not place `~/.rundock/` inside a synced folder (Dropbox, OneDrive, Google Drive, or a git repo). Doing so will leak secrets to anyone with access to that sync location. Rundock keeps `~/.rundock/` outside the workspace folder by design.
+</Warning>
+
+## What syncs and what does not
+
+The split as a table.
+
+| What | Where | Syncs? | Why |
+|---|---|---|---|
+| `.claude/agents/` | Workspace folder | **Yes** | The team is shared. Every member should have the same agents. |
+| `.claude/skills/` | Workspace folder | **Yes** | Skills are reusable workflows. Every member should have access. |
+| `CLAUDE.md` | Workspace folder | **Yes** | House rules apply to everyone. |
+| `.mcp.json` | Workspace folder | **Yes** | The list of MCP servers is shared. Credentials are not (those live per-user). |
+| Knowledge files | Workspace folder | **Yes** | Brand documents, voice profiles, reference material are team assets. |
+| `.claude/settings.local.json` | Workspace folder | **No** | Per-user permission and MCP overrides. Add to sync exclusion list. |
+| `~/.rundock/state.json` | Outside workspace | **No** | Per-user workspace mode and UI state. |
+| `~/.rundock/secrets/` | Outside workspace | **Never** | API keys and OAuth tokens. Leak risk. |
+| `~/.rundock/conversations/` | Outside workspace | **No** | Conversation history is per-user. |
+| `~/.rundock/prefs.json` | Outside workspace | **No** | Per-user preferences. |
+
+The principle: **agents and shared knowledge belong to the team. Credentials and sessions belong to the individual.**
+
+## Hidden folders
+
+The `.claude/` directory is hidden by default in Finder (Mac) and File Explorer (Windows). This is standard behaviour for any folder name starting with a dot.
+
+Cloud sync services handle hidden folders correctly. They sync the same way as visible folders. If you want to inspect the contents directly:
+
+- **Mac:** in Finder, press `Cmd + Shift + .` to toggle hidden file visibility.
+- **Windows:** in File Explorer, View > Show > Hidden items.
+
+## Workspace mode
+
+Workspace mode is a workspace-level setting that changes agent behaviour at the platform level. Set per workspace, not per agent.
+
+| Mode | What it changes |
+|---|---|
+| **Knowledge mode** (default) | Restricts file writes for executable file types (`.js`, `.py`, `.sh`, etc) so agents cannot accidentally write or modify code in a knowledge-work workspace. Tool permission cards are shown for most operations. |
+| **Code mode** | Removes the executable-file write restriction. Auto-approves common build and dev tools so agents can iterate on code without permission card interruptions. Used for software project workspaces. |
+
+Mode is set in the workspace settings drawer, or by editing `~/.rundock/state.json` directly:
+
+```json
+{
+  "workspaceMode": "code"
+}
+```
+
+When a workspace is first opened, Rundock auto-detects the likely mode by looking for `package.json`, `pyproject.toml`, `Cargo.toml`, and similar markers.
+
+The mode affects every agent in the workspace, not just one. There is no per-agent override.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Workspaces concept" icon="folder" href="/concepts/workspaces">
+    What a workspace is and the sync/no-sync split explained.
+  </Card>
+  <Card title="Set up a team workspace" icon="users" href="/guides/team-workspace">
+    Share a workspace across a team using Dropbox, OneDrive, Google Drive, or git.
+  </Card>
+  <Card title="Agent file format" icon="file-code" href="/reference/agent-file-format">
+    Every field in an agent file, with a complete worked example.
+  </Card>
+  <Card title="Skill file format" icon="file-code" href="/reference/skill-file-format">
+    Every field in a skill file, with a complete worked example.
+  </Card>
+</CardGroup>

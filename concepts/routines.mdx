@@ -1,0 +1,91 @@
+---
+title: 'Routines'
+description: 'Scheduled prompts that fire on a cadence. What they are, how they behave today, and the limits worth knowing.'
+---
+
+A routine is a scheduled prompt sent to a specific agent on a cadence. The same prompt the user would type, fired automatically at a time the user defines.
+
+Routines power the kind of automation that needs to happen unattended: a morning briefing on the orchestrator, an end-of-day sync that processes the day's meeting notes, a weekly research digest that runs before the user is awake. They are the scheduled equivalent of clicking "send" on a prompt every day.
+
+## How routines are defined
+
+Every routine is declared on the agent it runs for. Inside the agent file's frontmatter, the `routines:` array holds one entry per routine:
+
+```yaml
+routines:
+  - name: Morning briefing
+    schedule: every day at 05:00
+    prompt: Run the morning briefing
+    description: Triage today's tasks, calendar, and content pipeline at 5am.
+```
+
+Each entry has four fields: a `name` (shown in the routines panel), a `schedule` (when it fires), a `prompt` (the message sent to the agent), and an optional `description` (one-line explanation for the profile).
+
+The routines block is a Rundock concept. Other tools that read agent frontmatter ignore it. A routine declared on an agent that is also opened in plain Claude Code or claude.ai will not run there: only Rundock's scheduler picks it up.
+
+For the full schedule format and field reference, see [Routine format](/reference/routine-format).
+
+## What routines are good for
+
+Three patterns that work well in practice.
+
+**Morning briefing on the orchestrator.** Fires at 5am, runs whatever the orchestrator's body defines as "session start". Writes the briefing to the day's note so the user sees it when they open the workspace.
+
+**End-of-day sync on the executive assistant.** Fires at 9pm, pulls the day's meetings from a meeting tool, writes meeting notes, creates Todoist action items, updates the people graph.
+
+**Weekly research digest on a research-focused agent.** Fires once a week before the user is awake. Runs a long pipeline (LinkedIn analysis, competitor scan, trending research) and writes a digest to a known folder.
+
+The shape that ties these together: the routine is doing context-heavy work outside working hours, so it does not consume tokens during interactive sessions. By the time the day starts, the work is on the user's desk.
+
+## How the scheduler behaves
+
+The scheduler ticks every 60 seconds. On each tick, Rundock checks every routine on every agent and fires any whose schedule has come due.
+
+Each routine has a `lastRun` guard so daily routines do not re-fire the same calendar day, and weekly routines do not re-fire on the same weekday they last ran on. The guard is held in memory.
+
+When a routine fires, Rundock spawns a headless Claude Code subprocess with the routine's prompt as the input message. The subprocess runs with skipped permissions, because there is no user available to approve tool calls in real time.
+
+## Limits worth knowing
+
+Be honest before getting attached to routines.
+
+<Warning>
+**Routines fire only while Rundock is running.** There is no persistent layer. If Rundock is closed when a schedule comes due, the run is missed. When Rundock starts again, it does not catch up: the next-run calculation rolls forward from the current time, with no record of what was missed.
+</Warning>
+
+<Warning>
+**Routine output is not captured to a visible conversation.** When a routine fires, the spawned Claude Code subprocess produces output on stdout. Rundock records the routine's `lastRun` timestamp, status, and duration, but it does not surface the model's response or any tool calls in a Rundock conversation. The pipes are open but unread.
+
+Practical implication: any routine that needs to leave a trace must write that trace itself, through tools. A morning briefing writes to the day's note. A digest writes a markdown file to a known folder. An end-of-day sync writes Todoist tasks via MCP. A routine that asks the model to think out loud will produce output nobody ever reads.
+</Warning>
+
+<Note>
+**No notification when a routine completes.** You notice a routine ran by either seeing the timestamp update in the routines panel, or seeing the file the agent wrote, or seeing the tasks the agent created.
+</Note>
+
+<Note>
+**Schedule format is exact and quietly fails on bad input.** Cron expressions are not supported. Times must be two-digit zero-padded. Weekdays must be lowercase, full word. A routine with an unrecognised schedule registers without errors and never fires. If a routine appears to do nothing, the schedule string is the first thing to check. See [Routine format](/reference/routine-format) for the full pattern reference.
+</Note>
+
+## Always-on routines
+
+If you want routines to fire while you are away from your computer, two practical paths.
+
+**Run Rundock on a small VPS.** Keep Rundock running on a cloud server (Hetzner, DigitalOcean, Hostinger, etc) and reach it from any device through a browser. The scheduler ticks 24/7, routines fire on cadence regardless of whether your laptop is open. Costs around £5 to £10 per month plus a couple of hours of initial setup. The trade-off is real but small.
+
+**Use Anthropic's managed Claude Code Routines.** Anthropic shipped a managed scheduling layer that fires Claude Code sessions on their cloud infrastructure. Available on Pro, Max, Team, and Enterprise plans with Claude Code on the web enabled. The minimum recurring interval is one hour. See the [official docs](https://code.claude.com/docs/en/routines) for the full feature set.
+
+Anthropic's Routines and Rundock's routines are complementary, not interchangeable. Rundock routines run inside your local agent team with full read and write access to the workspace. Anthropic's Routines run inside a Claude Code cloud environment with access to whatever you wire into it (primarily GitHub repositories and remote connectors). They do not see your local vault or your Rundock agent definitions.
+
+The split that tends to work in practice: keep workspace-bound routines (morning briefings, end-of-day syncs, anything that depends on local files) on Rundock and host Rundock on a VPS if you need 24/7 firing. Move repo-bound work (PR triage, scheduled code review, release notes) to Anthropic's Routines.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Set up a routine" icon="play" href="/guides/set-up-a-routine">
+    A walkthrough of adding a routine to an agent and testing it.
+  </Card>
+  <Card title="Routine format" icon="file-code" href="/reference/routine-format">
+    The exact schedule patterns and frontmatter fields, with examples.
+  </Card>
+</CardGroup>

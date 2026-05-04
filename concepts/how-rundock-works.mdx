@@ -1,0 +1,102 @@
+---
+title: 'How Rundock works'
+description: 'The mental model. A workspace is a folder. Agents are files inside it. Delegation is conversation.'
+---
+
+Rundock looks like an app, but underneath it is a folder of markdown files. Once you see the shape, the rest of the docs make sense. This page is the shape.
+
+## The workspace is a folder
+
+Everything Rundock uses for one team lives in one folder on your machine. Open Rundock, point it at the folder, and Rundock loads what it finds.
+
+Inside the folder:
+
+```
+your-workspace/
+  .claude/
+    agents/         # one markdown file per agent
+    skills/         # one folder per skill, each with a SKILL.md
+  CLAUDE.md         # workspace-wide instructions
+  [knowledge files] # anything else you add
+```
+
+`.claude/agents/` holds your agent files. One markdown file per agent. The filename is the agent's slug.
+
+`.claude/skills/` holds your skill files. One folder per skill, with a `SKILL.md` inside. Skills are reusable instructions an agent can run.
+
+`CLAUDE.md` holds workspace-wide instructions: house style, file path conventions, anything you want every agent to follow.
+
+Knowledge files are anything else: brand documents, voice profiles, ICP definitions, reference material your agents read.
+
+The `.claude/` folder is hidden by default in Finder and File Explorer. Cloud sync services handle hidden folders correctly. There is nothing magic about the structure: it is just a folder.
+
+## The org chart is a view, not a system
+
+The org chart you see in Rundock is a visual layer over the agent files. Each card on the chart is one file in `.claude/agents/`. The position, the colour, the icon, and the role label all come from the YAML frontmatter at the top of that file.
+
+Move an agent on the chart and you are editing that agent's `order` and `reportsTo` fields. Add a new agent and you are creating a new file. Delete one from the team and the file is removed.
+
+This is why your team is portable. You can read it in Finder, edit it in any text editor, copy it to another machine, or commit it to a git repo. Nothing is locked inside a database.
+
+## Delegation is what makes it a team
+
+You send a message to the orchestrator. The orchestrator reads its instructions, looks at who is on the team, and decides which specialist should handle the work.
+
+It then hands the work to that specialist with the relevant context. The specialist reads its own instructions and the context the orchestrator passed, does the work, and hands the result back. If the specialist needs help from another specialist along the way, it can delegate again.
+
+You watch all of this happen in the conversation panel. The hand-offs are visible: who asked who, what was passed, what came back. When something goes wrong, you can see exactly which agent to fix.
+
+The mechanism that makes this work is a delegation marker that Rundock injects at spawn time. You do not have to write it into your agents and you should not. The agent's body says **what** to delegate and **to whom**. Rundock provides the rest.
+
+<Note>
+For a full breakdown of how delegation flows between an orchestrator and specialists, see the [Agents](/concepts/agents) concept page.
+</Note>
+
+## Conversations stay local
+
+The whole stack runs on your machine. Your files, your agents, your conversations stay on disk in your workspace. Rundock makes zero outbound network calls.
+
+The only external connection is from Claude Code to Anthropic's API, which is how Claude processes your messages. Only the active conversation is sent for processing. There is no cloud service, no account to create, no database, no telemetry. Your API key is managed by Claude Code, not Rundock.
+
+If a workspace is shared across a team, the shared folder syncs through whatever sync layer the team uses (Dropbox, OneDrive, Google Drive, or git). The sync is between team members directly. Rundock does not see it.
+
+## How a message gets to an agent
+
+The end-to-end shape of one message:
+
+<Steps>
+  <Step title="You type a message in the conversation panel">
+    Rundock receives the message in the browser client and forwards it to the local server.
+  </Step>
+  <Step title="The server identifies the agent">
+    From the conversation context. If the conversation is scoped to a specialist, the message goes to that specialist. If it is scoped to the orchestrator, the orchestrator receives it.
+  </Step>
+  <Step title="Claude Code spawns the agent as a subprocess">
+    The agent's frontmatter and body are loaded as the system prompt. Rundock injects the team roster, delegation mechanics, and scope boundary.
+  </Step>
+  <Step title="The agent processes the message">
+    It may call tools (Read, Write, Bash, MCP servers) and it may delegate to other agents.
+  </Step>
+  <Step title="The response streams back">
+    To the conversation panel. Tool calls and delegation hand-offs are rendered inline so you can see them happen.
+  </Step>
+</Steps>
+
+This is the whole loop. Everything Rundock does, from the agents panel to the org chart to the routines scheduler, is built on top of these primitives.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Agents" icon="users" href="/concepts/agents">
+    What an agent is and how delegation works in detail.
+  </Card>
+  <Card title="Skills" icon="wrench" href="/concepts/skills">
+    Reusable workflows agents can invoke.
+  </Card>
+  <Card title="Workspaces" icon="folder" href="/concepts/workspaces">
+    What is in a workspace and what stays local.
+  </Card>
+  <Card title="Routines" icon="clock" href="/concepts/routines">
+    Scheduled prompts that fire on a cadence.
+  </Card>
+</CardGroup>
