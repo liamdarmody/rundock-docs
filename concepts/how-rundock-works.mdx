@@ -30,6 +30,10 @@ Knowledge files are anything else: brand documents, voice profiles, ICP definiti
 
 The `.claude/` folder is hidden by default in Finder and File Explorer. Cloud sync services handle hidden folders correctly. There is nothing magic about the structure: it is just a folder.
 
+<Frame caption="The workspace inside Rundock. Same folder you see in Finder. Same files you can edit in any text editor.">
+  <img src="/images/file-browser.png" alt="Rundock file browser sidebar showing workspace folders (Daily Notes, Inbox, Projects, Areas, Resources, Archive, System) with a markdown file open in the preview pane." />
+</Frame>
+
 ## The org chart is a view, not a system
 
 The org chart you see in Rundock is a visual layer over the agent files. Each card on the chart is one file in `.claude/agents/`. The position, the colour, the icon, and the role label all come from the YAML frontmatter at the top of that file.
@@ -45,6 +49,10 @@ You send a message to the orchestrator. The orchestrator reads its instructions,
 It then hands the work to that specialist with the relevant context. The specialist reads its own instructions and the context the orchestrator passed, does the work, and hands the result back. If the specialist needs help from another specialist along the way, it can delegate again.
 
 You watch all of this happen in the conversation panel. The hand-offs are visible: who asked who, what was passed, what came back. When something goes wrong, you can see exactly which agent to fix.
+
+<Frame caption="Delegation is visible. The orchestrator hands work to a specialist; you see who asked who, what was passed, what came back.">
+  <img src="/images/conversation-flow.png" alt="Rundock conversation view: sidebar showing parallel conversation threads with active agent indicators, conversation panel showing the orchestrator handing work to a specialist agent." />
+</Frame>
 
 The mechanism that makes this work is a delegation marker that Rundock injects at spawn time. You do not have to write it into your agents and you should not. The agent's body says **what** to delegate and **to whom**. Rundock provides the rest.
 

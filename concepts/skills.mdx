@@ -71,6 +71,10 @@ This pass takes precedence. An agent matched in Pass 1 is not considered again i
 
 **Pass 2: implicit assignment via body-text scan.** For every agent not matched in Pass 1, Rundock reads the agent's body and tests whether the skill's slug appears as a distinct word-boundary token. Mentioning a skill slug in prose attaches the skill. Mentioning it as part of a larger token does not.
 
+<Frame caption="The skills panel shows what each skill is and which agents own it. The Used By row makes assignment visible without opening any agent file.">
+  <img src="/images/skills-detail.png" alt="Rundock skills sidebar with the Slide Design skill open, showing the description and the Used By panel listing Des as the assigned agent." />
+</Frame>
+
 Use explicit assignment when the relationship is permanent and load-bearing (Dev owns `git-workflow`; Penn owns `linkedin-hook-generator`). Let body-text fallback handle weaker references.
 
 A skill can be assigned to multiple agents. The skill's profile shows a "Used by" row listing every agent it is attached to.
