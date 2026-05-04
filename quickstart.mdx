@@ -1,9 +1,9 @@
 ---
 title: 'Quick start'
-description: 'A working agent doing real work in under ten minutes.'
+description: 'See a Rundock team work, then build a two-agent version in under ten minutes.'
 ---
 
-This is the shortest route from a fresh install to an agent doing something useful. It uses one concrete example: a Content Writer who drafts LinkedIn post ideas. Follow it as written and you will have a named agent you can keep using, not a hello-world placeholder.
+The shortest route from a fresh install to seeing what makes Rundock different. Watch a real team work first, then build a smaller version of the same shape.
 
 If you have not yet installed Rundock or completed first-run setup, do those first: [Installation](/installation), [First-run setup](/first-run).
 
@@ -11,23 +11,30 @@ If you have not yet installed Rundock or completed first-run setup, do those fir
 
 You need:
 
-- Rundock open.
-- A workspace selected (the folder you picked during first-run).
+- Rundock open with a workspace selected (the folder you picked during first-run).
 - A topic you know well enough to judge whether the writing is any good. Pick one before you start. The whole exercise depends on you being able to tell the difference between a good draft and a generic one.
 
-## 1. Confirm your workspace
+## 1. See the team work
 
-Look at the bottom-left of the Rundock window. The active workspace folder should be shown. If it is not the one you want to use, switch workspaces in the workspace settings drawer before continuing.
+<Frame caption="A real Rundock conversation: the Content Writer asks the Researcher for evidence, the Researcher returns it, the Content Writer uses it to finish the draft. Hand-offs visible in the panel.">
+  <img src="/images/conversation-flow.png" alt="Rundock conversation view: sidebar showing parallel conversation threads with active agent indicators, conversation panel showing the orchestrator handing work to a specialist agent." />
+</Frame>
 
-## 2. Create the Content Writer
+This is the experience. A chatbot tries to do every job at once and produces something generic. A Rundock team specialises, hands off, and produces something specific.
 
-Open the agents panel and add a new agent. Or, if Doc is still in the conversation, ask Doc to help you create one. Either route writes a markdown file to your workspace.
+The conversation above shows two named agents working together: the Content Writer, who drafts, and the Researcher, who finds supporting evidence. You see who asked who, what was passed, what came back. When the draft lands, you know exactly which agent did what.
 
-Use these values:
+Build a smaller version of this team in the next two steps. Both agents at once. The single-agent setup is the chatbot version, and that is not what Rundock is for.
 
-- **Name:** `content-writer` (lowercase, hyphenated, this becomes the filename).
-- **Display name:** Content Writer (or a shorter character-style name if you prefer).
-- **Role:** Content Writer.
+## 2. Set up two agents at once
+
+Open the agents panel and create two agents. The first is the Content Writer; the second is the Researcher. Either route writes a markdown file to your workspace.
+
+### The Content Writer
+
+- **Name:** `content-writer` (lowercase, hyphenated, becomes the filename)
+- **Display name:** Content Writer
+- **Role:** Content Writer
 
 Paste this into the instructions field as a starting point:
 
@@ -40,52 +47,38 @@ Your job is to produce drafts the user can edit, not finished work. Always
 return three options for any draft request, with a short note on what
 each one is doing differently.
 
+When a draft needs supporting evidence, hand the research subtask to the
+Researcher and use the evidence in the draft.
+
 Match the user's voice. If you do not know the voice yet, ask for an
 example post the user has written and use that as the reference.
 
-Stay in your lane. You do not handle research, scheduling, ops, or
-strategy. If a request is outside content drafting, say so briefly and
+Stay in your lane. You do not handle research yourself, scheduling, ops,
+or strategy. If a request is outside content drafting, say so briefly and
 hand back to the user.
 ```
 
-Save the agent. It now appears on the org chart.
+Save the agent.
 
-## 3. Start a conversation
-
-Click the Content Writer on the org chart. The conversation panel opens, scoped to that agent.
-
-Send a real task. Use this template, with your topic substituted in:
-
-```
-Draft three LinkedIn post ideas about [your topic]. Each one a different angle.
-Short, conversational, no jargon.
-```
-
-The Content Writer will produce three drafts and a note on what each one is doing.
-
-## 4. Review what comes back
-
-Read the three drafts. Pick the one closest to what you would actually post. If none of them are useful yet, do not try to fix the agent on the first pass: send a follow-up message saying what is missing ("the second one is the closest, but the opening line is too generic, give me three new variations on that angle"). The conversation continues, and the agent uses your feedback as context for the next round.
-
-This is the loop. You give direction, the agent executes, you give more direction.
-
-## 5. Optional: add a Researcher and watch delegation
-
-Once the Content Writer is working, create a second agent:
+### The Researcher
 
 - **Name:** `researcher`
 - **Display name:** Researcher
 - **Role:** Researcher
 
-Use this starter instruction:
+Paste this into the instructions field:
 
 ```markdown
 You are the Researcher. You find supporting facts, statistics, and
 references for the rest of the team. When the Content Writer or another
 agent needs evidence for a draft, they hand the question to you.
 
-Return findings as short bullet points with sources. Do not write prose.
+Return evidence as short bullet points with sources. Do not write prose.
 The agent that called you will use your output as raw material.
+
+Be precise about provenance. Always include the source name and a date
+where possible. If a stat is hard to verify, say so rather than softening
+the number.
 
 You do not draft, edit, or publish. If you receive a request outside
 research, hand it back.
@@ -93,21 +86,48 @@ research, hand it back.
 
 Save. The org chart now shows two specialists.
 
-Open a fresh conversation with the Content Writer and ask it for a post that needs supporting evidence:
+## 3. Send a task that needs both
+
+Open a conversation with the Content Writer (click its card on the org chart). Send a task that requires evidence:
 
 ```
 Draft a LinkedIn post arguing that [your point of view on your topic].
 Include two supporting statistics from credible sources.
 ```
 
-The Content Writer will recognise that it needs research and delegate to the Researcher. You see both sides of the conversation: the Content Writer asking, the Researcher answering, the Content Writer using the answer to finish the draft.
+Watch what happens. The Content Writer reads the request, recognises it needs research, and delegates the supporting-statistics subtask to the Researcher. You see both sides of the conversation: the Content Writer asking, the Researcher answering, the Content Writer using the answer to finish the draft.
 
 This is what makes Rundock different from a chatbot. The work is done by a team, in front of you, and you are watching the team coordinate.
 
+## 4. Review and iterate
+
+Read the draft. Decide whether the Researcher's evidence was used well. Decide whether the post is something you would publish.
+
+If the draft needs work, do not try to fix the agents on the first pass. Send a follow-up message saying what is missing. For example:
+
+```
+The opening line is too generic. The second statistic is good but too
+old. Give me a fresh draft with a stronger hook and one current stat
+from this year.
+```
+
+The conversation continues. The Content Writer uses your feedback as context for the next round, and delegates again to the Researcher if it needs new evidence. You give direction, the team executes, you give more direction. This is the loop.
+
+You now have a working two-agent team you can keep using. From here you can adjust either agent's instructions, add more specialists, write skills, or set up routines.
+
 ## Where to next
 
-You now have a working agent (or two) and you have seen delegation happen. From here:
-
-- Read the [Agents concept page](/concepts/agents) to understand how agents and delegation work in more depth.
-- Read the [Workspaces concept page](/concepts/workspaces) to understand what is in your workspace folder and how it is structured.
-- If you are setting up Rundock for a team, follow the [team workspace setup guide](/guides/team-workspace).
+<CardGroup cols={2}>
+  <Card title="Agents" icon="users" href="/concepts/agents">
+    What an agent is and how delegation works in more depth.
+  </Card>
+  <Card title="Workspaces" icon="folder" href="/concepts/workspaces">
+    What is in your workspace folder and what stays local.
+  </Card>
+  <Card title="Create your first agent" icon="pen" href="/guides/create-your-first-agent">
+    A walkthrough of building an agent from scratch when you want to go beyond this example.
+  </Card>
+  <Card title="Set up a team workspace" icon="users" href="/guides/team-workspace">
+    Share your team across multiple people using Dropbox, OneDrive, Google Drive, or git.
+  </Card>
+</CardGroup>
