@@ -3,9 +3,9 @@
   "theme": "mint",
   "name": "Rundock",
   "colors": {
-    "primary": "#6366f1",
-    "light": "#818cf8",
-    "dark": "#4f46e5"
+    "primary": "#E87A5A",
+    "light": "#F09070",
+    "dark": "#E87A5A"
   },
   "favicon": "/favicon.svg",
   "navigation": {
