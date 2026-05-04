@@ -1,0 +1,213 @@
+---
+title: 'Agent file format'
+description: 'Every field in an agent file, with a complete worked example.'
+---
+
+An agent in Rundock is a markdown file at `<workspace>/.claude/agents/<slug>.md`. The filename without `.md` is the agent's slug. The file has two parts: YAML frontmatter at the top, and a markdown body underneath that becomes the agent's system prompt.
+
+This page is the reference. For the concept, see [Agents](/concepts/agents).
+
+## Field categories
+
+Frontmatter fields fall into two categories:
+
+- **Universal** fields work in any tool that supports the Claude agent format. Claude Code, Rundock, and claude.ai all read them.
+- **Rundock-only** fields are read by Rundock and silently ignored by other tools. They control how the agent looks in the org chart and how it relates to other agents.
+
+The parser is intentionally lenient. It accepts standard YAML for the field types listed and silently ignores fields it does not recognise. Typos in field names do not raise an error. If your agent looks generic in the org chart, check field names against the table below.
+
+## Frontmatter fields
+
+| Field | Type | Scope | Required | Purpose |
+|---|---|---|---|---|
+| `name` | string | Universal | Yes | The agent's slug. Should match the filename without the `.md` extension. |
+| `description` | string | Universal | Yes | One-line description. Required by Claude Code: if absent, the agent is silently excluded from spawn. |
+| `model` | string | Universal | No | Claude model to use. Accepts `opus`, `sonnet`, `haiku`, or `inherit`. Falls through to Claude Code's default if omitted. |
+| `tools` | array of strings | Universal | No | Allowed tools for this agent. Read by Claude Code at spawn. Not surfaced in the Rundock UI. |
+| `displayName` | string | Rundock-only | No | Human-readable name shown in the org chart and conversation header. If omitted, Rundock title-cases the slug. |
+| `role` | string | Rundock-only | No | Short role title shown beneath the display name on the org chart card. Two to four words. |
+| `type` | enum | Rundock-only | No | One of `orchestrator`, `specialist`, or `platform`. Determines org chart position. Exactly one orchestrator per workspace. |
+| `order` | number | Rundock-only | No | Numeric position on the org chart among siblings. Orchestrator should be `0`. Decimals (`1.1`, `1.2`) group sub-agents under a parent. |
+| `reportsTo` | string | Rundock-only | No, but recommended for every specialist | The slug of the agent this one reports to. Drives the org chart hierarchy and the delegation chain. |
+| `icon` | string | Rundock-only | No | A single unicode character used as the agent's avatar. Doc reserves `⬡`. Avoid characters that look similar at small sizes. |
+| `colour` | string (hex) | Rundock-only | No | Accent colour for the org chart card. Hex with leading `#`, **quoted**. UK spelling: the field is `colour`, not `color`. |
+| `prompts` | array of strings | Rundock-only | No | Starter prompts shown in the conversation panel on first open. Two to four entries is typical. |
+| `skills` | array of strings | Rundock-only | No | Explicit list of skill slugs. **Block form only**. Inline flow-style arrays (`[a, b]`) parse as empty. Takes precedence over body-text scanning. |
+| `capabilities` | object | Rundock-only | No | Human-readable description for the profile page. Conventional keys: `does`, `reads`, `writes`, `connectors`. |
+| `routines` | array of objects | Rundock-only | No | Scheduled tasks. Each routine has `name`, `schedule`, `prompt`, and an optional `description`. |
+| `maxTurns` | number | Rundock-only | No | Conversation turn cap. Preserved in the file for tooling that reads it directly. Not forwarded to the spawn. |
+| `mcpServers` | array of strings | Rundock-only | No | MCP servers shown on the profile under connectors. Actual MCP selection is governed by the workspace's `.mcp.json` and `.claude/settings.local.json`. |
+| `disallowedTools` | array of strings | Rundock-only | No | Listed for documentation. Not forwarded to the spawn: Rundock derives its disallowed-tools list from workspace mode, not from agent frontmatter. |
+
+## The capabilities object
+
+The capabilities block is shown on the agent's profile page. The parser accepts any string-valued keys, but the conventional structure is:
+
+```yaml
+capabilities:
+  does: One-line summary of what the agent does.
+  reads: The data sources it reads from.
+  writes: What it produces and where.
+  connectors: Named integrations the agent uses.
+```
+
+Each value is a string. The convention is plain prose, not bullet lists.
+
+## The skills array
+
+Use the block form. Inline flow-style arrays do not parse and silently fall through to body-text scanning.
+
+```yaml
+skills:
+  - linkedin-hook-generator
+  - voice-editor
+  - readwise-highlights
+```
+
+Each entry is a skill slug as it appears in `.claude/skills/<slug>/`. Slugs are case-insensitive on the match, but write them lowercase to match directory names.
+
+## The routines array
+
+Each entry is a YAML object with `name`, `schedule`, `prompt`, and an optional `description`.
+
+```yaml
+routines:
+  - name: Morning briefing
+    schedule: every day at 05:00
+    prompt: Run the morning briefing
+    description: Triage today's tasks, calendar, and content pipeline at 5am.
+```
+
+The `schedule` field accepts only specific human-readable forms. Cron is not supported. Routines fire only while Rundock is running. Full reference at [ROUTINES.md](https://github.com/liamdarmody/rundock/blob/main/ROUTINES.md) on GitHub.
+
+## The prompts array
+
+Starter prompts shown in the conversation panel on first open. Each entry is a complete sentence written as the user would phrase it.
+
+```yaml
+prompts:
+  - "Build the feature described in this spec..."
+  - "Review this code before I merge it"
+  - "Break this feature down into tasks"
+  - "Write a spec for..."
+```
+
+## The body
+
+Everything after the closing `---` of the frontmatter is the agent's system prompt. Claude Code loads this verbatim when it spawns the agent.
+
+Write the body in the second person, addressing the agent as "you". This is what Claude Code's spawn loader expects.
+
+What goes in the body:
+
+- The agent's identity (name, role, who they work for).
+- Scope: what the agent handles and what it does not.
+- Delegation rules: which specialists it routes to and for what.
+- Voice or tone guidance specific to the agent.
+- File path conventions, output formats, and skill usage instructions.
+- The "when out of scope, route back" instruction.
+
+What does **not** need to go in the body:
+
+- The team roster. Rundock injects `YOUR TEAMMATES` at spawn time.
+- Delegation marker syntax. Rundock injects the delegation mechanics.
+- The scope boundary on what the agent can and cannot touch. Rundock and Claude Code inject this jointly.
+- Platform routing instructions for Doc. Rundock injects them.
+
+Focus the body on the agent's identity, voice, and unique instructions. Leave the team-shape and platform mechanics to Rundock.
+
+## Workspace modes
+
+Workspace mode is a workspace-level setting, not an agent-level one. There is no per-agent override.
+
+| Mode | What it changes |
+|---|---|
+| **Knowledge mode** (default) | Restricts file writes for executable file types (`.js`, `.py`, `.sh`, etc) so agents cannot accidentally write code in a knowledge-work workspace. Tool permission cards are shown for most operations. |
+| **Code mode** | Removes the executable-file write restriction. Auto-approves common build and dev tools so agents can iterate on code without permission card interruptions. |
+
+Mode is set in the workspace settings drawer in the browser, or by editing `.rundock/state.json` directly:
+
+```json
+{
+  "workspaceMode": "code"
+}
+```
+
+When a workspace is first opened, Rundock auto-detects the likely mode by looking at the file structure (presence of `package.json`, `pyproject.toml`, `Cargo.toml`, etc).
+
+## Complete worked example
+
+Here is a complete agent file, `lead-developer.md`. Every field has been verified against the live agent in the workspace.
+
+```markdown
+---
+name: lead-developer                # slug, must match the filename
+displayName: Dev                    # short character-style name on the org chart
+role: Lead Developer                # short role title beneath the display name
+type: specialist                    # orchestrator, specialist, or platform
+order: 4                            # position on the org chart among siblings
+reportsTo: chief-of-staff           # the slug of the parent agent
+icon: ⌘                             # single unicode character
+colour: "#2ECC71"                   # quoted hex, UK spelling
+model: opus                         # opus, sonnet, haiku, or inherit
+description: >
+  Lead Developer responsible for all software projects, Personal OS automations,
+  and vault infrastructure tooling. Spec-first, incremental, quality-gated engineering.
+prompts:
+  - "Build the feature described in this spec..."
+  - "Review this code before I merge it"
+  - "Break this feature down into tasks"
+  - "Write a spec for..."
+---
+
+# Dev: Lead Developer
+
+You are Dev, Liam's Lead Developer. You own all engineering work: Rundock
+application code, Personal OS automation scripts, and vault infrastructure
+tooling.
+
+You report to Cos (chief-of-staff). You do not handle content creation,
+research, strategy, or product decisions. If a request falls outside
+engineering, route it back to Cos.
+
+## Your scope
+
+(rest of the body covers in-scope domains, working style, atomic commits,
+project registry, and communication style)
+```
+
+Notes on this example:
+
+- `name: lead-developer` matches the filename `lead-developer.md`.
+- `order: 4` places Dev fourth on the chart, after the orchestrator (0) and three earlier specialists.
+- `reportsTo: chief-of-staff` puts Dev on the orchestrator's direct line.
+- `colour` uses the UK spelling. The hex value is quoted: YAML treats a leading `#` as a comment if unquoted.
+- `description` uses YAML's folded-scalar syntax (`>`) so the description spans lines while parsing as a single string.
+- `prompts` are written as the user would phrase them, not as commands.
+
+## Common pitfalls
+
+A few specific things that go wrong silently, in roughly order of frequency.
+
+**Filename does not match `name`.** The filename is the slug. The frontmatter's `name` should match. A mismatch can cause the agent to be invisible to the orchestrator's delegation. Keep them the same.
+
+**Two orchestrators in one workspace.** Only one agent should have `type: orchestrator`. Rundock will surface both, but the delegation chain assumes a single root. The org chart and routing logic will pick one arbitrarily.
+
+**`reportsTo` points to a slug that does not exist.** The reference must resolve to another agent's slug in the same workspace. The Workspace audit catches this.
+
+**Frontmatter validates loosely.** Typos in field names (`displayname` instead of `displayName`, `colors` instead of `colour`) are silently ignored. The agent loads with whatever defaults Rundock assigns.
+
+**`order` collisions.** Two specialists with the same `order` value appear in indeterminate sibling order. Pick a unique integer for each top-level specialist. Use decimals for sub-agents (`1.1`, `1.2`).
+
+**Hex colour without quotes.** YAML treats a `#` at the start of a scalar as the start of a comment. Quote hex colours: `colour: "#E87A5A"`, not `colour: #E87A5A`.
+
+**Inline `skills:` arrays do not parse.** The flow-style `skills: [a, b]` parses as an empty array. Always use the block form with indented `- slug` lines.
+
+**Body says "you must delegate using this exact marker".** Do not write delegation marker syntax into the agent's body. Rundock injects it at spawn time. The body should describe what to delegate and to whom, never the marker format.
+
+**No "out of scope" instruction.** Every specialist should include a short instruction on what to do when a request falls outside its domain: tell the user briefly, do not name other specialists, and emit `<!-- RUNDOCK:RETURN -->` at the end of the response. Without this, the specialist will try to handle out-of-scope work itself.
+
+## Where to next
+
+- The [Agents concept page](/concepts/agents) covers what an agent is and how delegation works at the conceptual level.
+- The full source of truth is `AGENTS.md` in the [Rundock GitHub repo](https://github.com/liamdarmody/rundock/blob/main/AGENTS.md). It includes the parser specifics and tracks any new fields as they ship.

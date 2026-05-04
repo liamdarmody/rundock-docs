@@ -1,0 +1,76 @@
+---
+title: 'Workspaces'
+description: 'What a workspace is, what lives in it, and what stays on your machine.'
+---
+
+A Rundock workspace is a folder on your computer. Everything Rundock uses for one team lives inside that folder: the agent files, the skill files, the workspace-level instructions, and any shared knowledge documents you add. When you open Rundock and select a workspace, it loads everything in the folder.
+
+Workspaces are the unit of separation in Rundock. One workspace is one team. If you want different teams for different parts of your business (a client team and a personal team, for example), you create separate workspaces and switch between them.
+
+## What is in a workspace
+
+Inside a workspace folder, the structure looks like this:
+
+```
+your-workspace/
+  .claude/
+    agents/         # one markdown file per agent
+    skills/         # one folder per skill, each with a SKILL.md
+  CLAUDE.md         # workspace-wide instructions
+  [knowledge files] # anything else you add
+```
+
+What each part is for:
+
+- **`.claude/agents/`**: the agent definition files. One markdown file per agent. The filename is the agent's slug.
+- **`.claude/skills/`**: the skill definition files. One folder per skill, with a `SKILL.md` inside. Skills are reusable instructions an agent can run.
+- **`CLAUDE.md`**: the workspace-wide instructions. Rules and context that apply to every agent in the team. House style, file path conventions, any guidance you want every agent to follow.
+- **Knowledge files**: anything else you put in the folder. Brand documents, ICP definitions, pricing pages, voice profiles, reference material your agents need to read.
+
+The `.claude/` folder is hidden by default in Finder and File Explorer. Cloud sync services handle hidden folders correctly: they sync exactly the same way as visible folders. If you want to inspect the contents directly, enable "Show hidden files" in your file browser.
+
+Concept first, syntax second. The full directory layout reference is being added under the Reference section. The pieces above are what you need to understand the model.
+
+## What syncs, what stays local
+
+A workspace is split into two parts: the shared team content, and the per-user state.
+
+**The workspace folder syncs.** Everything inside the folder is meant to be shared across the team. Agents, skills, workspace instructions, and knowledge documents. When the team admin adds a new agent, every team member gets it. When someone updates a skill, the change propagates. The full setup for sharing a workspace across a team is on the [team workspace setup guide](/guides/team-workspace).
+
+**Per-user state stays on the machine.** Some things should never leave the individual user. Rundock keeps these outside the workspace folder, in a hidden directory at `~/.rundock/`:
+
+- API keys and other secrets.
+- MCP server configurations.
+- Conversation history and session data.
+- Per-user preferences (model choice, theme, permissions).
+
+This split is by design. Agents and shared knowledge belong to the team. Credentials and sessions belong to the individual.
+
+The split as a quick table:
+
+| Lives in workspace folder (syncs) | Lives in `~/.rundock/` (stays local) |
+|---|---|
+| `.claude/agents/` | API keys |
+| `.claude/skills/` | MCP server configurations |
+| `CLAUDE.md` | Conversation history |
+| Knowledge documents | Per-user preferences |
+
+If you accidentally place `~/.rundock/` inside a synced folder (Dropbox, OneDrive, Google Drive), you will leak secrets to anyone with access to that sync location. Rundock keeps it outside the workspace by design. Do not move it.
+
+## Single-workspace model today
+
+Rundock's current model is one workspace per team. Every member of the team sees the same agents and skills, with no per-team or per-role permission tiering inside the workspace.
+
+This is the right shape for solopreneurs and small teams. As your team grows, you may want finer-grained organisation: separate company-level agents, team-specific agents, and personal agents, with controlled visibility between layers.
+
+Finer-grained workspace organisation is on the roadmap. Until it ships, the supported pattern is one synced folder per team. The [team workspace setup guide](/guides/team-workspace) covers it in full.
+
+## Mid-conversation updates
+
+A specific behaviour worth knowing about: when an agent file is updated while you are mid-conversation, the change takes effect at the start of your next conversation, not in the active one. Active conversations continue with the version that was loaded when they began. If you are tweaking an agent and want to see the effect, finish the current conversation and start a fresh one.
+
+## Where to next
+
+- The [agents concept page](/concepts/agents) covers what an agent is and how delegation works.
+- The [team workspace setup guide](/guides/team-workspace) walks through sharing a workspace across multiple people, including which sync layer to choose.
+- The [first-run setup page](/first-run) covers how you choose or create a workspace the first time you open Rundock.

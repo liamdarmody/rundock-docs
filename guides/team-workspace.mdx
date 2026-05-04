@@ -1,0 +1,201 @@
+# Team Workspace Setup Guide
+
+Setting up Rundock for a team is straightforward. Your workspace lives in a folder, your team syncs that folder using a tool you already use, and Rundock handles the rest. This guide walks through the supported sync options, the trade-offs, and what each team member needs to do.
+
+## What this guide covers
+
+- How a Rundock team workspace works
+- Which sync tools are supported, and which to choose
+- Step-by-step setup for each supported sync tool
+- Platform notes for Mac and Windows
+- Security and access considerations
+- Current limits and what's planned next
+
+## How a team workspace works
+
+A Rundock workspace is a folder on your computer. Inside that folder live your agents, skills, knowledge documents, and shared workspace instructions. When you start Rundock, you point it at the folder and it loads everything it finds.
+
+To turn a single-user workspace into a team workspace, you put the workspace folder inside a synced location: a Dropbox folder, a OneDrive folder, a Google Drive folder, or a git repository. Your sync tool keeps the folder identical across every team member's machine. Each person installs Rundock locally, points it at their copy of the synced folder, and has the same agents and skills as everyone else.
+
+Rundock itself does not need accounts, logins, or cloud infrastructure. The sync layer handles everything that needs to be shared.
+
+## What syncs, what stays local
+
+The shared workspace folder contains everything the team works with together:
+
+- `.claude/agents/`: agent definitions
+- `.claude/skills/`: skill definitions and supporting files
+- `CLAUDE.md`: workspace-wide instructions and rules
+- Any knowledge documents and shared files you add
+
+These files sync. Every team member gets the same versions.
+
+Each team member also has private state that never leaves their machine:
+
+- API keys and other secrets
+- MCP server configurations
+- Conversation history and session data
+- Per-user preferences (model choice, theme, permissions)
+
+This split is by design. Agents and shared knowledge belong to the team. Credentials, sessions, and personal preferences belong to the individual.
+
+A note on hidden folders: the `.claude/` directory is hidden by default in Finder (Mac) and File Explorer (Windows). Cloud sync services handle hidden folders correctly. They sync the same way as any other folder. If you want to inspect the contents directly, enable "Show hidden files" in your file browser.
+
+## Choose your sync layer
+
+| Sync tool | Best for | Conflict handling | Cost |
+|---|---|---|---|
+| **Dropbox Business** | Most teams, especially non-technical | Conflict copies (safe) | $12 to $18 per user, per month |
+| **Microsoft OneDrive** | Teams already on Microsoft 365 | Conflict copies (safe) | $6 per user, per month |
+| **Google Workspace** | Teams already on Google Workspace | Last write wins (poor) | $7 per user, per month |
+| **Git (GitHub or GitLab)** | Technical teams who want full audit trail | Smart merge | $0 to $4 per user, per month |
+
+**Recommended for most teams:** Dropbox Business. The simplest to set up, the safest conflict behaviour, and consistent on Mac and Windows.
+
+**For Microsoft 365 teams:** OneDrive. Familiar setup if you already use Microsoft 365. Read the security note on Microsoft 365 Copilot before deploying.
+
+**For technical teams:** Git. Full audit trail, smart merge, and the lowest ongoing cost. Requires comfort with git on every team member's machine.
+
+### Other sync tools
+
+- **iCloud Drive** is unsupported. macOS automatically evicts iCloud files to "online-only" stubs when local storage is low, which breaks Rundock's file watcher. There is also a known compatibility issue between Rundock's watcher and iCloud Drive directories.
+- **Syncthing** works for syncing the workspace folder, but has no per-folder access control. Suitable only for solo cross-device use, or for teams where every member should see every file.
+- **Obsidian Sync** is vault-scoped and Obsidian-only. Useful only if your workspace already lives inside an Obsidian vault.
+- **Resilio Sync** works and supports per-user folder permissions. Use it if you need a self-hosted, peer-to-peer sync layer with access control. Closed source.
+
+## Setup: Dropbox Business
+
+Steps for the team admin and each team member.
+
+### Admin: create the shared workspace folder
+
+1. Sign in to Dropbox Business as the team admin.
+2. Create a new shared folder. Use a name specific to your company, like `Acme-Rundock-Workspace`.
+3. Inside the folder, create the initial workspace structure:
+   ```
+   Acme-Rundock-Workspace/
+     ├── .claude/
+     │   ├── agents/
+     │   └── skills/
+     └── CLAUDE.md
+   ```
+   The `.claude/` folder is hidden by default. To create it, use Terminal (Mac) or PowerShell (Windows) rather than Finder or File Explorer.
+4. Share the folder with each team member at the appropriate access level: edit access for users who should be able to add or modify agents and skills, view-only for users who should use the agents but not change them.
+
+### Each team member: connect Rundock
+
+1. Install Dropbox on your machine and sign in.
+2. Wait for the shared workspace folder to sync. On Mac, you'll find it under `~/Library/CloudStorage/Dropbox-[YourTeam]/`. On Windows, under `C:\Users\[you]\Dropbox\[YourTeam]\`.
+3. Open Rundock. On first launch, the folder picker asks "Which folder is your workspace?" Select the synced workspace folder.
+4. Rundock loads. You now have access to every agent and skill in the shared workspace.
+
+When the admin or another team member adds or updates an agent, Dropbox propagates the change to your machine within seconds. Rundock picks up the change at the start of your next conversation.
+
+### Notes for Dropbox
+
+- **On Mac (macOS 12.5 and later),** Dropbox uses Apple's File Provider API. Workspace files may be evicted to online-only stubs if your local disk runs low. To prevent this, right-click the workspace folder in Finder and choose **Make available offline**. Repeat for any sub-folders you want guaranteed local.
+- **On Windows,** if your Dropbox folder name contains parentheses (the default for some Dropbox configurations is "Dropbox (Personal)" or "Dropbox (Company Name)"), Rundock's file watcher may behave unpredictably. If you notice missed updates, contact Dropbox support to rename the folder.
+- **Dropbox Personal** works for small teams that don't need admin governance. Dropbox Business adds admin controls (audit logs, sign-in-as-user, device management) and is the safer choice for client work.
+
+## Setup: Microsoft OneDrive
+
+Steps for the team admin and each team member.
+
+### Admin: create the shared workspace folder
+
+1. In OneDrive (or SharePoint), create a folder for your workspace.
+2. Inside it, create the workspace structure shown in the Dropbox section above.
+3. Share the folder with each team member. Use **Specific people** sharing rather than **Anyone with the link**. Set view or edit access per user.
+
+### Each team member: connect Rundock
+
+1. Install the OneDrive client and sign in.
+2. Sync the shared workspace folder. On Windows, this is automatic if Files On-Demand is enabled. On Mac, the folder mirrors to a local path under your home directory.
+3. **Pin the workspace folder for offline use.** Right-click the folder in File Explorer or Finder and choose **Always keep on this device**. This prevents OneDrive from evicting workspace files when local storage is low.
+4. Open Rundock and use the folder picker to select your synced workspace folder.
+
+### Notes for OneDrive
+
+- **Mac users on case-sensitive APFS volumes:** OneDrive does not sync to case-sensitive APFS volumes. If your Mac was set up with the case-sensitive option (uncommon, but possible), OneDrive will refuse to sync. The fix is a separate case-insensitive APFS volume, which usually requires admin assistance.
+- **Microsoft 365 Copilot semantic index:** if your tenant has Copilot enabled, the contents of the workspace folder are automatically included in the semantic index. Any user with access to the folder can have its contents surface in their Copilot answers. This is not a Rundock-specific issue. It applies to any document in OneDrive when Copilot is on. If your workspace contains sensitive context, audit who has access before deploying.
+- **Restricted characters on Windows:** OneDrive on Windows replaces certain characters (`< > : " | ? *`) in filenames. If you sync a workspace originally created on Mac, files using these characters in their names will be silently renamed on Windows. Avoid these characters in agent and skill filenames.
+
+## Setup: Google Workspace
+
+Steps for the team admin and each team member.
+
+### Admin: create the shared workspace folder
+
+1. In Google Drive, create a folder for the workspace. Use **My Drive** rather than a Shared Drive. Shared Drives can only be streamed, not mirrored, which is unreliable for Rundock.
+2. Inside the folder, create the workspace structure shown earlier.
+3. Share the folder using **Specific people** sharing. Set view or edit access per user.
+
+### Each team member: connect Rundock
+
+1. Install Google Drive for Desktop and sign in.
+2. **Choose mirror mode, not stream mode** for the shared folder. Mirror mode keeps the folder fully local. Stream mode keeps files cloud-primary, which means Rundock's file watcher cannot reliably read them.
+3. Open Rundock and use the folder picker to select the synced workspace folder.
+
+### Notes for Google Drive
+
+- **Conflict handling is the weakest of the four options.** When two people edit the same file at the same time, Google Drive silently overwrites one version. There is no conflict copy and no warning. If multiple people regularly edit the same agent or skill file, this is a real risk. Either coordinate edits, or pick a different sync tool.
+- **Gemini in Workspace:** Gemini respects Drive sharing permissions. The risk is over-sharing the folder (using "Anyone with the link" or organisation-wide sharing), which makes the workspace content available to Gemini for everyone in your organisation. Use named-user sharing only.
+
+## Setup: Git (GitHub or GitLab)
+
+For technical teams comfortable with git.
+
+### Admin: create the repository
+
+1. Create a private repository in GitHub or GitLab.
+2. Set the team's access at the repository level. Use teams or roles to manage who can read and who can write.
+3. Initialise the repository with the workspace structure shown earlier.
+4. Add a `.gitattributes` file at the root with `* text=auto eol=lf`. This prevents line-ending noise from Windows team members.
+
+### Each team member: clone and connect
+
+1. Clone the repository to a local folder.
+2. Open Rundock and use the folder picker to select your local clone.
+3. Pull updates regularly to get changes. Push your changes when you make updates.
+4. Optional: install an auto-sync wrapper (a small script or commit-on-save tool) that runs `git add`, `git commit`, and `git push` every 30 to 60 seconds when files change. This gives you near-real-time sync without manual git operations.
+
+### Notes for git
+
+- **Smart merge:** non-overlapping edits to the same file resolve automatically on pull. Overlapping edits produce a merge conflict that one team member must resolve manually.
+- **Branch protection (optional):** for high-trust workflows, protect the main branch and require pull requests for changes to `.claude/agents/` or `CLAUDE.md`. This adds review to anything that changes shared agent behaviour.
+- **CODEOWNERS (optional):** use a CODEOWNERS file to require specific reviewers for sensitive paths.
+
+## Platform notes
+
+A short list of cross-cutting things to know.
+
+### Mac
+
+- All sync tools (Dropbox, OneDrive, Google Drive) on macOS 12 and later use Apple's File Provider API. Files may be moved to online-only stubs when local storage is low. Pin the workspace folder for offline use in every sync tool.
+- Default APFS volumes are case-insensitive. If your volume is case-sensitive, OneDrive will refuse to sync. Other sync tools work but may surface case conflicts in unexpected ways.
+
+### Windows
+
+- The 260-character path length limit still applies on Windows by default. Long workspace paths (deep nesting plus long folder names) can hit this limit. Keep the workspace at a short root path like `C:\Rundock\` if possible.
+- Avoid these characters in filenames: `< > : " | ? *`. They are valid on Mac but silently renamed on Windows.
+- If you use git, configure line endings: a `.gitattributes` file with `* text=auto eol=lf` prevents Windows CRLF endings from showing every edit as a full-file change in git.
+
+## Security and access
+
+- **Don't sync your `~/.rundock/` folder.** This folder contains your API keys, OAuth credentials, and session history. It is meant to stay on your machine. If you accidentally place it inside Dropbox, OneDrive, or Google Drive, you will leak secrets to anyone with access to that sync location. Rundock keeps `~/.rundock/` outside the workspace folder by design. Don't move it.
+- **Use named-user sharing.** For Dropbox, OneDrive, and Google Drive, share the workspace folder with specific people, not via "Anyone with the link" or organisation-wide sharing. This prevents accidental exposure.
+- **Microsoft 365 Copilot.** As noted in the OneDrive section, the M365 semantic index automatically includes workspace content. Audit who has access before enabling.
+- **Admin visibility.** All cloud sync services give admins the ability to access user content. Dropbox Business, OneDrive, and Google Workspace admins can view your workspace folder. Don't store anything in the shared workspace that you wouldn't want visible to your IT admin.
+
+## Limits to know about
+
+- **Single shared folder.** Today, every team member sees the same agents and skills. There is no per-team or per-role permission tiering within the workspace. As your team grows, this may feel limiting. See "What's next" below.
+- **Async sync.** Updates propagate when the sync tool decides. Dropbox and OneDrive are typically near-instant for small files. Google Drive can be slower. Git syncs only when someone pushes (or on the auto-sync interval).
+- **Mid-conversation updates.** If an agent is updated while you're mid-conversation, the change takes effect at the start of your next conversation. Active conversations continue with the version loaded at start.
+- **Each user manages their own MCP setup.** API keys, OAuth credentials, and MCP server configurations are per-user. The shared workspace does not configure MCP for the team. Each team member sets up the integrations they need on their own machine.
+
+## What's next
+
+Finer-grained workspace organisation is on the roadmap: separate company, team, and personal folders with different permission levels, so you can have shared company agents alongside team-specific ones with controlled visibility. Until then, the single-folder model in this guide is the supported pattern.
+
+If your team has a specific need this guide doesn't cover, get in touch.

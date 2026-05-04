@@ -1,0 +1,102 @@
+---
+title: 'Agents'
+description: 'What an agent is in Rundock, and how delegation between agents works.'
+---
+
+An agent is a named role with its own instructions. In Rundock, every agent is a markdown file with a name, a one-line description, and a body that tells the agent how to behave. Together those agents form your team.
+
+## What an agent is
+
+An agent file lives in your workspace at:
+
+```
+<workspace>/.claude/agents/<slug>.md
+```
+
+The filename without the `.md` extension is the agent's slug. The slug is what other agents reference when they delegate, what Claude Code looks for when it spawns the agent, and what Rundock uses to draw the org chart.
+
+Inside the file, the YAML frontmatter at the top declares the agent's identity (name, role, where it sits on the org chart, the model it uses, an icon and colour). The body underneath is the agent's instructions: who it is, what it does, what it does not do, and how it should communicate.
+
+Two examples of what that looks like in practice:
+
+```yaml
+---
+name: content-writer
+displayName: Content Writer
+role: Content Writer
+type: specialist
+order: 1
+reportsTo: chief-of-staff
+---
+```
+
+```yaml
+---
+name: chief-of-staff
+displayName: Cos
+role: Chief of Staff
+type: orchestrator
+order: 0
+---
+```
+
+The full field reference is on the [agent file format](/reference/agent-file-format) page. This page covers the concept, not the syntax.
+
+## Two types of agent
+
+Rundock recognises two roles in the team.
+
+**The orchestrator.** One agent per workspace, sitting at the top of the org chart. The orchestrator receives most of your messages, reads the org chart, and decides which specialist to hand each piece of work to. Its job is to route, not to do the work itself.
+
+**Specialists.** Every other agent on the team. Each one owns a domain: content, research, ops, sales, design, engineering, or whatever shape your work takes. Specialists do the actual work and report back to the orchestrator (or to a lead specialist, if your team has sub-agents).
+
+There is also a third category, platform agents, which Rundock manages itself. The only one today is Doc, the built-in guide. You do not create platform agents and they sit below a divider in the team list, separate from your own team.
+
+## How delegation works
+
+Delegation is the move that turns a chat into a team. Here is the shape of it.
+
+You send a message to the orchestrator: "draft a LinkedIn post on the launch and pull two supporting stats from the research."
+
+The orchestrator reads its instructions. The instructions name the specialists on the team and describe what each one is for. Based on the request, the orchestrator decides this needs the Content Writer, and the Content Writer is going to need help from the Researcher.
+
+The orchestrator hands the work to the Content Writer with the relevant context. The Content Writer drafts the post, recognises it needs evidence, and delegates the research subtask to the Researcher. The Researcher returns findings. The Content Writer finishes the draft and hands it back up.
+
+You see all of this in the conversation panel. The delegation is visible: who asked who, what they passed, what came back. When you find a step that is going wrong, you can see exactly which agent to fix.
+
+The mechanism that makes this work is a delegation marker that Rundock injects at spawn time. You do not have to write it into your agent's instructions, and you should not. The agent's body says **what** to delegate and **to whom** ("if a request involves research, hand it to the Researcher"); Rundock provides the rest.
+
+## The instructions body
+
+The instructions body is the most important part of an agent file. The frontmatter is a few short fields that define identity. The body is everything that defines behaviour.
+
+What good instructions look like:
+
+- **The agent's identity.** "You are the Content Writer. You draft short-form written content for the user."
+- **Scope.** What the agent handles and what it does not. Clear in-scope examples and clear out-of-scope examples.
+- **Delegation rules.** Which specialists this agent hands work to, and for what kind of request.
+- **Voice and style guidance.** How the agent should sound. House rules. Things to avoid.
+- **Output format.** Where the agent writes its work, what file paths it uses, what the deliverable looks like.
+- **Out-of-scope handling.** What to do when a request falls outside the agent's domain. The standard pattern is to say briefly that the request is outside scope and hand it back to the orchestrator.
+
+What does not need to go in the body: the team roster, the delegation marker syntax, or instructions on how to talk to other agents. Rundock injects that context at spawn time. The body should focus on identity, scope, and voice.
+
+Quality of instructions determines quality of output. A vague body produces a vague agent. A specific body, with clear examples and clear boundaries, produces an agent you can trust with real work.
+
+## Agents are portable
+
+A Rundock agent file is a Claude Code agent file. The same markdown file works in three places:
+
+- **Rundock** on the desktop, with the org chart and the visual interface.
+- **Claude Code** on the terminal, where the agent is spawned by slug.
+- **claude.ai** on the web, where the agent format is also recognised.
+
+Rundock-specific fields (display name, role, order, the icon and colour for the org chart card) are additive. Other tools ignore them. The shared format means your agents are not locked inside Rundock. If you decide later you want to run them somewhere else, you can.
+
+This is why agents are markdown files rather than database rows. You own them, you can read them, you can edit them outside Rundock, and you can take them with you.
+
+## Where to next
+
+- The [agent file format reference](/reference/agent-file-format) documents every field in the frontmatter and the conventions for the body.
+- The [workspaces concept page](/concepts/workspaces) explains how agent files relate to the rest of the workspace.
+- The [team workspace setup guide](/guides/team-workspace) covers how to share a team of agents across multiple people.

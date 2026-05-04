@@ -1,0 +1,79 @@
+---
+title: 'Installation'
+description: 'Get from zero to Rundock open on your machine.'
+---
+
+Rundock runs locally. There is nothing to provision and no account to create. You install Claude Code, install Rundock, and open it.
+
+Two paths below. Most users want Path A.
+
+## Path A: Apple Silicon Mac (recommended)
+
+For Macs with M1 or later. The fastest route to a working Rundock.
+
+### 1. Install Claude Code
+
+Rundock relies on Claude Code to run agents. Claude Code is Anthropic's command-line agent and it requires a Claude Pro or Max subscription.
+
+Follow the official guide at [docs.anthropic.com/en/docs/claude-code/overview](https://docs.anthropic.com/en/docs/claude-code/overview) to install and authenticate.
+
+### 2. Confirm Claude Code is working
+
+Open Terminal and run:
+
+```bash
+claude --version
+```
+
+You should see a version number. If you see "command not found", Claude Code is not installed correctly. Go back to step 1.
+
+### 3. Download Rundock
+
+Get the latest `.dmg` from the releases page on GitHub:
+
+[github.com/liamdarmody/rundock/releases](https://github.com/liamdarmody/rundock/releases)
+
+The `.dmg` is signed for Apple Silicon. Intel Macs need Path B.
+
+### 4. Install Rundock
+
+Open the downloaded `.dmg` file and drag the Rundock icon to your Applications folder. Eject the `.dmg` once the copy completes.
+
+### 5. Open Rundock
+
+Open Rundock from Applications, Spotlight, or Launchpad.
+
+On first launch, macOS may show an unverified developer warning. To allow it:
+
+1. Open System Settings.
+2. Go to Privacy and Security.
+3. Scroll down to the Security section. You will see a note about Rundock being blocked.
+4. Click Open Anyway.
+
+Rundock will open. Continue to [first-run setup](/first-run).
+
+## Path B: Intel Mac, Windows, Linux, or build from source
+
+For anyone not on Apple Silicon, or anyone who wants to run Rundock from source.
+
+### Requirements
+
+- Node.js 20 or later. Check with `node --version`.
+- Claude Code installed and authenticated. Confirm with `claude --version`.
+
+### Clone, install, and run
+
+```bash
+git clone https://github.com/liamdarmody/rundock.git
+cd rundock
+npm install
+npm start
+```
+
+Open [http://localhost:3000](http://localhost:3000) in your browser. Rundock loads in the browser and behaves the same as the desktop app.
+
+The local setup path is also the contributor path. If you want to modify Rundock or contribute changes, this is the route to take. The Contributing section covers it in more depth.
+
+## Where to next
+
+Whichever path you took, Rundock is now running. Continue to [first-run setup](/first-run) for what happens on first open.
