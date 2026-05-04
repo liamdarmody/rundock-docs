@@ -22,20 +22,29 @@
       {
         "group": "Concepts",
         "pages": [
+          "concepts/how-rundock-works",
           "concepts/agents",
-          "concepts/workspaces"
+          "concepts/skills",
+          "concepts/workspaces",
+          "concepts/routines"
         ]
       },
       {
         "group": "Guides",
         "pages": [
-          "guides/team-workspace"
+          "guides/team-workspace",
+          "guides/create-your-first-agent",
+          "guides/write-a-skill",
+          "guides/set-up-a-routine"
         ]
       },
       {
         "group": "Reference",
         "pages": [
-          "reference/agent-file-format"
+          "reference/agent-file-format",
+          "reference/skill-file-format",
+          "reference/routine-format",
+          "reference/workspace-structure"
         ]
       }
     ]
