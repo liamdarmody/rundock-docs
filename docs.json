@@ -32,10 +32,10 @@
       {
         "group": "Guides",
         "pages": [
-          "guides/team-workspace",
           "guides/create-your-first-agent",
           "guides/write-a-skill",
-          "guides/set-up-a-routine"
+          "guides/set-up-a-routine",
+          "guides/team-workspace"
         ]
       },
       {
