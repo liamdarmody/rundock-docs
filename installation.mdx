@@ -5,9 +5,13 @@ description: 'Get from zero to Rundock open on your machine.'
 
 Rundock runs locally. There is nothing to provision and no account to create. You install Claude Code, install Rundock, and open it.
 
-Two paths below. Most users want Path A.
+Pick the path that matches your machine:
 
-## Path A: Apple Silicon Mac (recommended)
+- Apple Silicon Mac → **Path A**
+- Windows 10 or 11 → **Path B**
+- Intel Mac, Linux, or building from source → **Path C**
+
+## Path A: Apple Silicon Mac
 
 For Macs with M1 or later. The fastest route to a working Rundock.
 
@@ -33,7 +37,7 @@ Get the latest `.dmg` from the releases page on GitHub:
 
 [github.com/liamdarmody/rundock/releases](https://github.com/liamdarmody/rundock/releases)
 
-The `.dmg` is signed for Apple Silicon. Intel Macs need Path B.
+The `.dmg` is signed for Apple Silicon. Intel Macs need Path C.
 
 ### 4. Install Rundock
 
@@ -52,9 +56,62 @@ On first launch, macOS may show an unverified developer warning. To allow it:
 
 Rundock will open. Continue to [first-run setup](/first-run).
 
-## Path B: Intel Mac, Windows, Linux, or build from source
+## Path B: Windows (interim)
 
-For anyone not on Apple Silicon, or anyone who wants to run Rundock from source.
+<Note>
+This path is interim and will be retired when the proper Windows installer ships. Until then, it is the recommended way to get Rundock onto a Windows machine without a real terminal session.
+</Note>
+
+For Windows 10 or 11. A single PowerShell line installs everything Rundock needs.
+
+### 1. Open PowerShell
+
+Press the Windows key, type "PowerShell", and open it. The standard PowerShell window is fine; you do not need to run as administrator.
+
+### 2. Run the bootstrap
+
+Paste this line and press Enter:
+
+```powershell
+irm https://raw.githubusercontent.com/liamdarmody/rundock/main/scripts/install-windows-source.ps1 | iex
+```
+
+The bootstrap takes care of five things end to end:
+
+- Checks for Node.js 20 or later and installs it via `winget` if missing.
+- Checks for Git and installs it via `winget` if missing.
+- Checks for Claude Code and prompts to run Anthropic's installer if missing.
+- Clones Rundock to `%USERPROFILE%\Rundock` and runs `npm install`.
+- Creates a Desktop shortcut and a Start Menu entry pointing at a launcher script.
+
+Re-running the bootstrap one-liner is safe at any time. It updates the existing checkout in place.
+
+### 3. Open Rundock
+
+Double-click the Rundock shortcut on your Desktop, or find Rundock in the Start Menu. The launcher boots the embedded server and opens your browser at `http://localhost:3000` automatically.
+
+Continue to [first-run setup](/first-run).
+
+### Troubleshooting
+
+**If `winget` is missing on an older Windows 10 machine,** install **App Installer** from the Microsoft Store first:
+
+```
+ms-windows-store://pdp/?productid=9NBLGGH4NNS1
+```
+
+Then re-run the bootstrap one-liner.
+
+**If you would prefer to install Claude Code yourself first,** run Anthropic's installer in PowerShell, then run the Rundock bootstrap:
+
+```powershell
+irm https://claude.ai/install.ps1 | iex
+irm https://raw.githubusercontent.com/liamdarmody/rundock/main/scripts/install-windows-source.ps1 | iex
+```
+
+## Path C: Build from source
+
+For Intel Mac, Linux, or anyone who wants to run Rundock from source.
 
 ### Requirements
 
