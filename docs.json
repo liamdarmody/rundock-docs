@@ -14,6 +14,7 @@
         "group": "Get Started",
         "pages": [
           "introduction",
+          "principles",
           "installation",
           "first-run",
           "quickstart"

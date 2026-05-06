@@ -1,0 +1,57 @@
+---
+title: 'Principles'
+description: 'Four principles that shape every decision in Rundock, and the use case that explains why those four.'
+---
+
+Four principles shape every decision in Rundock. A fifth section below, *Built from real use*, explains why those four exist.
+
+## Local-first
+
+The whole stack runs on your machine. Your files, your agents, your conversations stay on disk in your workspace. Rundock makes zero outbound network calls. The only network traffic is the active conversation, sent by Claude Code to Anthropic for processing. Close Claude Code and Rundock has no network footprint at all.
+
+What this rules out: any feature that requires sending your data to a Rundock server, any cloud-only sync, any usage telemetry, any account system. If you want to run Rundock entirely offline once the conversation ends, you can.
+
+For where files live on disk, see [Workspaces](/concepts/workspaces).
+
+## Markdown all the way down
+
+Your agents and skills are plain markdown files. You can read them, edit them in any text editor, take them with you, and use them in Claude Code on the terminal or on claude.ai. Nothing is locked inside a database, nothing is locked inside Rundock.
+
+What this rules out: any binary format, any proprietary export, any agent state that lives only in Rundock. If you switched off Rundock tomorrow, your agents and skills would still work everywhere else markdown agents work.
+
+For the file format, see [Agent file format](/reference/agent-file-format).
+
+## The human leads. The AI delivers.
+
+You provide taste, direction, and decisions. The team handles execution. Every feature reinforces your judgement, never replaces it.
+
+What this looks like in the product: every tool the orchestrator runs surfaces a permission card you have to approve. Routines fire on a schedule but never auto-approve actions. The orchestrator routes work and summarises results. It does not decide what you actually wanted.
+
+What this rules out: any auto-approve, any "just run everything" mode, any feature that hides what an agent is about to do. The friction of the permission card is the feature.
+
+## The team is the unit of value
+
+Individual agents are commodities. A configured team that works together, with delegation chains, shared knowledge, and an org chart you can read at a glance, is what nobody else sells. The team is the product.
+
+What this rules out: building features for agents in isolation. Every change is judged on what it does for a *team*: does it make delegation cleaner, does it make the org chart more readable, does it reduce friction between agents. A feature that only helps one agent at a time has to clear a higher bar.
+
+To see a team in action, run through the [Quickstart](/quickstart).
+
+## Built from real use
+
+Rundock exists because [I run my own business](https://liamdarmody.com) on it. The features in Rundock exist because I needed them, not because they would look good in a pitch. There is no roadmap of speculative work. There is the next thing my team needs.
+
+Most mornings, my briefing is on my desk before I open the app: a routine on the orchestrator that fires at 5am whether I am there or not. That is the kind of feature that gets built. Not because it tested well in a focus group, but because I wanted it for myself, and the same thing turned out to be useful to other people running their own businesses.
+
+The four principles above are not aspirational. They are the criteria I use when deciding what to ship and what to refuse.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Install Rundock" icon="rocket" href="/installation">
+    Get from zero to Rundock open on your machine.
+  </Card>
+  <Card title="How Rundock works" icon="lightbulb" href="/concepts/how-rundock-works">
+    The mental model behind agents, orchestrators, and skills.
+  </Card>
+</CardGroup>
