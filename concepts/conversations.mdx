@@ -1,0 +1,51 @@
+---
+title: 'Conversations'
+description: 'A conversation is a thread between you and one or more agents. Conversations have a lifecycle (Active or Archived), persist to your workspace, and can span your whole team through delegation.'
+---
+
+A conversation in Rundock is a thread between you and one or more agents. Every conversation lives in its workspace, persists across restarts, and carries enough context for the team to pick up where you left off.
+
+The org chart shows who's on your team. Workspaces hold the files. Conversations are where the work happens.
+
+## Lifecycle
+
+A conversation has one of two statuses:
+
+- **Active.** The conversation sits in your main sidebar list, sorted by most recent activity. Active is the default for any new conversation.
+- **Archived.** You've put the conversation aside. It moves into a collapsible "Archived" section at the bottom of the sidebar.
+
+Archive behaves like Gmail's archive, not a hard "complete" or "delete". An archived conversation is set aside but findable; sending a new message in an archived conversation automatically reactivates it. To archive a conversation, click the ✓ button that appears on hover in the sidebar, or click the **Active** badge in the chat header. To unarchive without sending a message, click the **Archived** badge in the chat header.
+
+Deleting a conversation is a separate, deliberate action. The bin icon only appears in the sidebar on already-archived conversations: the lifecycle is Active to Archived to Delete, mirroring how email and most productivity tools handle long-lived threads.
+
+## Multi-agent conversations
+
+Most conversations start with one agent. From there, the orchestrator (the top of your org chart) routes work to specialists when a request falls outside its own scope. The conversation keeps a single thread but tracks who said what, with handoff dividers showing where delegation begins and ends.
+
+When a specialist finishes its work, control returns to the orchestrator with the specialist's output in context. You do not have to keep starting new conversations to switch agents.
+
+## What the sidebar tells you
+
+The conversation sidebar surfaces a lot of state at a glance:
+
+- **Filter pills** (All, Unread, Pinned) sit above the list. Tap a pill to narrow the list to what needs attention right now. The Unread pill auto-hides when nothing is unread.
+- **Left-border colour** on each row signals status: green for a working agent or unread messages, orange for a pinned and idle conversation, no border otherwise. Green takes priority over orange.
+- **Recency labels** on the right of each row show when each conversation was last active: `HH:MM` for today, "Yesterday", day name for 2 to 6 days ago, or `DD/MM/YYYY` for older. Working conversations show the pulsing green dot instead.
+- **Pinning** keeps important conversations visible at the top of the Pinned filter and surfaces them with the orange border in the main list. Pin lives in the hover button on active-session items and the chat header.
+
+## Where they live on disk
+
+A workspace's conversation index lives at `.rundock/conversations.json` as a single JSON array. Full message transcripts live under `.rundock/transcripts/<sessionId>.jsonl`, one file per agent session, with delegation chains producing multiple session files per conversation.
+
+Conversations are workspace-local. They do not sync across workspaces, and they are not pushed to any external server. See [Workspaces](/concepts/workspaces) for the full directory layout.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Agents" icon="users" href="/concepts/agents">
+    The teammates that conversations happen with.
+  </Card>
+  <Card title="Routines" icon="clock" href="/concepts/routines">
+    Schedule conversations to fire automatically.
+  </Card>
+</CardGroup>

@@ -24,9 +24,10 @@
         "group": "Concepts",
         "pages": [
           "concepts/how-rundock-works",
+          "concepts/workspaces",
           "concepts/agents",
           "concepts/skills",
-          "concepts/workspaces",
+          "concepts/conversations",
           "concepts/routines"
         ]
       },
