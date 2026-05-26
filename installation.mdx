@@ -96,19 +96,13 @@ Continue to [first-run setup](/first-run).
 
 #### If the first-run wizard reports Claude is not installed
 
-This is a known issue with Rundock's Windows detection when Claude Code has been installed via npm. npm produces a `claude.cmd` file that the current Windows detection cannot handle.
-
-The fix is to install Claude Code via Anthropic's PowerShell installer, which drops a proper `claude.exe` in a standard location:
+Open a fresh PowerShell window and run `claude --version`. If the command fails, Claude Code is not on PATH for your user. Install it (or reinstall it) via Anthropic's PowerShell installer:
 
 ```powershell
 irm https://claude.ai/install.ps1 | iex
 ```
 
-Once it finishes, fully close PowerShell and Rundock, then reopen both. The new install path needs a fresh process to pick up the updated PATH. Launch Rundock and the wizard should detect Claude.
-
-You do not need to uninstall the npm version first or re-run the Rundock bootstrap.
-
-If the wizard still reports Claude as not installed after this, a related detection bug is being addressed in an upcoming release. Update Rundock once the patch ships and detection should work for either install path.
+Fully close Rundock and reopen it from the Desktop shortcut so the launcher picks up the updated PATH. Rundock's Windows detection handles both Anthropic's PowerShell installer (`claude.exe`) and the npm install (`claude.cmd`); either path works.
 
 #### If `winget` is missing on an older Windows 10 machine
 
