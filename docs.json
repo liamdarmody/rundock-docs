@@ -48,6 +48,12 @@
           "reference/routine-format",
           "reference/workspace-structure"
         ]
+      },
+      {
+        "group": "Trust",
+        "pages": [
+          "trust/data-privacy-security"
+        ]
       }
     ]
   },

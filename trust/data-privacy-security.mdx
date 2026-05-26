@@ -1,0 +1,110 @@
+---
+title: 'Data, privacy, and security'
+description: 'Where your files live, what gets transmitted, and who owns the data relationship with Anthropic.'
+---
+
+Rundock runs on your machine. Talking to an AI means some content has to leave your machine to be processed. This page explains exactly which content, where it goes, and what happens to it after.
+
+It is written to be forwardable to your IT, legal, or compliance lead during evaluation. End-to-end read time is about five minutes.
+
+## Where your files live
+
+Your workspace is a folder on your machine. The agents, skills, instructions, and any knowledge documents you have added all live in that folder. Rundock does not index your workspace, sync it to a Rundock server, or analyse its contents in the background.
+
+Per-user state lives in a separate `.rundock/` directory: conversation history (as plain JSONL files), per-user preferences, and any local credentials. This is also local. Conversation transcripts are plain text. You can read them in any editor, search them with `grep`, or delete them with `rm`.
+
+Rundock sends no telemetry, no analytics, no usage events. There is no Rundock account to create. There is no Rundock backend that touches your data.
+
+If your team shares a workspace, that sync runs through whatever sync layer you choose: Dropbox, OneDrive, Google Drive, or git. The sync is directly between team members. Rundock does not see it.
+
+For the full directory layout, see [Workspace structure](/reference/workspace-structure).
+
+## What gets transmitted
+
+When you send a message to an agent, the following is sent to Anthropic's API via Claude Code:
+
+- Your message and the conversation history for the active conversation
+- The agent's instructions (the agent's markdown file)
+- Workspace-level instructions if relevant (`CLAUDE.md`)
+- Metadata about the team (agent names, descriptions, delegation table)
+- Contents of any files the agent reads as part of handling the task
+
+Nothing else leaves your machine. Rundock does not pre-load, embed, index, or otherwise scan your wider workspace. Files outside the conversation context stay on disk untouched.
+
+When an agent uses a built-in tool (Read, Write, Grep, Bash), the tool runs locally on your machine. The tool's output may be included in subsequent API calls if the agent reasons about it in its reply.
+
+If an agent connects to a third-party MCP server, that connection sends data to a separate service. Review the MCP server's data handling independently; Rundock's local-first design and Anthropic's protections do not extend to it.
+
+In short: the conversation is the unit of transmission. If a file is not referenced in the conversation, it is not sent.
+
+## Training
+
+Anthropic's Commercial Terms state directly that "Anthropic may not train models on Customer Content from Services". Inputs and outputs sent to the API are not used to train Anthropic's models unless you opt in.
+
+Anthropic publishes this in two places:
+
+- [Commercial Terms](https://www.anthropic.com/legal/commercial-terms) (Section B, "Customer Content")
+- [Is my data used for model training?](https://privacy.claude.com/en/articles/7996868-is-my-data-used-for-model-training)
+
+How Claude Code has been authenticated matters here:
+
+- **Claude Code via an Anthropic API key (from a Commercial organisation).** Anthropic's Commercial Terms apply. API content is not used for training by default. Data Processing Addendum (DPA), Zero Data Retention (ZDR), and HIPAA-ready API access are all available on this path.
+- **Claude Code via a Claude Pro or Max subscription.** Anthropic's consumer terms apply. Pro and Max are not eligible for ZDR, a DPA, or HIPAA-ready API access. The relationship is a consumer one, not a commercial one.
+
+For business and regulated use, use a Commercial-organisation API key. The Commercial Terms are the right contract for confidential client work and they unlock the protections that consumer plans do not offer.
+
+## Retention and Zero Data Retention
+
+For commercial API customers without a ZDR arrangement, Anthropic's [commercial data retention policy](https://privacy.claude.com/en/articles/7996866-how-long-do-you-store-my-organization-s-data) states that "we automatically delete inputs and outputs on our backend within 30 days of receipt or generation". Stateful features such as the Batch API and the Files API carry their own retention windows documented per feature, but standard Claude Code inference sits under that 30-day default.
+
+For organisations that need stricter handling, Anthropic offers **Zero Data Retention (ZDR)** for Claude Code. With ZDR enabled, prompts and model responses generated during Claude Code sessions are not stored by Anthropic after the response is returned, except where needed to comply with law or combat misuse.
+
+ZDR for Claude Code is available through two paths:
+
+- **Commercial-organisation API keys.** Pay-as-you-go API keys from a Commercial organisation can have ZDR enabled on request.
+- **Claude Enterprise.** Claude Code through Claude Enterprise can have ZDR enabled for the organisation.
+
+ZDR is enabled per organisation by Anthropic's account team. Even with ZDR in place, Anthropic may retain inputs and outputs for up to two years where required by law or to address Usage Policy violations. Third-party tools an agent connects to from your workspace, including MCP servers, are not covered by ZDR; review them independently.
+
+For the full ZDR scope, see Anthropic's [API and data retention](https://platform.claude.com/docs/en/manage-claude/api-and-data-retention) and [Claude Code ZDR](https://code.claude.com/docs/en/zero-data-retention) documentation.
+
+Worth being clear on division of responsibility: Rundock keeps everything local except for what gets sent to the API. ZDR controls what Anthropic does with the data once it arrives. The two are different protections, applied at different layers. Rundock cannot enable ZDR on your behalf; that is a contract between you and Anthropic.
+
+## Who owns the data relationship
+
+You bring your own Anthropic credentials to Claude Code. This is the BYOK ("bring your own key") model.
+
+In practice that means:
+
+- You or your firm hold the contract with Anthropic
+- API charges go to your account
+- The terms governing your data (commercial terms, DPA, ZDR addendum if you have one) are between you and Anthropic
+- Rundock has no account, no key, no proxy, and no log of your API traffic
+
+If your IT or compliance lead asks "who is the data processor and who is the data controller", the answer is straightforward: you are the controller, Anthropic is the processor for the LLM work, and Rundock is locally installed software that does not sit in the middle.
+
+This is intentional. Rundock is the orchestration layer on your machine. The data relationship that matters for compliance sits between your business and Anthropic; routing it through Rundock would add a third party with no compliance benefit.
+
+## In summary
+
+If you are forwarding this page to someone who needs the headlines:
+
+- Your files stay on your machine. Rundock has no backend, no telemetry, no account.
+- Only the active conversation goes to Anthropic for processing; nothing else
+- With a Commercial-organisation API key, content is not used to train models by default, and Anthropic deletes inputs and outputs within 30 days
+- Zero Data Retention is available on request via the Commercial API or Claude Enterprise; it removes the 30-day window for Claude Code inference
+- Third-party MCP servers an agent connects to are outside Rundock's local scope and outside Anthropic's ZDR; review them independently
+- The contractual relationship for the data is between your business and Anthropic, not Rundock
+
+Forward this page to whoever needs to sign off, then talk to your Anthropic representative about contract terms.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Workspace structure" icon="folder" href="/reference/workspace-structure">
+    The full canonical workspace and `.rundock/` directory layout.
+  </Card>
+  <Card title="Principles" icon="book-open" href="/principles">
+    Local-first is the first of four. Read why.
+  </Card>
+</CardGroup>
