@@ -75,5 +75,10 @@
       "github": "https://github.com/liamdarmody/rundock",
       "linkedin": "https://www.linkedin.com/in/liamdarmody/"
     }
+  },
+  "integrations": {
+    "fathom": {
+      "siteId": "JWWZLLRZ"
+    }
   }
 }
