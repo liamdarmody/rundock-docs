@@ -50,6 +50,12 @@
         ]
       },
       {
+        "group": "Troubleshooting",
+        "pages": [
+          "troubleshooting/authentication"
+        ]
+      },
+      {
         "group": "Trust",
         "pages": [
           "trust/data-privacy-security"
