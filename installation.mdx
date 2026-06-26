@@ -3,129 +3,65 @@ title: 'Installation'
 description: 'Get from zero to Rundock open on your machine.'
 ---
 
-Rundock runs locally. There is nothing to provision and no account to create. You install Claude Code, install Rundock, and open it.
+Rundock runs locally. There is nothing to provision and no account to create. You need a **Claude Pro or Max subscription** (Claude Code runs the agents). You do not have to set Claude Code up by hand first: Rundock's first-run wizard detects it, helps you install it if it is missing, and signs you in with one click.
 
-Pick the path that matches your machine:
+Download Rundock for your platform:
 
-- Apple Silicon Mac → **Path A**
-- Windows 10 or 11 → **Path B**
-- Intel Mac, Linux, or building from source → **Path C**
+| Platform | Download |
+|---|---|
+| macOS (Apple Silicon or Intel) | Universal `.dmg` |
+| Windows 10 or 11 (64-bit) | `.exe` installer |
+| Linux | [Build from source](#linux-and-build-from-source) |
 
-## Path A: Apple Silicon Mac
+Get both downloads from [rundock.ai/download](https://rundock.ai/download) or the [GitHub releases page](https://github.com/liamdarmody/rundock/releases).
 
-For Macs with M1 or later. The fastest route to a working Rundock.
+## macOS
 
-### 1. Install Claude Code
+One universal build runs natively on both Apple Silicon and Intel Macs. There is no separate Intel download and no architecture to pick.
 
-Rundock relies on Claude Code to run agents. Claude Code is Anthropic's command-line agent and it requires a Claude Pro or Max subscription.
+### 1. Download Rundock
 
-Follow the official guide at [docs.anthropic.com/en/docs/claude-code/overview](https://docs.anthropic.com/en/docs/claude-code/overview) to install and authenticate.
+Get the universal `.dmg` from [rundock.ai/download](https://rundock.ai/download).
 
-### 2. Confirm Claude Code is working
+### 2. Install it
 
-Open Terminal and run:
-
-```bash
-claude --version
-```
-
-You should see a version number. If you see "command not found", Claude Code is not installed correctly. Go back to step 1.
-
-### 3. Download Rundock
-
-Get the latest `.dmg` from the releases page on GitHub:
-
-[github.com/liamdarmody/rundock/releases](https://github.com/liamdarmody/rundock/releases)
-
-The `.dmg` is signed for Apple Silicon. Intel Macs need Path C.
-
-### 4. Install Rundock
-
-Open the downloaded `.dmg` file and drag the Rundock icon to your Applications folder. Eject the `.dmg` once the copy completes.
-
-### 5. Open Rundock
-
-Open Rundock from Applications, Spotlight, or Launchpad.
-
-On first launch, macOS may show an unverified developer warning. To allow it:
-
-1. Open System Settings.
-2. Go to Privacy and Security.
-3. Scroll down to the Security section. You will see a note about Rundock being blocked.
-4. Click Open Anyway.
-
-Rundock will open. Continue to [first-run setup](/first-run).
-
-## Path B: Windows (interim)
-
-<Note>
-This path is interim and will be retired when the proper Windows installer ships. Until then, it is the recommended way to get Rundock onto a Windows machine without a real terminal session.
-</Note>
-
-For Windows 10 or 11. A single PowerShell line installs everything Rundock needs.
-
-### 1. Open PowerShell
-
-Press the Windows key, type "PowerShell", and open it. The standard PowerShell window is fine; you do not need to run as administrator.
-
-### 2. Run the bootstrap
-
-Paste this line and press Enter:
-
-```powershell
-irm https://raw.githubusercontent.com/liamdarmody/rundock/main/scripts/install-windows-source.ps1 | iex
-```
-
-The bootstrap takes care of five things end to end:
-
-- Checks for Node.js 20 or later and installs it via `winget` if missing.
-- Checks for Git and installs it via `winget` if missing.
-- Checks for Claude Code and prompts to run Anthropic's installer if missing.
-- Clones Rundock to `%USERPROFILE%\Rundock` and runs `npm install`.
-- Creates a Desktop shortcut and a Start Menu entry pointing at a launcher script.
-
-Re-running the bootstrap one-liner is safe at any time. It updates the existing checkout in place.
+Open the `.dmg` and drag the Rundock icon to your Applications folder. Eject the `.dmg` once the copy completes.
 
 ### 3. Open Rundock
 
-Double-click the Rundock shortcut on your Desktop, or find Rundock in the Start Menu. The launcher boots the embedded server and opens your browser at `http://localhost:3000` automatically.
+Open Rundock from Applications, Spotlight, or Launchpad. The app is signed and notarised by a verified Apple developer, so it launches without Gatekeeper warnings.
 
-Continue to [first-run setup](/first-run).
+On first launch, the setup wizard checks for Claude Code, helps you install it if needed, and signs you in. Continue to [first-run setup](/first-run).
 
-### Troubleshooting
+## Windows
 
-#### If the first-run wizard reports Claude is not installed
+A native installer for Windows 10 and 11 (64-bit).
 
-Open a fresh PowerShell window and run `claude --version`. If the command fails, Claude Code is not on PATH for your user. Install it (or reinstall it) via Anthropic's PowerShell installer:
+### 1. Download the installer
 
-```powershell
-irm https://claude.ai/install.ps1 | iex
-```
+Get the `.exe` installer from [rundock.ai/download](https://rundock.ai/download).
 
-Fully close Rundock and reopen it from the Desktop shortcut so the launcher picks up the updated PATH. Rundock's Windows detection handles both Anthropic's PowerShell installer (`claude.exe`) and the npm install (`claude.cmd`); either path works.
+### 2. Run it
 
-#### If `winget` is missing on an older Windows 10 machine
+The build is unsigned for now, so Windows SmartScreen shows a one-time prompt the first time you run it. Click **More info**, then **Run anyway**. Finish the installer; it adds a Desktop shortcut and a Start Menu entry.
 
-Install **App Installer** from the Microsoft Store first:
+### 3. Open Rundock and sign in
 
-```
-ms-windows-store://pdp/?productid=9NBLGGH4NNS1
-```
+Open Rundock from the Desktop shortcut or Start Menu. The setup wizard:
 
-Then re-run the bootstrap one-liner.
+- Detects Claude Code, and shows the one-line install command (PowerShell or WinGet) if it is missing.
+- Adds Claude Code to your PATH so `claude` works in a terminal.
+- Gives you a one-click **Sign in to Claude** button that opens the browser sign-in. No terminal commands required.
 
-#### If you would prefer to install Claude Code yourself first (fresh install)
+Once the wizard shows both steps complete, continue to [first-run setup](/first-run).
 
-Run Anthropic's installer in PowerShell, then run the Rundock bootstrap:
+<Note>
+The Windows build is unsigned for now, which is why SmartScreen prompts on first launch. The click-through above is safe and only appears once. Signing is on the roadmap.
+</Note>
 
-```powershell
-irm https://claude.ai/install.ps1 | iex
-irm https://raw.githubusercontent.com/liamdarmody/rundock/main/scripts/install-windows-source.ps1 | iex
-```
+## Linux and build from source
 
-## Path C: Build from source
-
-For Intel Mac, Linux, or anyone who wants to run Rundock from source.
+For Linux, or anyone who wants to run Rundock from source. This is also the contributor path.
 
 ### Requirements
 
@@ -141,9 +77,9 @@ npm install
 npm start
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser. Rundock loads in the browser and behaves the same as the desktop app.
+Open [http://localhost:3000](http://localhost:3000) in your browser. Rundock runs in the browser and behaves the same as the desktop app.
 
-The local setup path is also the contributor path. If you want to modify Rundock or contribute changes, this is the route to take. The Contributing section covers it in more depth.
+If you want to modify Rundock or contribute changes, this is the route to take. The Contributing section covers it in more depth.
 
 ## Where to next
 
