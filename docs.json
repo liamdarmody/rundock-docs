@@ -87,5 +87,8 @@
     "fathom": {
       "siteId": "JWWZLLRZ"
     }
+  },
+  "styling": {
+    "css": "/custom.css"
   }
 }

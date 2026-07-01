@@ -1,0 +1,41 @@
+/* =====================================================
+   Rundock docs: custom.css
+
+   Scoped styling for the comparison table on the
+   "How Rundock compares" page only. Everything here is
+   namespaced under .cmp-docs so no other docs table is
+   affected. Echoes the site's /compare table treatment
+   while staying light and native to Mintlify (works in
+   both light and dark modes via low-alpha tints).
+===================================================== */
+
+/* Rundock accent, matches docs.json primary (#E87A5A). */
+.cmp-docs {
+  --cmp-accent: #E87A5A;
+  --cmp-axis-tint: rgba(128, 128, 128, 0.06);
+  --cmp-rundock-tint: rgba(232, 122, 90, 0.08);
+  --cmp-separator: rgba(128, 128, 128, 0.22);
+}
+
+/* Header row: light axis emphasis. */
+.cmp-docs table thead th {
+  background: var(--cmp-axis-tint);
+}
+
+/* Label column (first cell in each body row): light axis emphasis
+   and a vertical separator between labels and the data columns. */
+.cmp-docs table tbody td:first-child,
+.cmp-docs table tbody th:first-child {
+  background: var(--cmp-axis-tint);
+  border-right: 1px solid var(--cmp-separator);
+}
+
+/* Rundock column (last column): accent emphasis, header and body. */
+.cmp-docs table thead th:last-child {
+  background: var(--cmp-rundock-tint);
+  color: var(--cmp-accent);
+  border-bottom: 2px solid var(--cmp-accent);
+}
+.cmp-docs table tbody td:last-child {
+  background: var(--cmp-rundock-tint);
+}
