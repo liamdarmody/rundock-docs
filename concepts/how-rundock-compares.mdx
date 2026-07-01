@@ -1,0 +1,36 @@
+---
+title: 'How Rundock compares'
+description: 'Rundock runs on Claude Code, so it is not a replacement for Claude. It is a different way to work with it. Here is how it lines up against Claude, Cowork and Claude Code.'
+---
+
+{/* GO-STALE: the Price row and the Cowork cells carry a "checked July 2026"
+    date. Re-check those cells and the "Pricing moves" note below before
+    relying on them. Keep them in sync with the /compare page on rundock.ai. */}
+
+Rundock is a visual way to work with Claude as a team. If you're weighing it against Claude's own interfaces, here is how they line up. The short version: Rundock runs on Claude Code, so it isn't a replacement for Claude. It's a different way to work with it.
+
+| | Claude | Claude Cowork | Claude Code | Rundock |
+|---|---|---|---|---|
+| **Holds the context?** | The conversation holds it. A new chat starts fresh. | Preferences persist. Each task starts from the brief you give it. | Config files hold it. Durable, but hidden by default. | Your vault is the shared, visible state. It persists. |
+| **Owns the work?** | You, in one window. | You delegate a task, Claude returns a deliverable. | You can define agents, in files you rarely see. | Named agents each own a domain. You know who to go to. |
+| **What's it like to use?** | A single chat. Simple and familiar. | A workspace in the Claude desktop app. | A command line, or a developer-facing app. | One place you navigate, with your team on an org chart. |
+| **Price** _(checked July 2026)_ | Free to start. Pro from about $20/mo for more usage. | Needs a paid plan (Pro or Max). | Included in Pro or Max. Optional metered API beyond your limits. | Free and open source. Runs on your Claude Pro or Max plan, so no extra cost. |
+| **Effort over time?** | No setup. But you re-brief from scratch each session. | Little setup. Each task still starts from your brief. | The setup is learning the terminal. Fast once you're over it. | More to set up once. Then every session builds on the last. |
+| **Best for** | Quick questions and everyday help. | Handing off a defined task for a finished result. | Developers who want a capable agent in their workflow. | Running a team of agents you can see and manage, no code. |
+
+## What the table doesn't say
+
+A few honest notes for anyone deciding.
+
+- **Rundock runs on Claude Code.** Your agents and skills are plain markdown files that also work in the terminal. Rundock makes them visible and manageable without you touching the terminal. You are not locked in.
+- **A well-configured terminal setup can do a lot of this already.** If you're comfortable writing config files, Claude Code in the terminal gives you persistent context and named agents too. Rundock's difference is that all of it is visible and manageable by default, with no configuration knowledge required.
+- **Cowork overlaps with Rundock on persistence.** Cowork can carry your preferences between sessions. The difference is the team model: named agents that each own a domain, and a workspace you can see, browse, and edit.
+- **Pricing moves.** The prices above were checked in July 2026. Claude Code on a Pro or Max plan runs on your subscription and does not bill per token unless you choose to enable API credits after hitting your limits.
+
+## Next
+
+Ready to build one?
+
+<Card title="Getting started" icon="rocket" href="/installation">
+  Get from zero to Rundock open on your machine.
+</Card>
