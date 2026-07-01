@@ -17,17 +17,20 @@
   --cmp-separator: rgba(128, 128, 128, 0.22);
 }
 
-/* Header row: light axis emphasis. */
+/* Header row: light axis emphasis, with breathing room above the text. */
 .cmp-docs table thead th {
   background: var(--cmp-axis-tint);
+  padding-top: 14px;
 }
 
-/* Label column (first cell in each body row): light axis emphasis
-   and a vertical separator between labels and the data columns. */
+/* Label column (first cell in each body row): light axis emphasis,
+   a vertical separator between labels and the data columns, and
+   breathing room to the left of the text. */
 .cmp-docs table tbody td:first-child,
 .cmp-docs table tbody th:first-child {
   background: var(--cmp-axis-tint);
   border-right: 1px solid var(--cmp-separator);
+  padding-left: 20px;
 }
 
 /* Rundock column (last column): accent emphasis, header and body. */
