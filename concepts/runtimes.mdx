@@ -1,0 +1,73 @@
+---
+title: 'Runtimes'
+description: 'The engines that run your agents: Claude Code and Codex, and how to choose per agent.'
+---
+
+A runtime is the engine an agent runs on. Rundock supports two: **Claude Code** (Anthropic), the default, and **Codex** (the official OpenAI CLI). Both run locally on your machine under your own subscription; Rundock starts them, watches them, and shows you their work. You can mix runtimes freely in one team: a Claude orchestrator delegating to a Codex specialist is an ordinary conversation.
+
+## Choosing a runtime per agent
+
+Every agent runs on Claude Code unless its file says otherwise. To run an agent on your ChatGPT plan, add one line to its frontmatter (or ask Doc to do it):
+
+```yaml
+runtime: codex
+```
+
+Two rules worth knowing:
+
+- **The workspace orchestrator always runs on Claude Code.** Specialists are free to run on either runtime.
+- **Leave the model field out of Codex agents.** Your ChatGPT account's default model applies automatically. Claude model names (`opus`, `sonnet`, `haiku`) are not valid on Codex; if a Codex agent is given a model its account does not offer, Rundock shows a card explaining exactly that, with the fix.
+
+For Claude Code agents, `model:` works as before: `opus`, `sonnet`, or `haiku`, defaulting to `sonnet`.
+
+## What each subscription covers
+
+| | Claude Code | Codex |
+|---|---|---|
+| Subscription | Claude Pro or Max | ChatGPT (plans that include Codex) |
+| Sign in | `claude` setup via Rundock's first-run wizard | `npm install -g @openai/codex`, then `codex login` |
+| Default model | `sonnet` (set per agent with `model:`) | Your account's default (leave `model:` out) |
+| Can be the orchestrator | Yes | No |
+
+Codex setup is currently manual: two commands in any terminal. Rundock's Settings show each runtime's status once it's done.
+
+## Permissions and sandboxing
+
+The two runtimes protect your machine differently, and Rundock is honest about the difference:
+
+- **Claude Code agents** use Rundock's permission system: terminal commands and connector actions appear as cards you approve or deny, with low-risk read-only commands approved automatically.
+- **Codex agents** use Codex's own built-in sandbox instead. You will not see Rundock permission cards in a Codex conversation; the sandbox confines the agent to reading and writing inside your workspace. A notice in each Codex conversation says exactly this.
+
+### Codex file writes on Windows
+
+On macOS and Linux, the Codex sandbox enforces workspace-only writes natively. On Windows, Codex needs its native sandbox enabled before it can write files directly. One config line does it: add this to `%USERPROFILE%\.codex\config.toml`:
+
+```toml
+[windows]
+sandbox = "unelevated"
+```
+
+`unelevated` needs no administrator setup and suits knowledge workspaces; `elevated` is Codex's stronger isolation mode (dedicated sandbox users, firewall rules) and worth considering if your workspace holds sensitive material: it requires a one-time administrator-approved setup.
+
+Without that config line, Codex agents on Windows are never silently read-only: their file writes arrive in the conversation as **permission cards** showing the exact path and content, and the file is written only when you approve. Settings point you at the config line whenever it applies.
+
+## Runtime status in Settings
+
+The Runtimes card in Settings reports what Rundock can actually verify, and nothing more:
+
+- **Not installed**: the CLI was not found on this machine.
+- **Not signed in**: the CLI is installed, but no sign-in credentials were found. Run its login command.
+- **Signed in**: the CLI is installed and credentials exist. Rundock checks that a credentials file *exists*: it never reads its contents.
+- **Installed** (grey): the CLI is present and sign-in state cannot be determined either way.
+
+Hover any status for the evidence behind it.
+
+## When something goes wrong
+
+Codex failures explain themselves instead of showing raw errors:
+
+- **Signed out**: a card says so and names the fix (`codex login`), and resending your message after signing in continues the same conversation.
+- **Model not available**: a card names the configured model and the fix (remove the `model:` field, or pick one your plan includes).
+- **Plan limit reached**: a card explains the limit is temporary and your conversation is safe; Claude agents are unaffected.
+
+Anything else surfaces with the runtime's verbatim message attached, so nothing is hidden.

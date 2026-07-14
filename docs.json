@@ -29,6 +29,7 @@
           "concepts/agents",
           "concepts/skills",
           "concepts/conversations",
+          "concepts/runtimes",
           "concepts/routines"
         ]
       },

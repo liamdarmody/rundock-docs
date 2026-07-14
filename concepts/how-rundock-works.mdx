@@ -64,7 +64,7 @@ For a full breakdown of how delegation flows between an orchestrator and special
 
 The whole stack runs on your machine. Your files, your agents, your conversations stay on disk in your workspace. Rundock makes zero outbound network calls.
 
-The only external connection is from Claude Code to Anthropic's API, which is how Claude processes your messages. Only the active conversation is sent for processing. There is no cloud service, no account to create, no database, no telemetry. Your API key is managed by Claude Code, not Rundock.
+The only external connections are made by the runtimes themselves: Claude Code talks to Anthropic's API, and Codex (if you run agents on it) talks to OpenAI's. In each case only the active conversation is sent, processed under your own subscription. There is no cloud service, no account to create, no database, no telemetry. Sign-in and keys are managed by each runtime's CLI, not Rundock; Rundock detects sign-in state by checking that a credentials file exists and never reads its contents.
 
 If a workspace is shared across a team, the shared folder syncs through whatever sync layer the team uses (Dropbox, OneDrive, Google Drive, or git). The sync is between team members directly. Rundock does not see it.
 

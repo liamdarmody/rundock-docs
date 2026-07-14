@@ -33,6 +33,10 @@ Nothing else leaves your machine. Rundock does not pre-load, embed, index, or ot
 
 When an agent uses a built-in tool (Read, Write, Grep, Bash), the tool runs locally on your machine. The tool's output may be included in subsequent API calls if the agent reasons about it in its reply.
 
+## Agents on the Codex runtime
+
+If you run agents on the Codex runtime, their conversations are processed by OpenAI instead of Anthropic, under **your own ChatGPT account**: the Codex CLI signs in with your ChatGPT plan, and the data relationship for those agents is directly between you and OpenAI. Rundock's position is unchanged: it starts the CLI locally, sends nothing anywhere itself, and never reads either runtime's credentials (sign-in detection checks that a credentials file exists, nothing more). The training and retention terms that apply to Codex conversations are those of your ChatGPT plan; review them in [OpenAI's data controls](https://help.openai.com/en/articles/7730893-data-controls-faq) for your account type.
+
 If an agent connects to a third-party MCP server, that connection sends data to a separate service. Review the MCP server's data handling independently; Rundock's local-first design and Anthropic's protections do not extend to it.
 
 In short: the conversation is the unit of transmission. If a file is not referenced in the conversation, it is not sent.
