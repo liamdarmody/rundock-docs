@@ -1,0 +1,47 @@
+---
+title: 'Files and the editor'
+description: 'How you view, edit, and review the files in your workspace, from markdown notes to HTML, images, boards, and PDFs.'
+---
+
+Your workspace is a folder of files, and Rundock is where you work with them. Agents read and write these files; you view, edit, and review the same files without leaving the app.
+
+<Frame caption="A note open in Rundock: frontmatter in the properties panel above, the rendered markdown below, callouts and wikilinks in place.">
+  <img src="/images/files.png" alt="Rundock file view: a workspace file tree on the left, and a note open on the right showing a properties panel with title, status, and tags, then rendered markdown with a callout." />
+</Frame>
+
+## The markdown editor
+
+Markdown files open in an editor that formats as you type. Headings, bold, lists, and links render live rather than showing raw syntax. Wikilinks are clickable and navigate to the linked file. Tables open cell by cell: click in and type, and your file's exact spacing and alignment are preserved on save. Callouts render as coloured boxes you can expand, collapse, and edit in place.
+
+Every save is byte-honest: editing one line changes only that line, and the rest of the file comes back exactly as it was.
+
+## Properties without raw YAML
+
+A file's frontmatter appears in a properties panel above the editor. Click a value to edit it, toggle a boolean, add or remove list items, and follow property links on click. You change properties without touching the raw YAML, and an edit that would corrupt the frontmatter is refused rather than guessed.
+
+## Any file type, not just markdown
+
+Open an HTML or SVG file and Rundock shows the real rendered page, with its own styles and fonts, in a locked-down preview where scripts never run and the page cannot reach the network. Images open as images; PDFs open as readable documents. File types Rundock cannot preview say so plainly. The Edit toggle still shows editable source for text and HTML.
+
+## Kanban boards
+
+A markdown file that is an Obsidian Kanban board opens as a real column board. Drag cards between columns, add and edit cards in place, tick them off, and rename, move, sort, archive, or delete columns. Everything writes back as the exact markdown the Obsidian Kanban plugin produces, so the same board edits interchangeably in Rundock and Obsidian.
+
+## Reviewing agent work
+
+When an agent produces a file, you review it where it lives. Select a passage and press Comment to leave anchored feedback. Agents propose inline edits with Accept and Reject buttons, replies thread and resolve, and a review panel lists everything open. Feedback is stored in the file itself as CriticMarkup, a small block of plain text readable in any editor, attributed honestly: you show as "Me", agents under their names. The same review flow now covers rendered HTML and SVG files, not only markdown.
+
+## Files stay in sync
+
+A file you have open updates in place when it changes on disk, whether an agent, Obsidian, or another window changed it. If you have unsaved edits when that happens, the next save offers a clear choice, reload theirs or keep yours, instead of overwriting silently.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Search" icon="magnifying-glass" href="/concepts/search">
+    Find any file, message, or agent from one palette.
+  </Card>
+  <Card title="Workspaces" icon="folder" href="/concepts/workspaces">
+    How the folder on disk is laid out.
+  </Card>
+</CardGroup>

@@ -1,0 +1,29 @@
+---
+title: 'Search'
+description: 'One palette finds file contents and names, conversation messages, and agent and skill names across the whole workspace.'
+---
+
+Press Cmd+K (Ctrl+K on Windows and Linux) to open one keyboard-first palette that searches your whole workspace at once: file contents and names, conversation messages and titles, and agent and skill names. Results are grouped and ranked, with the matching text highlighted.
+
+<Frame caption="One palette over the whole workspace. Type part of a word, and results group by files, conversations, agents, and skills, with the match highlighted.">
+  <img src="/images/search.png" alt="Rundock universal search palette showing a query with grouped results for files and conversations, each result highlighting the matching text." />
+</Frame>
+
+Matching is forgiving. You can type partial words as you go, so "rdmp" finds "Roadmap-2026". An empty query shows your recent items. Every result opens at the right place: pick a conversation and it scrolls to the matched message and highlights it.
+
+Search reaches inside rendered HTML and SVG files (visible text only, never markup or styles) and matches frontmatter property values, not just their names. Cmd+F searches within whatever you have open: a conversation, an editor, a rendered file preview, or the properties panel.
+
+## How it works
+
+The index is a small local file inside your workspace's `.rundock/` folder, rebuilt automatically. It never leaves your machine. Where the index engine is not available, search falls back to a simpler scan rather than failing.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Files and the editor" icon="file-lines" href="/concepts/files">
+    View, edit, and review the files search points you to.
+  </Card>
+  <Card title="Conversations" icon="comments" href="/concepts/conversations">
+    Every message is searchable and opens in place.
+  </Card>
+</CardGroup>

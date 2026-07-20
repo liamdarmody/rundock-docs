@@ -29,6 +29,8 @@
           "concepts/agents",
           "concepts/skills",
           "concepts/conversations",
+          "concepts/files",
+          "concepts/search",
           "concepts/runtimes",
           "concepts/routines"
         ]
