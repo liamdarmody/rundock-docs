@@ -51,7 +51,7 @@ It then hands the work to that specialist with the relevant context. The special
 You watch all of this happen in the conversation panel. The hand-offs are visible: who asked who, what was passed, what came back. When something goes wrong, you can see exactly which agent to fix.
 
 <Frame caption="Delegation is visible. The orchestrator hands work to a specialist; you see who asked who, what was passed, what came back.">
-  <img src="/images/conversations.png" alt="Rundock conversation view: sidebar showing parallel conversation threads with active agent indicators, conversation panel showing an ongoing thread with an agent." />
+  <img src="/images/conversation-handoff.gif" alt="Rundock conversation: the user asks the orchestrator to shorten a landing hook, the orchestrator hands off to a Content Lead, and the Content Lead's reply streams in." />
 </Frame>
 
 The mechanism that makes this work is a delegation marker that Rundock injects at spawn time. You do not have to write it into your agents and you should not. The agent's body says **what** to delegate and **to whom**. Rundock provides the rest.
