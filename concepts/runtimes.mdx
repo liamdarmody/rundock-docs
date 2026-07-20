@@ -29,14 +29,14 @@ For Claude Code agents, `model:` works as before: `opus`, `sonnet`, or `haiku`, 
 | Default model | `sonnet` (set per agent with `model:`) | Your account's default (leave `model:` out) |
 | Can be the orchestrator | Yes | No |
 
-Codex setup is currently manual: two commands in any terminal. Rundock's Settings show each runtime's status once it's done.
+Rundock's first-run setup detects the Codex CLI and, if it is present, offers an optional step to sign in to Codex; you can also run `codex login` yourself, or do it later from Settings. Settings show each runtime's status once it is done.
 
 ## Permissions and sandboxing
 
 The two runtimes protect your machine differently, and Rundock is honest about the difference:
 
 - **Claude Code agents** use Rundock's permission system: terminal commands and connector actions appear as cards you approve or deny, with low-risk read-only commands approved automatically.
-- **Codex agents** use Codex's own built-in sandbox instead. You will not see Rundock permission cards in a Codex conversation; the sandbox confines the agent to reading and writing inside your workspace. A notice in each Codex conversation says exactly this.
+- **Codex agents** stream their replies as they think, over one long-lived process, and run inside Codex's own sandbox for reads and writes in your workspace. Any action that needs extra access, a command outside the sandbox or a write it cannot normally make, raises the same permission card you approve or deny, mid-turn, on every platform. An ignored request is declined automatically so a turn never hangs.
 
 ### Codex file writes on Windows
 
