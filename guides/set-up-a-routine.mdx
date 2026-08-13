@@ -103,7 +103,7 @@ To confirm without waiting until 5am tomorrow:
 The same limits from the [Routines concept page](/concepts/routines) apply here. They are worth restating because they shape what kinds of routine actually work.
 
 <Warning>
-**Routines fire only while Rundock is running.** If you close Rundock at night, anything scheduled overnight does not fire and is not retried. The next-run calculation rolls forward from the current time when Rundock starts again, with no record of what was missed. For 24/7 firing, host Rundock on a small VPS or use Anthropic's managed Claude Code Routines for the work that can run on their cloud.
+**Routines fire only while Rundock is running, but they catch up the same day.** Close Rundock overnight and open it in the morning, and an overnight routine runs shortly after launch. The daily note is written by the time you have made coffee. What you do not get is the run happening at the scheduled hour, or happening at all on a day you never open Rundock. If the hour itself matters, or a day might pass without you opening it, host Rundock somewhere always-on: a small VPS, or a machine you leave running. Anthropic's managed Claude Code Routines are an option for work that can run on their cloud rather than against your local workspace.
 </Warning>
 
 <Warning>

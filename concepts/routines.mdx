@@ -50,7 +50,7 @@ When a routine fires, Rundock spawns a headless Claude Code subprocess with the 
 Be honest before getting attached to routines.
 
 <Warning>
-**Routines fire only while Rundock is running.** There is no persistent layer. If Rundock is closed when a schedule comes due, the run is missed. When Rundock starts again, it does not catch up: the next-run calculation rolls forward from the current time, with no record of what was missed.
+**Routines fire only while Rundock is running, but a missed slot is caught up the same day.** Close the laptop at night and open it at 09:00, and a 05:00 routine runs at 09:00. Run state persists across restarts, so nothing fires twice. The limits are that routines run late rather than on time, and that a whole day with Rundock closed is a day the routine does not run at all.
 </Warning>
 
 <Warning>

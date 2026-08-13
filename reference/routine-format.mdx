@@ -97,7 +97,7 @@ When a routine fires, Rundock spawns a headless Claude Code subprocess with the 
 This is the central limit and it shapes everything else.
 
 <Warning>
-**There is no persistent layer.** If Rundock is closed when a schedule comes due, the run is missed and is not retried. When Rundock starts again, the next-run calculation rolls forward from the current time, with no record of what was missed.
+**A missed slot is caught up the same day, not lost.** If Rundock is closed at 05:00 and you open it at 09:00, the 05:00 routine fires shortly after launch: a next-run time that has already passed stays on today rather than rolling forward to tomorrow. Run state persists to `.rundock/routine-state.json`, so a restart does not fire a routine twice. What catch-up cannot do is run on time, or run at all on a day you never open Rundock.
 </Warning>
 
 Two practical paths around this:
@@ -118,7 +118,7 @@ When a routine fires, the spawned Claude Code subprocess produces output on stdo
 What Rundock records:
 
 - The routine's `lastRun` timestamp.
-- The routine's `status` (`running`, `completed`, or `failed`, based on the subprocess exit code).
+- The routine's `status` (`running`, `completed`, `failed`, or `interrupted`). The first three follow the subprocess exit code; `interrupted` is written on startup when a run was still marked `running` when the process died, so a routine killed mid-run is distinguishable from one that failed.
 - The routine's `duration` in seconds.
 
 These three fields update in the routines panel and on the agent profile in real time over the WebSocket.
@@ -246,9 +246,9 @@ Stagger the times. Two routines firing in the same minute spawn concurrent Claud
 
 **Hours without a leading zero never fire.** The pattern is exact. `every day at 9:00` does not match. Always zero-pad.
 
-**Capitalised weekdays never fire.** The schedule string is lowercased before matching, so `every Friday at 04:00` works in practice. But the parser only matches one full lowercased weekday word. `every Fri at 04:00`, `every Mon-Fri at 09:00`, and `every weekday at 18:00` do not match.
+**Abbreviated and multi-day weekdays never fire.** Capitalisation is safe: the schedule string is lowercased before matching, so `every Friday at 04:00` works. But the parser only matches one full lowercased weekday word. `every Fri at 04:00`, `every Mon-Fri at 09:00`, and `every weekday at 18:00` do not match.
 
-**Rundock is closed when the schedule comes due.** The scheduler is in-process. There is no catch-up. Routines are best suited to cadences the user keeps Rundock running through. For routines that must never miss a slot, host Rundock on a VPS or schedule them when Rundock is reliably open.
+**Rundock is closed for a whole day.** The scheduler is in-process, and catch-up is same-day only: a daily routine missed for an entire calendar day is not replayed the next day, and a weekly routine missed on its weekday waits a week. Opening Rundock later on the same day is fine, the routine fires then. For routines that must run at a particular hour, or on days you might not open Rundock at all, host it somewhere always-on.
 
 **Routines that need their output read.** Rundock does not capture stdout. If the agent does not write its output somewhere durable through tools, the run produces nothing the user can find later. Always design routines so the agent writes a trace.
 
