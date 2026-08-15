@@ -47,7 +47,7 @@ description: Compile a structured weekly summary of progress, blockers, and next
 A few things to know about these fields:
 
 - **`name`** is the display name shown on the agent profile and the skill list. Plain prose is fine, not just a slug-style identifier.
-- **`description`** is one paragraph and it is the **routing signal**. The orchestrator reads this when deciding whether to route work to an agent that owns the skill. Write it as a verb, a clear capability, and the trigger phrase the user is likely to type. A skill with no description is invisible to routing.
+- **`description`** is one paragraph, written for people. It appears in Rundock's interface and is read by the agent once it opens the file, but **Rundock does not send it to the model**, so it is not what gets a skill chosen. The **slug** is. Name the skill for what it is for, and write the description as though someone has to choose between this skill and its neighbour.
 
 <Note>
 Other YAML fields you might be tempted to add (`displayName`, `icon`, `colour`, `model`, `allowed-tools`) are silently ignored by Rundock for skill files. The fields persist on disk but no Rundock surface reads them. Keep skill frontmatter to `name` and `description`.
@@ -157,7 +157,7 @@ skills:
   - weekly-report
 ```
 
-Use the block form (`-` lines indented under `skills:`). Inline flow-style arrays (`skills: [weekly-report]`) parse as empty and silently fall through to body-text scanning.
+Either form works. Rundock tries the flow style (`skills: [weekly-report]`) first and falls back to the block form (`-` lines indented under `skills:`), stripping quotes either way. An earlier version of this page said the flow form parsed as empty; it does not.
 
 A skill can be assigned to multiple agents. List the same slug in each agent's frontmatter that should own it.
 
@@ -176,7 +176,7 @@ Run the weekly report.
 The agent should pick up the skill, follow the steps, and produce output in the format you defined. If it does not, three things to check:
 
 1. **Is the skill discovered?** Restart Rundock and check the skills panel. If `weekly-report` does not appear, the folder structure or filename is wrong.
-2. **Is the description specific enough?** The orchestrator uses the description for routing. Vague descriptions get vague routing.
+2. **Is the slug specific enough?** The slug is the only part the model sees when deciding whether to open the skill. A vague name is the thing that gets a skill overlooked, not a vague description.
 3. **Are the steps concrete enough?** The agent should not have to infer where to read or write. If it asks for clarification, the steps are too thin.
 
 Iterate the body, not the agent. The whole point of a skill is that you can refine the procedure without touching the agent's identity.

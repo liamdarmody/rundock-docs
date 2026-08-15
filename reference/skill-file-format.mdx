@@ -40,7 +40,7 @@ Skill frontmatter is intentionally lean. Rundock's parser reads two fields and s
 | Field | Type | Scope | Required | Purpose |
 |---|---|---|---|---|
 | `name` | string | Universal | Recommended | Display name for the skill, shown on the agent profile and in the skill list. If omitted or equal to the slug, Rundock title-cases the slug (with brand-word overrides like LinkedIn, Notion, MCP). |
-| `description` | string | Universal | Recommended | One-paragraph description of what the skill does and when to use it. The orchestrator uses this for routing decisions. A skill with no description is invisible to routing. |
+| `description` | string | Universal | Recommended | One-paragraph description of what the skill does and when to use it. Shown in Rundock's interface and read by the agent once it opens the file. Rundock does not send it to the model: the slug is what the agent is given. |
 | `allowed-tools` | array | Universal (Claude Code) | No | Tools Claude Code is allowed to invoke while running this skill. Rundock does not read this field; Claude Code does, when the skill is loaded into a subprocess. |
 | `model` | string | Universal (Claude Code) | No | Model override for this skill. Same caveat as `allowed-tools`: Rundock does not read it, Claude Code may. In practice, behaviour follows the invoking agent's model. |
 | `displayName` | string | Rundock-only | No (not parsed) | Not parsed for skills. Rundock derives display name from `name` and the slug. Listed only to flag that the field is not honoured even though the convention exists for agents. |
@@ -121,7 +121,14 @@ Use explicit assignment when the relationship is permanent and load-bearing. Let
 Unassigned skills are still callable. If a skill has no owner via either pass, it registers with `status: 'unassigned'`. The orchestrator can still route work to it if its `description` matches the request strongly enough. The skill simply does not appear under any agent's profile until it is assigned.
 
 <Note>
-Platform skills (slugs prefixed with `rundock-`) are gated to platform agents, currently only Doc. Non-platform agents do not see them. Non-platform skills are gated to non-platform agents and Doc does not see them.
+**Only agents that are on the team are considered.** An agent whose status is `available` or `raw` is skipped entirely and gets no skills however it declares them. Nothing warns, so this reads as the assignment being broken.
+
+The `rundock-` prefix then gates in both directions, as two separate rules:
+
+- A **platform** agent, currently only Doc, is offered `rundock-` skills and nothing else.
+- Every **other** agent is offered everything except `rundock-` skills.
+
+Neither case warns. The skill simply does not attach.
 </Note>
 
 ## Workspace mode
@@ -224,7 +231,7 @@ A handful of specific things that go wrong silently.
 
 **Frontmatter typos fail silently.** A misspelled `descripton` or `naem` is silently ignored. The skill loads with empty values for those fields.
 
-**Inline `skills:` arrays on the agent side do not parse.** The flow-style `skills: [a, b]` parses as an empty array on the agent file. Always use the block form.
+**Both `skills:` forms parse.** The flow style `skills: [a, b]` is tried first and the block form is the fallback. An earlier version of this page said the flow form parsed as an empty array; it does not, and never did.
 
 **Slug case sensitivity.** Rundock lowercases slugs before matching, so `Hook-Generator` in an agent's `skills:` would match a `hook-generator` directory. Keep all slugs lowercase end to end for readability.
 

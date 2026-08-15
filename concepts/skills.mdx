@@ -17,7 +17,7 @@ The split matters because:
 
 - **Skills are reusable.** A "weekly report" skill can attach to multiple agents. Putting it inside one agent's body means copying it into every other agent that needs it.
 - **Skills keep agent files lean.** A long, detailed workflow inside an agent's body bloats the file and dilutes the agent's identity. Lifting it into a skill keeps the agent body focused on role and voice.
-- **Skills are visible to the orchestrator.** The orchestrator reads each skill's `description` field when routing work. A capability hidden inside an agent's body is invisible to routing.
+- **Skills are visible by name.** An agent is told which skills it owns as a list of slugs, so a capability written into a skill file can be reached by name, while one buried in an agent's body cannot.
 
 ## When to make a skill
 
@@ -98,9 +98,9 @@ The full field reference is on the [skill file format](/reference/skill-file-for
 
 ## A note on routing
 
-The orchestrator reads each skill's `description` field when deciding whether to route work to an agent that owns it. A skill with no description is invisible to routing.
+What reaches the model is the skill's **slug**, and nothing else. Rundock injects a bare list (`Skills: alpha, beta`) into the agent's prompt: no description, no summary. The agent opens the file from that name and reads the body to decide what to do.
 
-This means the description is a routing signal, not a tagline. Write it as: a verb, a clear capability, and the trigger phrase the user is likely to type.
+This means **the slug is doing the work the description looks like it is doing**, so name the skill for what it is for: `linkedin-hook-generator` rather than `content-helper`. The description is for people, in Rundock's interface and in review, and it is still worth writing well.
 
 Good: "Scan recent work surfaces for repeated manual patterns and propose new skills to build, ranked by leverage."
 
