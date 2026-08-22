@@ -9,9 +9,9 @@ It is written to be forwardable to your IT, legal, or compliance lead during eva
 
 ## Where your files live
 
-Your workspace is a folder on your machine. The agents, skills, instructions, and any knowledge documents you have added all live in that folder. Rundock does not index your workspace, sync it to a Rundock server, or analyse its contents in the background.
+Your workspace is a folder on your machine. The agents, skills, instructions, and any knowledge documents you have added all live in that folder. Rundock builds a search index over it, as a local database file at `.rundock/search-index.db` inside the workspace, and sends it nowhere. Beyond that it does not sync your workspace to a Rundock server or analyse its contents in the background.
 
-Per-user state lives in a `.rundock/` directory at the root of that same workspace folder: your conversation list, full message transcripts as plain JSONL files, routine run records, the search index, and the workspace mode. It is local, and it is plain text. You can read a transcript in any editor, search it with `grep`, or delete it with `rm`.
+Per-user state lives in that same `.rundock/` directory: your conversation list, full message transcripts as plain JSONL files, routine run records, the search index above, and the workspace mode. It is local, and it is plain text. You can read a transcript in any editor, search it with `grep`, or delete it with `rm`.
 
 Rundock stores no credentials of its own. Claude Code and Codex each hold their own sign-in in their own configuration, outside the workspace folder, and Rundock checks only that a credentials file exists.
 
