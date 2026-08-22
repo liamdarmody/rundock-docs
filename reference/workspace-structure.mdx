@@ -15,18 +15,24 @@ your-workspace/                   # the workspace folder itself
 │   ├── agents/                   # one markdown file per agent
 │   ├── skills/                   # one folder per skill
 │   └── settings.local.json       # per-user MCP and permission overrides
+├── .rundock/                     # per-user state (hidden, inside the workspace)
+│   ├── conversations.json        # the conversation list
+│   ├── lists.json                # how conversations are grouped
+│   ├── state.json                # workspace mode, current workspace, setup state
+│   ├── transcripts/              # one JSONL file per agent session
+│   ├── runs/                     # one record per routine run
+│   ├── routine-state.json        # last-run state, so a restart does not double fire
+│   ├── routine-slots.json        # which scheduled slots have been served
+│   ├── child-pids.json           # process ids for running agents
+│   ├── scratch/                  # working files written while an agent runs
+│   ├── startup.log               # server startup log
+│   └── search-index.db           # the search index
 ├── .mcp.json                     # workspace-level MCP server config (optional)
 ├── CLAUDE.md                     # workspace-wide instructions
 └── [knowledge files]             # anything else you add
-
-~/.rundock/                       # per-user state (outside the workspace)
-├── state.json                    # workspace mode, current workspace
-├── secrets/                      # API keys
-├── conversations/                # conversation history
-└── prefs.json                    # per-user preferences
 ```
 
-The workspace folder is the unit of sharing. Everything in it is meant to be visible to the team. The `~/.rundock/` directory is per-user and never shared.
+The workspace folder is the unit of sharing, and everything in it syncs when the folder syncs. That includes `.rundock/`. The `.claude/` directory, `CLAUDE.md` and your knowledge files are meant to be shared. `.rundock/` is per-user state that lives in the same folder for now, so on a shared workspace you exclude it deliberately: see [What syncs and what does not](#what-syncs-and-what-does-not) below.
 
 ## What each path is for
 
@@ -67,7 +73,7 @@ Per-user MCP server permissions and tool overrides for the workspace. Although i
 
 ### `.mcp.json`
 
-Workspace-level MCP server configuration. Lists the MCP servers the workspace uses and the connection details. This file syncs across the team (the configuration is shared) but the credentials each MCP server needs come from each user's `~/.rundock/secrets/`.
+Workspace-level MCP server configuration. Lists the MCP servers the workspace uses and the connection details. This file syncs across the team on every sync option, git included. Rundock holds no per-user credential store, so any key written into this file syncs with it. Read it before you share the workspace folder, and keep secret-bearing servers out of it until per-user MCP configuration is supported.
 
 This file is optional. If your workspace uses no MCP servers, omit it.
 
@@ -98,20 +104,25 @@ your-workspace/
 
 Agents read these files when their instructions tell them to. Rundock does not auto-load them at spawn time: you control which files come into context, by writing it into the agent's body or skill instructions.
 
-### `~/.rundock/`
+### `.rundock/`
 
-The per-user directory, outside the workspace folder. Holds:
+Per-user state, in a hidden directory at the root of the workspace folder. Rundock creates it when it sets up a workspace, and adds it to `.gitignore` at the same time. Holds:
 
-- **`state.json`**: the current workspace path, the workspace mode (Knowledge or Code), and other per-user UI state.
-- **`secrets/`**: API keys, OAuth tokens, and other credentials. Encrypted at rest.
-- **`conversations/`**: conversation history and session data.
-- **`prefs.json`**: per-user preferences (model choice, theme, permission card behaviour).
+- **`conversations.json`**: the conversation list. **`lists.json`**: how those conversations are grouped.
+- **`transcripts/`**: full message transcripts, one JSONL file per agent session. A conversation that delegates produces several.
+- **`runs/`**: routine run records, one file per run. **`routine-state.json`** and **`routine-slots.json`**: the scheduling state behind catch-up.
+- **`state.json`**: the current workspace path, the workspace mode (Knowledge or Code), and setup state.
+- **`search-index.db`**: the search index. **`scratch/`**, **`child-pids.json`** and **`startup.log`**: working files for running agents.
 
-This directory is created by Rundock on first launch. You do not move it, share it, or sync it.
+Your runtime sign-in lives elsewhere: Claude Code and Codex each hold their own in their own configuration, outside the workspace folder, and Rundock reads none of it. Rundock stores no keys of its own.
 
 <Warning>
-Do not place `~/.rundock/` inside a synced folder (Dropbox, OneDrive, Google Drive, or a git repo). Doing so will leak secrets to anyone with access to that sync location. Rundock keeps `~/.rundock/` outside the workspace folder by design.
+`.rundock/` is inside the workspace folder, so it syncs whenever the workspace folder syncs. On git it is excluded for you. On Dropbox and OneDrive you exclude it yourself, and Google Drive cannot exclude it at all. [Set up a team workspace](/guides/team-workspace) has the steps for each tool. Without the exclusion, every message exchanged with your agents is readable by anyone with access to the folder.
 </Warning>
+
+<Note>
+Moving conversation history and MCP configuration out of the workspace folder, so that excluding them is no longer necessary, is planned work.
+</Note>
 
 ## What syncs and what does not
 
@@ -122,15 +133,16 @@ The split as a table.
 | `.claude/agents/` | Workspace folder | **Yes** | The team is shared. Every member should have the same agents. |
 | `.claude/skills/` | Workspace folder | **Yes** | Skills are reusable workflows. Every member should have access. |
 | `CLAUDE.md` | Workspace folder | **Yes** | House rules apply to everyone. |
-| `.mcp.json` | Workspace folder | **Yes** | The list of MCP servers is shared. Credentials are not (those live per-user). |
+| `.mcp.json` | Workspace folder | **Yes** | Shared with the whole team on every sync option. Any API key written into it syncs too. |
 | Knowledge files | Workspace folder | **Yes** | Brand documents, voice profiles, reference material are team assets. |
 | `.claude/settings.local.json` | Workspace folder | **No** | Per-user permission and MCP overrides. Add to sync exclusion list. |
-| `~/.rundock/state.json` | Outside workspace | **No** | Per-user workspace mode and UI state. |
-| `~/.rundock/secrets/` | Outside workspace | **Never** | API keys and OAuth tokens. Leak risk. |
-| `~/.rundock/conversations/` | Outside workspace | **No** | Conversation history is per-user. |
-| `~/.rundock/prefs.json` | Outside workspace | **No** | Per-user preferences. |
+| `.rundock/conversations.json`, `.rundock/transcripts/` | Workspace folder | **Yes, unless excluded** | Your conversation list and every message transcript. Meant to be per-user. |
+| `.rundock/runs/` | Workspace folder | **Yes, unless excluded** | One record per routine run, so this grows with every scheduled run. |
+| `.rundock/state.json`, `.rundock/search-index.db` | Workspace folder | **Yes, unless excluded** | Workspace mode, setup state, and the search index. |
 
-The principle: **agents and shared knowledge belong to the team. Credentials and sessions belong to the individual.**
+Everything in the `.rundock/` rows is excluded automatically on git, has to be excluded by hand on Dropbox and OneDrive, and cannot be excluded on Google Drive.
+
+The principle: **agents and shared knowledge belong to the team, and conversations belong to the individual.** Today both sit in the same folder, so the second half of that holds only once you have excluded `.rundock/` from your sync tool.
 
 ## Hidden folders
 
@@ -150,7 +162,7 @@ Workspace mode is a workspace-level setting that changes agent behaviour at the 
 | **Knowledge mode** (default) | Restricts file writes for executable file types (`.js`, `.py`, `.sh`, etc) so agents cannot accidentally write or modify code in a knowledge-work workspace. Tool permission cards are shown for most operations. |
 | **Code mode** | Removes the executable-file write restriction. Auto-approves common build and dev tools so agents can iterate on code without permission card interruptions. Used for software project workspaces. |
 
-Mode is set in the workspace settings drawer, or by editing `~/.rundock/state.json` directly:
+Mode is set in the workspace settings drawer, or by editing `.rundock/state.json` directly:
 
 ```json
 {
