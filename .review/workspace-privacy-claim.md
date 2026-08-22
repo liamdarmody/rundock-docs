@@ -77,6 +77,37 @@ quickstart.mdx:125                    (card text pointing at that section)
 
 The four remaining `outside the workspace` hits describe the Claude Code and Codex sign-in, which each command-line tool holds in its own configuration. That is outside the workspace folder, and Rundock never reads it. The four `stays local` hits are headings and the cards that link to them.
 
+The remaining three searches are broad by design: they exist to catch the claim phrased without the path, so they match accurate prose as well. Their after-state is a hit list rather than zero, and every hit was read.
+
+```
+$ git grep -c -I -- '\.rundock' -- '*.mdx'          # 30 lines across 8 files
+concepts/conversations.mdx:1        (on-disk location, accurate)
+concepts/search.mdx:1               (corrected in this change)
+concepts/workspaces.mdx:4           (corrected in this change)
+guides/team-workspace.mdx:6         (corrected in bad3ca2, git wording adjusted here)
+reference/agent-file-format.mdx:1   (path reference, accurate)
+reference/routine-format.mdx:1      (path reference, accurate)
+reference/workspace-structure.mdx:12 (corrected in this change)
+trust/data-privacy-security.mdx:4   (corrected in this change)
+
+$ git grep -c -I -i 'secret\|credential\|api key\|oauth' -- '*.mdx'
+concepts/how-rundock-works.mdx:1    (runtime sign-in held by the CLI, accurate)
+concepts/runtimes.mdx:2             (the existence check, accurate)
+concepts/workspaces.mdx:1           (the MCP key warning added here)
+guides/team-workspace.mdx:4         (the MCP key warning, pre-existing and accurate)
+reference/workspace-structure.mdx:2 (both rewritten here to say no store exists)
+troubleshooting/authentication.mdx:2 (an API error message, unrelated)
+trust/data-privacy-security.mdx:7   (six concern the model provider's terms; one rewritten here)
+
+$ git grep -c -I -i 'per-user' -- '*.mdx'
+concepts/workspaces.mdx:3           (all three now describe state inside the workspace)
+guides/team-workspace.mdx:4         (MCP configuration and settings overrides, accurate)
+reference/workspace-structure.mdx:8 (rewritten here; none now places the directory outside)
+trust/data-privacy-security.mdx:1   (rewritten here)
+```
+
+No hit in these three carries the false location or the credential store. The searches that are expected to return nothing return nothing, and the searches that are expected to return prose return prose that was read.
+
 ## Every file that matched, and what happened to it
 
 | File | What it claimed | Disposition |
@@ -85,7 +116,7 @@ The four remaining `outside the workspace` hits describe the Claude Code and Cod
 | `reference/workspace-structure.mdx` | A layout diagram placing the directory outside the workspace with three children that do not exist; "per-user and never shared"; MCP credentials from a per-user secrets store; four sync-table rows marked outside the workspace | Corrected in this change |
 | `trust/data-privacy-security.mdx` | Per-user state in a "separate" directory holding preferences and local credentials, on the page written to be forwarded to a compliance reviewer | Corrected in this change |
 | `concepts/search.mdx` | Location correct, consequence wrong: the index "never leaves your machine", which fails on a shared workspace | Corrected in this change |
-| `guides/team-workspace.mdx` | Carried the same claim until commit `bad3ca2`, "Docs: correct what stays private in a shared team workspace", merged 4 August 2026, which rewrote it to say the directory is inside the workspace and added the per-tool exclusion steps. It was not missed here. This change touches it again only to soften its git exclusion wording, described below | Already correct; git wording adjusted |
+| `guides/team-workspace.mdx` | Carried the same claim until commit `bad3ca2`, "Docs: correct what stays private in a shared team workspace", merged 4 August 2026, which rewrote it to say the directory is inside the workspace and added the per-tool exclusion steps. It was not missed here. This change touches it again for two things that correction did not cover: its git exclusion wording, which still said the directory was handled for you and never committed, and the unqualified home-directory claim about the recent-workspace file | Already correct on the location; git wording and one qualifier adjusted |
 | `concepts/conversations.mdx:43` | States the on-disk location as `.rundock/conversations.json` and `.rundock/transcripts/` | Accurate, no change |
 | `reference/agent-file-format.mdx:128` | References `.rundock/state.json` | Accurate, no change |
 | `reference/routine-format.mdx:100` | References `.rundock/routine-state.json` | Accurate, no change |
@@ -101,6 +132,7 @@ All paths are in the application repository, not this one.
 | The directory is `WORKSPACE/.rundock`, not `~/.rundock` | `lib/store/persistence.js:15`, `rundockDir()` returning `path.join(getWorkspace(), '.rundock')` |
 | What the directory holds | The writers themselves: `persistence.js` for `conversations.json`, `lists.json` and `state.json`; `lib/store/transcripts.js:22` for `transcripts/`; `lib/scheduler.js:92,177,348` for `routine-state.json`, `routine-slots.json` and `runs/`; `lib/runtime/claude.js:91,184` for `scratch/` and `child-pids.json`; `server.js:2508,2617` for `startup.log` and `search-index.db` |
 | Rundock appends `.rundock/` to the workspace `.gitignore` at setup | `lib/workspace/scaffold.js:270-281` |
+| It creates that file when there is none | `lib/workspace/scaffold.js:276`, `fs.appendFileSync`. Line 273 treats a missing file as empty content rather than branching, and `appendFileSync` defaults to flag `a`, which creates the file if it does not exist. The behaviour comes from that default rather than from a branch in the scaffold |
 | That write is skipped when the file already mentions `.rundock` in any form | `lib/workspace/scaffold.js:274`, the guard `if (!existing.includes('.rundock'))`, a substring test. `.rundock-recent-workspaces.json` is a real filename in this product and would satisfy it |
 | A failed write is not surfaced to the user | `lib/workspace/scaffold.js:280`, `console.warn` in a desktop application |
 | `state.json` records where the workspace was last seen, to detect a move | `server.js:2565` reads `state.workspacePath` as the previous value, `server.js:2582` writes it only when the path differs, and the surrounding function returns `moved` |
