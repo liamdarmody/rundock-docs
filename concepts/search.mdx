@@ -17,7 +17,7 @@ Search reaches inside rendered HTML and SVG files (visible text only, never mark
 
 ## How it works
 
-The index is a small local file inside your workspace's `.rundock/` folder, rebuilt automatically. It never leaves your machine. Where the index engine is not available, search falls back to a simpler scan rather than failing.
+The index is a small file inside your workspace's `.rundock/` folder, rebuilt automatically. Rundock sends it nowhere. It does sit inside the workspace folder, so on a workspace shared through a sync tool it travels with everything else in that folder unless `.rundock/` is excluded: see [Workspaces](/concepts/workspaces). Where the index engine is not available, search falls back to a simpler scan rather than failing.
 
 ## Where to next
 
