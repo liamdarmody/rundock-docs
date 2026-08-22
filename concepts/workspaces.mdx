@@ -33,29 +33,38 @@ Concept first, syntax second. The full directory layout reference is being added
 
 ## What syncs, what stays local
 
-A workspace is split into two parts: the shared team content, and the per-user state.
+A workspace is split into two parts: the shared team content, and the per-user state. Today both live inside the workspace folder.
 
 **The workspace folder syncs.** Everything inside the folder is meant to be shared across the team. Agents, skills, workspace instructions, and knowledge documents. When the team admin adds a new agent, every team member gets it. When someone updates a skill, the change propagates. The full setup for sharing a workspace across a team is on the [team workspace setup guide](/guides/team-workspace).
 
-**Per-user state stays on the machine.** Some things should never leave the individual user. Rundock keeps these outside the workspace folder, in a hidden directory at `~/.rundock/`:
+**Per-user state lives in `.rundock/`, a hidden directory at the root of the workspace folder.** It holds:
 
-- API keys and other secrets.
-- MCP server configurations.
-- Conversation history and session data.
-- Per-user preferences (model choice, theme, permissions).
+- Your conversation list, and full message transcripts, one file per agent session.
+- Routine run records, one file per run, and the scheduling state behind them.
+- The search index, the workspace mode, and scratch files written while an agent works.
 
-This split is by design. Agents and shared knowledge belong to the team. Credentials and sessions belong to the individual.
+**Because `.rundock/` sits inside the workspace folder, it syncs when the workspace folder syncs.**
+
+On git, Rundock appends `.rundock/` to the workspace's `.gitignore` when it sets up the workspace, creating that file if there is none. Two things are worth knowing before you rely on it. It skips the write if the `.gitignore` already mentions `.rundock` anywhere, so a file that names something like `.rundock-recent-workspaces.json` never gets the entry added. And if the write fails, it fails quietly. **Open your `.gitignore` and confirm it contains `.rundock/` before you push.**
+
+On Dropbox, OneDrive, and Google Drive nothing excludes the directory by default, so you exclude it yourself. The [team workspace setup guide](/guides/team-workspace) gives the steps for each tool, and records no way to exclude it on Google Drive.
+
+`.mcp.json` is in the same position. It holds your MCP server configuration, it lives in the workspace folder, and it syncs on every option including git. MCP servers commonly take an API key directly in that file, so read it before you share the folder.
+
+Two things do stay on your machine wherever your workspace lives. Your Claude or ChatGPT sign-in is held by the runtime's own command-line tool, in its own configuration outside the workspace folder, and Rundock never reads it. Your recent-workspace list, which the desktop app keeps as a small file in your home directory, records which folders you have opened.
 
 The split as a quick table:
 
-| Lives in workspace folder (syncs) | Lives in `~/.rundock/` (stays local) |
+| Shared with the team | Per-user, in `.rundock/` |
 |---|---|
-| `.claude/agents/` | API keys |
-| `.claude/skills/` | MCP server configurations |
-| `CLAUDE.md` | Conversation history |
-| Knowledge documents | Per-user preferences |
+| `.claude/agents/` | Conversation list and transcripts |
+| `.claude/skills/` | Routine run records |
+| `CLAUDE.md` | Search index and workspace mode |
+| Knowledge documents | Scratch files |
 
-If you accidentally place `~/.rundock/` inside a synced folder (Dropbox, OneDrive, Google Drive), you will leak secrets to anyone with access to that sync location. Rundock keeps it outside the workspace by design. Do not move it.
+<Note>
+Moving conversation history out of the workspace folder, so that excluding it is no longer necessary, is planned work. Until it lands, treat the exclusion as required setup on any cloud sync tool. `.mcp.json` stays where it is: it is shared workspace configuration, so read it before you share the folder.
+</Note>
 
 ## Single-workspace model today
 

@@ -9,13 +9,17 @@ It is written to be forwardable to your IT, legal, or compliance lead during eva
 
 ## Where your files live
 
-Your workspace is a folder on your machine. The agents, skills, instructions, and any knowledge documents you have added all live in that folder. Rundock does not index your workspace, sync it to a Rundock server, or analyse its contents in the background.
+Your workspace is a folder on your machine. The agents, skills, instructions, and any knowledge documents you have added all live in that folder. Rundock builds a search index over it, as a local database file at `.rundock/search-index.db` inside the workspace, and sends it nowhere. Beyond that it does not sync your workspace to a Rundock server or analyse its contents in the background.
 
-Per-user state lives in a separate `.rundock/` directory: conversation history (as plain JSONL files), per-user preferences, and any local credentials. This is also local. Conversation transcripts are plain text. You can read them in any editor, search them with `grep`, or delete them with `rm`.
+Per-user state lives in that same `.rundock/` directory: your conversation list, full message transcripts as plain JSONL files, routine run records, the search index above, and the workspace mode. It is local, and it is plain text. You can read a transcript in any editor, search it with `grep`, or delete it with `rm`.
+
+Rundock stores no credentials of its own. Claude Code and Codex each hold their own sign-in in their own configuration, outside the workspace folder, and Rundock checks only that a credentials file exists.
 
 Rundock sends no telemetry, no analytics, no usage events. There is no Rundock account to create. There is no Rundock backend that touches your data.
 
 If your team shares a workspace, that sync runs through whatever sync layer you choose: Dropbox, OneDrive, Google Drive, or git. The sync is directly between team members. Rundock does not see it.
+
+Because `.rundock/` sits inside the workspace folder, a shared workspace syncs conversation history, transcripts and run records along with the agents and knowledge files, unless you exclude it. On git, Rundock appends `.rundock/` to the workspace's `.gitignore` when it sets up the workspace. That write is skipped if the file already mentions `.rundock` in any form, and a failure is not surfaced to you, so confirm the entry is present rather than assuming it. On Dropbox and OneDrive you exclude it yourself, and the setup guide records no way to exclude it on Google Drive. If this matters for your evaluation, read [Set up a team workspace](/guides/team-workspace) for the steps and treat the exclusion as required setup. Moving this state out of the workspace folder is planned work.
 
 For the full directory layout, see [Workspace structure](/reference/workspace-structure).
 
@@ -29,7 +33,7 @@ When you send a message to an agent, the following is sent to Anthropic's API vi
 - Metadata about the team (agent names, descriptions, delegation table)
 - Contents of any files the agent reads as part of handling the task
 
-Nothing else leaves your machine. Rundock does not pre-load, embed, index, or otherwise scan your wider workspace. Files outside the conversation context stay on disk untouched.
+Nothing else leaves your machine. Rundock sends nothing beyond the conversation context above: no pre-loading of your wider workspace, no embedding, and nothing from the local search index. Files outside the conversation context stay on disk untouched.
 
 When an agent uses a built-in tool (Read, Write, Grep, Bash), the tool runs locally on your machine. The tool's output may be included in subsequent API calls if the agent reasons about it in its reply.
 
