@@ -18,7 +18,7 @@ your-workspace/                   # the workspace folder itself
 ├── .rundock/                     # per-user state (hidden, inside the workspace)
 │   ├── conversations.json        # the conversation list
 │   ├── lists.json                # how conversations are grouped
-│   ├── state.json                # workspace mode, current workspace, setup state
+│   ├── state.json                # workspace mode, setup state, last-seen path
 │   ├── transcripts/              # one JSONL file per agent session
 │   ├── runs/                     # one record per routine run
 │   ├── routine-state.json        # last-run state, so a restart does not double fire
@@ -111,7 +111,7 @@ Per-user state, in a hidden directory at the root of the workspace folder. Rundo
 - **`conversations.json`**: the conversation list. **`lists.json`**: how those conversations are grouped.
 - **`transcripts/`**: full message transcripts, one JSONL file per agent session. A conversation that delegates produces several.
 - **`runs/`**: routine run records, one file per run. **`routine-state.json`** and **`routine-slots.json`**: the scheduling state behind catch-up.
-- **`state.json`**: the current workspace path, the workspace mode (Knowledge or Code), and setup state.
+- **`state.json`**: the workspace mode (Knowledge or Code), setup state, and a record of where the workspace was last seen, which Rundock compares against the current path to notice that the folder has moved. The list of workspaces you have opened is kept separately, in your home directory.
 - **`search-index.db`**: the search index. **`scratch/`**, **`child-pids.json`** and **`startup.log`**: working files for running agents.
 
 Your runtime sign-in lives elsewhere: Claude Code and Codex each hold their own in their own configuration, outside the workspace folder, and Rundock reads none of it. Rundock stores no keys of its own.
@@ -142,7 +142,7 @@ The split as a table.
 | `.claude/settings.local.json` | Workspace folder | **No** | Per-user permission and MCP overrides. Add to sync exclusion list. |
 | `.rundock/conversations.json`, `.rundock/transcripts/` | Workspace folder | **Yes, unless excluded** | Your conversation list and every message transcript. Meant to be per-user. |
 | `.rundock/runs/` | Workspace folder | **Yes, unless excluded** | One record per routine run, so this grows with every scheduled run. |
-| `.rundock/state.json`, `.rundock/search-index.db` | Workspace folder | **Yes, unless excluded** | Workspace mode, setup state, and the search index. |
+| `.rundock/state.json`, `.rundock/search-index.db` | Workspace folder | **Yes, unless excluded** | Workspace mode, setup state, last-seen path, and the search index. |
 
 Everything in the `.rundock/` rows is covered by the `.gitignore` entry Rundock writes at setup, subject to the two limits in the warning above, and has to be excluded by hand on Dropbox and OneDrive. The guide records no way to exclude it on Google Drive.
 
