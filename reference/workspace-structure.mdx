@@ -106,7 +106,7 @@ Agents read these files when their instructions tell them to. Rundock does not a
 
 ### `.rundock/`
 
-Per-user state, in a hidden directory at the root of the workspace folder. Rundock creates it when it sets up a workspace, and adds it to `.gitignore` at the same time. Holds:
+Per-user state, in a hidden directory at the root of the workspace folder. Rundock creates it when it sets up a workspace, and appends `.rundock/` to the workspace's `.gitignore` at the same time. Holds:
 
 - **`conversations.json`**: the conversation list. **`lists.json`**: how those conversations are grouped.
 - **`transcripts/`**: full message transcripts, one JSONL file per agent session. A conversation that delegates produces several.
@@ -117,7 +117,11 @@ Per-user state, in a hidden directory at the root of the workspace folder. Rundo
 Your runtime sign-in lives elsewhere: Claude Code and Codex each hold their own in their own configuration, outside the workspace folder, and Rundock reads none of it. Rundock stores no keys of its own.
 
 <Warning>
-`.rundock/` is inside the workspace folder, so it syncs whenever the workspace folder syncs. On git it is excluded for you. On Dropbox and OneDrive you exclude it yourself, and Google Drive cannot exclude it at all. [Set up a team workspace](/guides/team-workspace) has the steps for each tool. Without the exclusion, every message exchanged with your agents is readable by anyone with access to the folder.
+`.rundock/` is inside the workspace folder, so it syncs whenever the workspace folder syncs. Without an exclusion, every message exchanged with your agents is readable by anyone with access to the folder.
+
+On git, Rundock writes the exclusion for you at setup, with two limits worth knowing. It skips the write when the `.gitignore` already mentions `.rundock` in any form, including a different filename that merely starts the same way, and a failed write is not surfaced anywhere you would see it. **Confirm your `.gitignore` contains `.rundock/` rather than assuming it.**
+
+On Dropbox and OneDrive you exclude it yourself. [Set up a team workspace](/guides/team-workspace) has the steps for each tool, and records no way to exclude it on Google Drive.
 </Warning>
 
 <Note>
@@ -140,7 +144,7 @@ The split as a table.
 | `.rundock/runs/` | Workspace folder | **Yes, unless excluded** | One record per routine run, so this grows with every scheduled run. |
 | `.rundock/state.json`, `.rundock/search-index.db` | Workspace folder | **Yes, unless excluded** | Workspace mode, setup state, and the search index. |
 
-Everything in the `.rundock/` rows is excluded automatically on git, has to be excluded by hand on Dropbox and OneDrive, and cannot be excluded on Google Drive.
+Everything in the `.rundock/` rows is covered by the `.gitignore` entry Rundock writes at setup, subject to the two limits in the warning above, and has to be excluded by hand on Dropbox and OneDrive. The guide records no way to exclude it on Google Drive.
 
 The principle: **agents and shared knowledge belong to the team, and conversations belong to the individual.** Today both sit in the same folder, so the second half of that holds only once you have excluded `.rundock/` from your sync tool.
 

@@ -19,7 +19,7 @@ Rundock sends no telemetry, no analytics, no usage events. There is no Rundock a
 
 If your team shares a workspace, that sync runs through whatever sync layer you choose: Dropbox, OneDrive, Google Drive, or git. The sync is directly between team members. Rundock does not see it.
 
-Because `.rundock/` sits inside the workspace folder, a shared workspace syncs conversation history, transcripts and run records along with the agents and knowledge files, unless you exclude it. Git excludes it automatically: Rundock adds `.rundock/` to `.gitignore` when it sets up a workspace. On Dropbox and OneDrive you exclude it yourself, and Google Drive cannot exclude it at all. If this matters for your evaluation, read [Set up a team workspace](/guides/team-workspace) for the steps, and treat the exclusion as required setup. Moving this state out of the workspace folder is planned work.
+Because `.rundock/` sits inside the workspace folder, a shared workspace syncs conversation history, transcripts and run records along with the agents and knowledge files, unless you exclude it. On git, Rundock appends `.rundock/` to the workspace's `.gitignore` when it sets up the workspace. That write is skipped if the file already mentions `.rundock` in any form, and a failure is not surfaced to you, so confirm the entry is present rather than assuming it. On Dropbox and OneDrive you exclude it yourself, and the setup guide records no way to exclude it on Google Drive. If this matters for your evaluation, read [Set up a team workspace](/guides/team-workspace) for the steps and treat the exclusion as required setup. Moving this state out of the workspace folder is planned work.
 
 For the full directory layout, see [Workspace structure](/reference/workspace-structure).
 

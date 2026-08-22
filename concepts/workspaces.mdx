@@ -43,7 +43,11 @@ A workspace is split into two parts: the shared team content, and the per-user s
 - Routine run records, one file per run, and the scheduling state behind them.
 - The search index, the workspace mode, and scratch files written while an agent works.
 
-**Because `.rundock/` sits inside the workspace folder, it syncs when the workspace folder syncs.** On git it is excluded for you: Rundock adds `.rundock/` to `.gitignore` when it sets up a workspace. On Dropbox, OneDrive, and Google Drive nothing excludes it by default, so you exclude it yourself. The [team workspace setup guide](/guides/team-workspace) gives the steps for each tool, including that Google Drive cannot exclude it at all.
+**Because `.rundock/` sits inside the workspace folder, it syncs when the workspace folder syncs.**
+
+On git, Rundock appends `.rundock/` to the workspace's `.gitignore` when it sets up the workspace, creating that file if there is none. Two things are worth knowing before you rely on it. It skips the write if the `.gitignore` already mentions `.rundock` anywhere, so a file that names something like `.rundock-recent-workspaces.json` never gets the entry added. And if the write fails, it fails quietly. **Open your `.gitignore` and confirm it contains `.rundock/` before you push.**
+
+On Dropbox, OneDrive, and Google Drive nothing excludes the directory by default, so you exclude it yourself. The [team workspace setup guide](/guides/team-workspace) gives the steps for each tool, and records no way to exclude it on Google Drive.
 
 `.mcp.json` is in the same position. It holds your MCP server configuration, it lives in the workspace folder, and it syncs on every option including git. MCP servers commonly take an API key directly in that file, so read it before you share the folder.
 

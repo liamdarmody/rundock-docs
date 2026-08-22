@@ -52,7 +52,7 @@ A note on hidden folders: the `.claude/` directory is hidden by default in Finde
 
 Every team member does this once, on their own machine, before the first sync completes. It is a per-machine setting, so one person doing it does not cover the others.
 
-- **Git:** nothing to do. Rundock adds `.rundock/` to `.gitignore` when it sets up the workspace. Confirm the line is there if the workspace predates that behaviour or was created by hand.
+- **Git:** Rundock appends `.rundock/` to the workspace's `.gitignore` when it sets up the workspace, so there is usually nothing to do. Confirm it rather than assume it. The write is skipped whenever the file already mentions `.rundock` in any form, including a different filename that merely begins the same way, and a failed write is not surfaced anywhere you would see it. Open `.gitignore` and check the line is there, particularly if the workspace predates that behaviour or was created by hand.
 - **Dropbox:** use Selective Sync. Dropbox preferences, Sync, Selective Sync, then untick `.rundock` inside the workspace folder. Enable "Show hidden files" in Finder or File Explorer first, or the folder will not be listed.
 - **OneDrive:** OneDrive settings, Account, Choose folders, then untick `.rundock`. Some OneDrive versions will not list hidden folders here. If it does not appear, treat OneDrive as unable to exclude it and read the Google Drive note below.
 - **Google Drive:** **not possible.** Drive for Desktop in mirror mode syncs the whole folder tree with no per-subfolder exclusion, and stream mode does not work with Rundock. If you use Google Drive, assume your conversation history is visible to everyone with folder access.
@@ -200,7 +200,7 @@ A short list of cross-cutting things to know.
 
 ## Security and access
 
-- **Exclude `.rundock/` on cloud sync tools.** This folder sits inside your workspace and holds your conversation history, transcripts, and session records. On git it is excluded automatically. On Dropbox, OneDrive, and Google Drive it is not, so exclude it yourself using the steps in the relevant setup section. If you skip this, every message you have exchanged with your agents is readable by anyone with folder access.
+- **Exclude `.rundock/` on cloud sync tools.** This folder sits inside your workspace and holds your conversation history, transcripts, and session records. On git Rundock writes the exclusion at setup, which is worth confirming in your own `.gitignore` rather than assuming. On Dropbox, OneDrive, and Google Drive nothing writes it, so exclude it yourself using the steps in the relevant setup section. If you skip this, every message you have exchanged with your agents is readable by anyone with folder access.
 - **Check `.mcp.json` before sharing the folder.** It syncs on every option, git included, and MCP servers commonly take API keys directly in this file. Open it and look before you share. Rundock itself does not store your Claude or ChatGPT credentials anywhere in the workspace: those stay with the command-line tool, on your machine.
 - **Use named-user sharing.** For Dropbox, OneDrive, and Google Drive, share the workspace folder with specific people, not via "Anyone with the link" or organisation-wide sharing. This prevents accidental exposure.
 - **Microsoft 365 Copilot.** As noted in the OneDrive section, the M365 semantic index automatically includes workspace content. Audit who has access before enabling.
@@ -212,7 +212,7 @@ A short list of cross-cutting things to know.
 - **Async sync.** Updates propagate when the sync tool decides. Dropbox and OneDrive are typically near-instant for small files. Google Drive can be slower. Git syncs only when someone pushes (or on the auto-sync interval).
 - **Mid-conversation updates.** If an agent is updated while you're mid-conversation, the change takes effect at the start of your next conversation. Active conversations continue with the version loaded at start.
 - **MCP configuration is shared, not per-user.** `.mcp.json` lives in the workspace folder, so whatever it contains applies to the whole team and syncs on every option. That is convenient when the servers need no secrets, and a liability when they do. Until per-user MCP configuration is supported, keep secret-bearing servers out of the shared file.
-- **Conversation history is per-user, but only if you exclude it.** `.rundock/` is excluded automatically on git and must be excluded manually on Dropbox, OneDrive, and Google Drive.
+- **Conversation history is per-user, but only if you exclude it.** On git that rests on the `.gitignore` entry Rundock writes at setup, which you should confirm is present. On Dropbox and OneDrive you exclude it by hand, and on Google Drive you cannot.
 
 ## What's next
 
