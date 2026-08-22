@@ -33,11 +33,11 @@ These files sync. Every team member gets the same versions.
 Two things stay on your machine automatically, wherever your workspace lives:
 
 - **Your Claude or ChatGPT sign-in.** Rundock never stores your subscription credentials. They are held by the Claude Code or Codex command-line tool in its own configuration, outside the workspace folder entirely.
-- **Your recent-workspace list.** A small file in your home directory recording which folders you have opened.
+- **Your recent-workspace list.** A small file recording which folders you have opened, kept in your home directory by the desktop app and beside the server's own code when Rundock is run from source.
 
 Two more things live *inside* the workspace folder, which means they sync unless you exclude them. This is the most important part of this guide to get right:
 
-- **`.rundock/`** holds your conversation history, message transcripts, session records, and the search index. **On git this is handled for you:** Rundock adds `.rundock/` to `.gitignore` when it sets up a workspace, so it is never committed. **On Dropbox, OneDrive, and Google Drive it is not handled for you.** Those tools do not read `.gitignore`, so unless you exclude the folder yourself, your conversation history syncs to everyone with access. See "Excluding `.rundock/`" below.
+- **`.rundock/`** holds your conversation history, message transcripts, session records, and the search index. **On git most of the work is done for you, and it is worth checking:** Rundock appends `.rundock/` to `.gitignore` when it sets up a workspace, but it skips that write if the file already mentions `.rundock` in any form, and a failed write is not surfaced, so open the file and confirm the line is there before you push. **On Dropbox, OneDrive, and Google Drive nothing is done for you.** Those tools do not read `.gitignore`, so unless you exclude the folder yourself, your conversation history syncs to everyone with access. See "Excluding `.rundock/`" below.
 - **`.mcp.json`** holds your MCP server configuration. This file syncs on *every* option, including git. Many MCP servers take an API key directly in this file, so **open it and check before you share the folder.** If it contains keys, either move those servers to a per-user configuration or accept that everyone with folder access can read them.
 
 The principle to hold on to: agents, skills, and knowledge are meant to be shared, and are safe to share. Conversation history and MCP configuration live in the same folder for now but are not meant to be shared, so on cloud sync tools you have to exclude them deliberately.
@@ -66,7 +66,7 @@ Every team member does this once, on their own machine, before the first sync co
 | **Dropbox Business** | Most teams, especially non-technical | Conflict copies (safe) | Yes, via Selective Sync | $12 to $18 per user, per month |
 | **Microsoft OneDrive** | Teams already on Microsoft 365 | Conflict copies (safe) | Usually, via Choose folders | $6 per user, per month |
 | **Google Workspace** | Teams already on Google Workspace | Last write wins (poor) | **No** | $7 per user, per month |
-| **Git (GitHub or GitLab)** | Technical teams who want full audit trail | Smart merge | Yes, automatically | $0 to $4 per user, per month |
+| **Git (GitHub or GitLab)** | Technical teams who want full audit trail | Smart merge | Yes, via an entry written at setup (confirm it) | $0 to $4 per user, per month |
 
 **Recommended for most teams:** Dropbox Business. The simplest to set up, the safest conflict behaviour, and consistent on Mac and Windows.
 

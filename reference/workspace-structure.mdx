@@ -111,7 +111,7 @@ Per-user state, in a hidden directory at the root of the workspace folder. Rundo
 - **`conversations.json`**: the conversation list. **`lists.json`**: how those conversations are grouped.
 - **`transcripts/`**: full message transcripts, one JSONL file per agent session. A conversation that delegates produces several.
 - **`runs/`**: routine run records, one file per run. **`routine-state.json`** and **`routine-slots.json`**: the scheduling state behind catch-up.
-- **`state.json`**: the workspace mode (Knowledge or Code), setup state, and a record of where the workspace was last seen, which Rundock compares against the current path to notice that the folder has moved. The list of workspaces you have opened is kept separately, in your home directory.
+- **`state.json`**: the workspace mode (Knowledge or Code), setup state, and a record of where the workspace was last seen, which Rundock compares against the current path to notice that the folder has moved. The list of workspaces you have opened is kept separately: in your home directory in the desktop app, and beside the server's own code when Rundock is run from source.
 - **`search-index.db`**: the search index. **`scratch/`**, **`child-pids.json`** and **`startup.log`**: working files for running agents.
 
 Your runtime sign-in lives elsewhere: Claude Code and Codex each hold their own in their own configuration, outside the workspace folder, and Rundock reads none of it. Rundock stores no keys of its own.

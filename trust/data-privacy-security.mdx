@@ -33,7 +33,7 @@ When you send a message to an agent, the following is sent to Anthropic's API vi
 - Metadata about the team (agent names, descriptions, delegation table)
 - Contents of any files the agent reads as part of handling the task
 
-Nothing else leaves your machine. Rundock does not pre-load, embed, index, or otherwise scan your wider workspace. Files outside the conversation context stay on disk untouched.
+Nothing else leaves your machine. Rundock sends nothing beyond the conversation context above: no pre-loading of your wider workspace, no embedding, and nothing from the local search index. Files outside the conversation context stay on disk untouched.
 
 When an agent uses a built-in tool (Read, Write, Grep, Bash), the tool runs locally on your machine. The tool's output may be included in subsequent API calls if the agent reasons about it in its reply.
 
