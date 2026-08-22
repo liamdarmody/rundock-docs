@@ -43,7 +43,7 @@ Two more things live *inside* the workspace folder, which means they sync unless
 The principle to hold on to: agents, skills, and knowledge are meant to be shared, and are safe to share. Conversation history and MCP configuration live in the same folder for now but are not meant to be shared, so on cloud sync tools you have to exclude them deliberately.
 
 <Note>
-Moving conversation history and MCP configuration out of the workspace folder, so that this exclusion step is no longer needed, is planned work. Until it lands, treat the two bullets above as required setup rather than optional hardening.
+Moving conversation history out of the workspace folder, so that this exclusion step is no longer needed, is planned work. Until it lands, treat the first bullet above as required setup rather than optional hardening. `.mcp.json` stays in the workspace folder, so the second bullet is how it works rather than a temporary state.
 </Note>
 
 A note on hidden folders: the `.claude/` directory is hidden by default in Finder (Mac) and File Explorer (Windows). Cloud sync services handle hidden folders correctly. They sync the same way as any other folder. If you want to inspect the contents directly, enable "Show hidden files" in your file browser.
@@ -211,7 +211,7 @@ A short list of cross-cutting things to know.
 - **Single shared folder.** Today, every team member sees the same agents and skills. There is no per-team or per-role permission tiering within the workspace. As your team grows, this may feel limiting. See "What's next" below.
 - **Async sync.** Updates propagate when the sync tool decides. Dropbox and OneDrive are typically near-instant for small files. Google Drive can be slower. Git syncs only when someone pushes (or on the auto-sync interval).
 - **Mid-conversation updates.** If an agent is updated while you're mid-conversation, the change takes effect at the start of your next conversation. Active conversations continue with the version loaded at start.
-- **MCP configuration is shared, not per-user.** `.mcp.json` lives in the workspace folder, so whatever it contains applies to the whole team and syncs on every option. That is convenient when the servers need no secrets, and a liability when they do. Until per-user MCP configuration is supported, keep secret-bearing servers out of the shared file.
+- **MCP configuration is shared, not per-user.** `.mcp.json` lives in the workspace folder, so whatever it contains applies to the whole team and syncs on every option. That is convenient when the servers need no secrets, and a liability when they do. Keep secret-bearing servers out of the shared file.
 - **Conversation history is per-user, but only if you exclude it.** On git that rests on the `.gitignore` entry Rundock writes at setup, which you should confirm is present. On Dropbox and OneDrive you exclude it by hand, and on Google Drive you cannot.
 
 ## What's next

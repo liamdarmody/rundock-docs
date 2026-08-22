@@ -73,7 +73,7 @@ Per-user MCP server permissions and tool overrides for the workspace. Although i
 
 ### `.mcp.json`
 
-Workspace-level MCP server configuration. Lists the MCP servers the workspace uses and the connection details. This file syncs across the team on every sync option, git included. Rundock holds no per-user credential store, so any key written into this file syncs with it. Read it before you share the workspace folder, and keep secret-bearing servers out of it until per-user MCP configuration is supported.
+Workspace-level MCP server configuration. Lists the MCP servers the workspace uses and the connection details. This file syncs across the team on every sync option, git included. Rundock holds no per-user credential store, so any key written into this file syncs with it. Read it before you share the workspace folder, and keep secret-bearing servers out of it.
 
 This file is optional. If your workspace uses no MCP servers, omit it.
 
@@ -125,7 +125,7 @@ On Dropbox and OneDrive you exclude it yourself. [Set up a team workspace](/guid
 </Warning>
 
 <Note>
-Moving conversation history and MCP configuration out of the workspace folder, so that excluding them is no longer necessary, is planned work.
+Moving conversation history out of the workspace folder, so that excluding it is no longer necessary, is planned work. `.mcp.json` stays where it is.
 </Note>
 
 ## What syncs and what does not
@@ -139,7 +139,7 @@ The split as a table.
 | `CLAUDE.md` | Workspace folder | **Yes** | House rules apply to everyone. |
 | `.mcp.json` | Workspace folder | **Yes** | Shared with the whole team on every sync option. Any API key written into it syncs too. |
 | Knowledge files | Workspace folder | **Yes** | Brand documents, voice profiles, reference material are team assets. |
-| `.claude/settings.local.json` | Workspace folder | **No** | Per-user permission and MCP overrides. Add to sync exclusion list. |
+| `.claude/settings.local.json` | Workspace folder | **Yes, unless excluded** | Per-user permission and MCP overrides, meant to stay on one machine. Rundock does not write this exclusion, so add it to your sync tool's exclusion list, or to `.gitignore` if you sync via git. |
 | `.rundock/conversations.json`, `.rundock/transcripts/` | Workspace folder | **Yes, unless excluded** | Your conversation list and every message transcript. Meant to be per-user. |
 | `.rundock/runs/` | Workspace folder | **Yes, unless excluded** | One record per routine run, so this grows with every scheduled run. |
 | `.rundock/state.json`, `.rundock/search-index.db` | Workspace folder | **Yes, unless excluded** | Workspace mode, setup state, last-seen path, and the search index. |
