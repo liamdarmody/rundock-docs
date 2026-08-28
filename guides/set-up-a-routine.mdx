@@ -1,9 +1,9 @@
 ---
 title: 'Set up a routine'
-description: 'Add a scheduled prompt to an agent and confirm it fires.'
+description: 'Schedule a skill through the form, confirm it fires, and watch a run happen.'
 ---
 
-Routines fire prompts on a schedule, without you starting the conversation. This guide walks through adding a daily morning briefing to the orchestrator and confirming it works. The same shape applies to any routine on any agent.
+Routines fire prompts on a schedule, without you starting the conversation. This guide walks through scheduling a daily morning briefing on the orchestrator, then confirming it works. The same shape applies to any routine on any agent.
 
 Read [Routines](/concepts/routines) first if you have not already. There are limits worth knowing before you build a workflow on top of routines.
 
@@ -12,91 +12,63 @@ Read [Routines](/concepts/routines) first if you have not already. There are lim
 You need:
 
 - An agent already created, ideally the one you want to attach the routine to. The orchestrator is the natural home for a daily briefing because its body already knows how to triage.
-- A clear sense of what the routine should produce. Routines that ask the model to "think about" something disappear into the void: routine output is not captured to a visible conversation. The routine's prompt should instruct the agent to **write** something the user will find later (a file, a Todoist task, a Notion page).
+- **A skill for the routine to run.** Routines schedule a skill, not a freeform prompt: there is no text box in the form to type an instruction into. If the agent does not have the skill you want yet, the form's own empty state offers to build one before you go further.
 
-## 1. Open the agent file
+## 1. Open the Add routine form
 
-Open the agent file you want to attach the routine to. You can edit it directly in any text editor or through Rundock's interface. Both routes write to the same file.
+From the orchestrator's own profile page, press **Add routine**. This opens a two-step editor scoped to that agent, so the first step only lists its own skills.
 
-The file lives at `.claude/agents/<slug>.md` in your workspace. For the orchestrator, that is typically something like `.claude/agents/chief-of-staff.md`.
+<Note>
+The profile page only offers **Add routine** before an agent has its first one. To add a second routine to an agent that already has one, use the **+** button in the routines panel's header at the bottom of the sidebar instead. If that panel is not scoped to one agent, its first step also asks which agent, not just which skill.
+</Note>
 
-## 2. Add the routines block
+## 2. Step 1: pick a skill
 
-Routines are declared in the agent's YAML frontmatter, in a `routines:` array. Each entry is a YAML object with four fields.
+The first screen lists the skills this agent already has. Pick one. The instruction the routine will send is derived entirely from the skill you pick: there is nothing else to fill in on this step.
 
-Here is the morning briefing routine:
+If the agent has no skills yet, the screen offers to build one instead of showing an empty list.
 
-```yaml
-routines:
-  - name: Morning briefing
-    schedule: every day at 05:00
-    prompt: Run the morning briefing
-    description: Triage today's tasks, calendar, and content pipeline at 5am.
+## 3. Step 2: say when
+
+The second screen is a plain-terms schedule builder: a frequency (day, or a specific weekday) and a time. As you choose, the screen shows the sentence it will save, for example:
+
+```
+Run Weekly research digest every Friday at 4:00am, on this computer.
 ```
 
-What each field is for:
+"On this computer" names where the routine runs today: while Rundock is open, on this machine. Confirm the sentence and press **Save routine**.
 
-- **`name`** is what shows in the routines panel and on the agent profile. Required.
-- **`schedule`** is when the routine fires. Required. Accepts only specific human-readable forms (no cron). See below.
-- **`prompt`** is the message sent to the agent when the routine fires. Treated as a single user message: the same text you would type. Required.
-- **`description`** is a one-line plain English explanation surfaced on the agent profile. Optional.
+<Note>
+**Only the routines of the open workspace run.** If you use more than one workspace, a routine you make now runs while this workspace is the one open, and is caught up the same day if you were elsewhere when its slot came due. See [Routines](/concepts/routines) for the full explanation.
+</Note>
 
-The schedule above fires once a day at 5am local time. To change the cadence, swap in one of the supported patterns.
+## 4. Find it in the list
 
-## 3. Pick a schedule that will actually match
-
-The schedule format is exact. Both patterns below use two-digit zero-padded times and lowercase, full weekday words.
-
-| Cadence | Pattern | Example |
-|---|---|---|
-| Daily | `every day at HH:MM` | `every day at 05:00` |
-| Weekly | `every <weekday> at HH:MM` | `every friday at 04:00` |
-
-<Warning>
-Examples that look right but never fire:
-
-```yaml
-schedule: 0 5 * * *                # cron: not supported
-schedule: every day at 9:00        # missing leading zero
-schedule: every weekday at 18:00   # "weekday" is not a recognised day
-schedule: every Monday at 09:00    # capital M does not match
-schedule: every day @ 05:00        # only "at" is recognised
-```
-
-The scheduler does not raise an error on a bad schedule. The routine registers fine and silently never runs. If a routine appears to do nothing, the schedule string is the first thing to check.
-</Warning>
-
-For the full pattern reference and more examples, see [Routine format](/reference/routine-format).
-
-## 4. Save the file
-
-Save the agent file. The scheduler picks up the change on its next tick (within 60 seconds): you do not need to restart Rundock.
-
-Open the routines panel at the bottom of the left sidebar. The new routine should appear in the list under the agent it is attached to, with the schedule formatted as `5:00 AM` for the daily case or `Fri 4:00 AM` for the weekly case.
+Saving returns you to the routines list, where the new routine appears under the agent it belongs to, showing its schedule (`5:00 AM` for a daily routine, `Fri 4:00 AM` for a weekly one).
 
 ## 5. Confirm the routine fires
 
-The honest answer here is: the easiest way to confirm a routine works is to **schedule it for a few minutes from now and wait**. Rundock's routines panel does not currently expose a manual trigger button. The panel is display-only.
-
-To confirm without waiting until 5am tomorrow:
+Rundock has no manual "run now" button: a routine fires on its own schedule and nothing else triggers it early. The way to confirm one works without waiting until 5am tomorrow is to schedule it a couple of minutes out, watch it happen, then put the real schedule back.
 
 <Steps>
-  <Step title="Set the schedule for two minutes from now">
-    Edit the agent file and change the `schedule` field to a time two minutes ahead of the current local time. Save.
+  <Step title="Open the routine and change its schedule">
+    From the routines list, open the routine you just made and go back into the schedule step. Set the time to two minutes ahead of the current local time, on today's day of the week (or "day" for a daily routine). Save.
   </Step>
-  <Step title="Watch the routines panel">
-    Within 60 seconds of the scheduled time, the routine row should switch to a `Running...` indicator in the working colour. The scheduler ticks every minute, so there can be up to a minute of delay.
+  <Step title="Watch the row">
+    Within 60 seconds of the scheduled time, the row switches to **Still going**. The scheduler ticks every minute, so there can be up to a minute of delay. Open the run from here with **View run** to watch it while it is still in progress.
   </Step>
-  <Step title="Check that the agent wrote something">
-    Routine output is not captured to a Rundock conversation. The way you know the routine ran is by finding what the agent produced: the file it wrote, the task it created, the note it updated. If the routine's prompt instructs the agent to write a trace, that trace is the proof of life.
+  <Step title="Check what it produced">
+    Rundock does not surface the model's own response in a conversation. What tells you the routine did its job is either the file it wrote, the task it created, or the run's own file list (open **View run** or **View last run** to see it: every file the run touched, or an honest note if that can't be established).
   </Step>
-  <Step title="Check the routine status">
-    Once the run completes, the routines panel returns to showing the schedule. The agent profile shows `Last run: <relative time> (<status>)` for the routine. If the status is `failed`, the subprocess exited with an error.
+  <Step title="Check the outcome">
+    Once the run finishes, its row shows one of **Ran**, **Caught up**, or **Failed**. If it says **Failed**, open the run to see whether it recorded a reason.
   </Step>
   <Step title="Set the schedule back">
-    Edit the agent file again and restore the routine's intended schedule.
+    Open the routine again and restore its intended time.
   </Step>
 </Steps>
+
+If a run is taking longer than expected, or you started it purely to test the schedule and don't want to wait for it, the run's own screen carries a **Stop** control for as long as it is going. Stopping it does not cancel the routine: it runs again at its next real slot.
 
 ## Limits worth knowing
 
@@ -107,36 +79,36 @@ The same limits from the [Routines concept page](/concepts/routines) apply here.
 </Warning>
 
 <Warning>
-**Routine output is not captured to a visible conversation.** Rundock records the routine's `lastRun` timestamp, status, and duration, but it does not surface the model's response or any tool calls in a Rundock conversation. Any routine that needs to leave a trace must write that trace itself, through tools (Write to a file, Todoist via MCP, Notion via MCP).
+**Routine output itself is not captured to a visible conversation.** Rundock records the routine's `lastRun` timestamp, status, duration, and a separate list of the files the run changed, but it does not surface the model's response or its running commentary in a Rundock conversation. Any routine that needs to leave a trace must write that trace itself, through tools (Write to a file, Todoist via MCP, Notion via MCP).
 </Warning>
 
 <Note>
-**No notification when a routine completes.** You see the timestamp update in the routines panel and the agent profile. To know whether the run did the right thing, check the file or task the agent was instructed to produce.
+**No notification when a routine completes.** You see the row update in the routines panel. To know whether the run did the right thing, check the file or task it was meant to produce, or open the run's own record.
 </Note>
 
 ## Patterns that work
 
-Three routines that work well in practice:
+Three routines that work well in practice, shown here in the frontmatter they resolve to (see [Routine format](/reference/routine-format) if you're writing or scripting this directly rather than using the form):
 
 ```yaml
 routines:
   - name: Morning briefing
     schedule: every day at 05:00
     prompt: Run the morning briefing
-    description: Triage today's tasks, calendar, and content pipeline at 5am.
+    enabled: true
 
   - name: End-of-day sync
     schedule: every day at 21:00
     prompt: Run the end-of-day sync
-    description: Pull today's meetings and write notes, tasks, and people updates.
+    enabled: true
 
   - name: Weekly research digest
     schedule: every friday at 04:00
     prompt: Run the full weekly research pipeline and produce a digest
-    description: Weekly content opportunities digest.
+    enabled: true
 ```
 
-The shape that ties them together: the routine's prompt is short. It assumes the agent's body already knows what "the morning briefing" or "the weekly research pipeline" means. Keep the procedural detail in the agent's instructions or in a skill, not in the routine's prompt.
+The shape that ties them together: the prompt is short. It assumes the agent already knows what "the morning briefing" or "the weekly research pipeline" means, whether that lives in the agent's own instructions or in a skill it has. A routine made through the form always resolves to a one-line instruction naming the skill it schedules; a routine written by hand can say anything, as long as it is one clear instruction.
 
 Stagger times if you have multiple routines on the same agent. Two routines firing in the same minute spawn two concurrent Claude Code subprocesses that do not share context.
 
@@ -147,6 +119,6 @@ Stagger times if you have multiple routines on the same agent. Two routines firi
     What routines are and the limits worth knowing before you build on them.
   </Card>
   <Card title="Routine format" icon="file-code" href="/reference/routine-format">
-    The exact schedule patterns and field reference.
+    The underlying frontmatter format, for power users and scripting.
   </Card>
 </CardGroup>
