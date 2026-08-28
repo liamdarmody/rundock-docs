@@ -7,6 +7,10 @@ A routine is a scheduled prompt sent to a specific agent on a cadence. The same 
 
 Routines power the kind of automation that needs to happen unattended: a morning briefing on the orchestrator, an end-of-day sync that processes the day's meeting notes, a weekly research digest that runs before the user is awake. They are the scheduled equivalent of clicking "send" on a prompt every day.
 
+<Frame caption="Four routines across different agents, each in a different run state: ran on time, caught up after a missed slot, missed, and failed.">
+  <img src="/images/routines.png" alt="Rundock routines list showing four scheduled routines across different agents, one that ran on time, one caught up after a missed slot, one missed, and one failed." />
+</Frame>
+
 ## Add a routine
 
 The normal way in is the Add routine form, reached from an agent's page or from the routines panel. It is two short steps:
@@ -24,10 +28,10 @@ For a full walkthrough with screenshots, see [Set up a routine](/guides/set-up-a
 
 The routines panel shows every routine across every agent in the workspace, one flat list. Once a routine has run at least once, its row shows what happened last time, in one of four tones:
 
-- **Ran** — the routine fired on schedule and finished. Shown in the success colour.
-- **Caught up** — Rundock was closed at the scheduled time and the routine fired once you opened it again. Also a success, just a quieter one: the row names both the time it actually ran and the time it was due, so the delay reads as legible rather than alarming.
-- **Missed** — a scheduled slot went by with Rundock closed, and it fell outside the same-day catch-up window. This is history, not an error: the row names the cause (Rundock was closed) rather than treating it as a failure.
-- **Failed** — the run actually failed. This is the only one of the four that gets an alarming colour, on purpose: a routine that ran late or was missed while your laptop was shut is the ordinary case for most setups, and dressing that up as a warning teaches you to ignore the one signal that matters.
+- **Ran:** the routine fired on schedule and finished. Shown in the success colour.
+- **Caught up:** Rundock was closed at the scheduled time and the routine fired once you opened it again. Also a success, just a quieter one: the row names both the time it actually ran and the time it was due, so the delay reads as legible rather than alarming.
+- **Missed:** a scheduled slot went by with Rundock closed, and it fell outside the same-day catch-up window. This is history, not an error: the row names the cause (Rundock was closed) rather than treating it as a failure.
+- **Failed:** the run actually failed. This is the only one of the four that gets an alarming colour, on purpose: a routine that ran late or was missed while your laptop was shut is the ordinary case for most setups, and dressing that up as a warning teaches you to ignore the one signal that matters.
 
 While a routine is actively running, its row shows "Still going" instead, with a way to open it and watch. This is the first release where you can do that: before, the row went blank for as long as a run was in progress.
 
@@ -37,11 +41,11 @@ Every run leaves a record: the files it changed, when it started, how long it to
 
 The run screen shows one of five outcomes, each in its own words so they cannot be mistaken for one another:
 
-- **Finished** — the run got to the end and did what it was asked to.
-- **Stopped early** — the run started and did not get through what it was asked to (a real failure).
-- **Stopped** — you asked the run to stop, and it ended. Deliberately not read as a failure: this ending was witnessed, it just was not the one the routine was working towards.
-- **No ending recorded** — Rundock closed while the run was under way, so nothing recorded how it turned out. Also not read as a failure: it may have finished a moment before Rundock closed, and nothing here claims otherwise.
-- **Still going** — self-explanatory, and the one state that offers the Stop control described below.
+- **Finished:** the run got to the end and did what it was asked to.
+- **Stopped early:** the run started and did not get through what it was asked to (a real failure).
+- **Stopped:** you asked the run to stop, and it ended. Deliberately not read as a failure: this ending was witnessed, it just was not the one the routine was working towards.
+- **No ending recorded:** Rundock closed while the run was under way, so nothing recorded how it turned out. Also not read as a failure: it may have finished a moment before Rundock closed, and nothing here claims otherwise.
+- **Still going:** self-explanatory, and the one state that offers the Stop control described below.
 
 Below the outcome, the run's file list: what it changed, or an honest statement of why that can't be known (a shell command that wrote a file leaves no path to report; work handed to a subagent is tracked by that subagent, not this run).
 
