@@ -22,7 +22,7 @@ The parser is intentionally lenient. It accepts standard YAML for the field type
 |---|---|---|---|---|
 | `name` | string | Universal | Yes | The agent's slug. Should match the filename without the `.md` extension. |
 | `description` | string | Universal | Yes | One-line description. Required by Claude Code: if absent, the agent is silently excluded from spawn. |
-| `model` | string | Universal | No | Claude model to use. Accepts `opus`, `sonnet`, `haiku`, or `inherit`. Falls through to Claude Code's default if omitted. |
+| `model` | string | Universal | No | The model this agent runs on, passed to the runtime unchanged. Rundock does not check it, so any identifier your runtime serves is valid, including a gateway's or router's own naming (`my-gateway/claude-model-id`). On a standard Claude Code setup that includes `opus`, `sonnet` and `haiku`. Leaving the field out and setting `inherit` do the same thing: Rundock asks for no particular model and your runtime uses whatever it already defaults to. `inherit` just says so explicitly, which is usually kinder to whoever reads the file next. |
 | `tools` | array of strings | Universal | No | Allowed tools for this agent. Read by Claude Code at spawn. Not surfaced in the Rundock UI. |
 | `displayName` | string | Rundock-only | No | Human-readable name shown in the org chart and conversation header. If omitted, Rundock title-cases the slug. |
 | `role` | string | Rundock-only | No | Short role title shown beneath the display name on the org chart card. Two to four words. |
@@ -149,7 +149,7 @@ order: 4                            # position on the org chart among siblings
 reportsTo: chief-of-staff           # the slug of the parent agent
 icon: ⌘                             # single unicode character
 colour: "#2ECC71"                   # quoted hex, UK spelling
-model: opus                         # opus, sonnet, haiku, or inherit
+model: opus                         # any model your runtime serves, or inherit
 description: >
   Lead Developer responsible for all software projects, Personal OS automations,
   and vault infrastructure tooling. Spec-first, incremental, quality-gated engineering.

@@ -18,7 +18,19 @@ Two rules worth knowing:
 - **The workspace orchestrator always runs on Claude Code.** Specialists are free to run on either runtime.
 - **Leave the model field out of Codex agents.** Your ChatGPT account's default model applies automatically. Claude model names (`opus`, `sonnet`, `haiku`) are not valid on Codex; if a Codex agent is given a model its account does not offer, Rundock shows a card explaining exactly that, with the fix.
 
-For Claude Code agents, `model:` works as before: `opus`, `sonnet`, or `haiku`, defaulting to `sonnet`.
+For Claude Code agents, `model:` takes any model identifier your runtime serves. On a standard Claude Code setup that means `opus`, `sonnet` or `haiku`. An agent file that names no model runs on whatever your runtime already defaults to: Rundock does not pick one for you.
+
+Rundock does not check the value. It passes what you wrote to the runtime, which is what makes the next section possible.
+
+## Models through a gateway (Claude Code)
+
+This section is about Claude Code agents. Codex agents take their model from your ChatGPT account, so leave their `model:` field out.
+
+If your models reach you through a gateway or proxy rather than directly, the names will be your gateway's own, in whatever form it uses, for example `my-gateway/claude-model-id`. Put that identifier in the agent's `model:` field and Rundock passes it through untouched.
+
+When you would rather not name a model at all, leave `model:` out or set it to `inherit`. They do the same thing: Rundock asks for no particular model and your runtime applies whatever default it already resolves for your machine. This is what the agents Rundock creates for you use, including Doc, so a workspace works on the first message without anyone having to know which models your setup serves.
+
+One consequence worth knowing: every agent set to `inherit` runs on the same model, the one your runtime defaults to. If you want a stronger model for an orchestrator and a faster one for simple work, name those models per agent instead.
 
 ## What each subscription covers
 
@@ -26,7 +38,7 @@ For Claude Code agents, `model:` works as before: `opus`, `sonnet`, or `haiku`, 
 |---|---|---|
 | Subscription | Claude Pro or Max | ChatGPT (plans that include Codex) |
 | Sign in | `claude` setup via Rundock's first-run wizard | `npm install -g @openai/codex`, then `codex login` |
-| Default model | `sonnet` (set per agent with `model:`) | Your account's default (leave `model:` out) |
+| Default model | Your runtime's own default (name one per agent with `model:`) | Your account's default (leave `model:` out) |
 | Can be the orchestrator | Yes | No |
 
 Rundock's first-run setup detects the Codex CLI and, if it is present, offers an optional step to sign in to Codex; you can also run `codex login` yourself, or do it later from Settings. Settings show each runtime's status once it is done.
@@ -67,7 +79,7 @@ Hover any status for the evidence behind it.
 Codex failures explain themselves instead of showing raw errors:
 
 - **Signed out**: a card says so and names the fix (`codex login`), and resending your message after signing in continues the same conversation.
-- **Model not available**: a card names the configured model and the fix (remove the `model:` field, or pick one your plan includes).
+- **Model not available**: a card names the configured model and the fix. Remove the `model:` field to fall back to your ChatGPT account's default, or name a model your plan includes.
 - **Plan limit reached**: a card explains the limit is temporary and your conversation is safe; Claude agents are unaffected.
 
 Anything else surfaces with the runtime's verbatim message attached, so nothing is hidden.
