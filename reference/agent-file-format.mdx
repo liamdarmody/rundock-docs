@@ -11,7 +11,7 @@ This page is the reference. For the concept, see [Agents](/concepts/agents).
 
 Frontmatter fields fall into two categories:
 
-- **Universal** fields work in any tool that supports the Claude agent format. Claude Code, Rundock, and claude.ai all read them.
+- **Universal** fields belong to the Claude agent format, and Claude Code reads them when it runs the agent. Rundock reads some of them too, and each row below says which.
 - **Rundock-only** fields are read by Rundock and silently ignored by other tools. They control how the agent looks in the org chart and how it relates to other agents.
 
 The parser is intentionally lenient. It accepts standard YAML for the field types listed and silently ignores fields it does not recognise. Typos in field names do not raise an error. If your agent looks generic in the org chart, check field names against the table below.
@@ -27,17 +27,17 @@ The parser is intentionally lenient. It accepts standard YAML for the field type
 | `displayName` | string | Rundock-only | No | Human-readable name shown in the org chart and conversation header. If omitted, Rundock title-cases the slug. |
 | `role` | string | Rundock-only | No | Short role title shown beneath the display name on the org chart card. Two to four words. |
 | `type` | enum | Rundock-only | No | One of `orchestrator`, `specialist`, or `platform`. Determines org chart position. Exactly one orchestrator per workspace. |
-| `order` | number | Rundock-only | No | Numeric position on the org chart among siblings. Orchestrator should be `0`. Decimals (`1.1`, `1.2`) group sub-agents under a parent. |
+| `order` | number | Rundock-only | No | Numeric position on the org chart among siblings. Decimals (`1.1`, `1.2`) group sub-agents under a parent. **`order: 0` does more than sort**: it marks the agent as the workspace default, rewriting its id and letting `CLAUDE.md` fill in as instructions when the file has no body. Omitting it decides the agent's status: see below. |
 | `reportsTo` | string | Rundock-only | No, but recommended for every specialist | The slug of the agent this one reports to. Drives the org chart hierarchy and the delegation chain. |
 | `icon` | string | Rundock-only | No | A single unicode character used as the agent's avatar. Doc reserves `⬡`. Avoid characters that look similar at small sizes. |
-| `colour` | string (hex) | Rundock-only | No | Accent colour for the org chart card. Hex with leading `#`, **quoted**. UK spelling: the field is `colour`, not `color`. |
+| `colour` | string (hex) | Rundock-only | No | Accent colour for the org chart card. Hex with leading `#`. Quotes are optional: this is read with a line regex rather than YAML, so the unquoted form works and is what Rundock's own scaffolded agents ship. UK spelling: the field is `colour`, not `color`. |
 | `prompts` | array of strings | Rundock-only | No | Starter prompts shown in the conversation panel on first open. Two to four entries is typical. |
-| `skills` | array of strings | Rundock-only | No | Explicit list of skill slugs. **Block form only**. Inline flow-style arrays (`[a, b]`) parse as empty. Takes precedence over body-text scanning. |
+| `skills` | array of strings | Universal | No | Explicit list of skill slugs. Both the flow form (`skills: [a, b]`) and the block form parse. Rundock uses it to attach skills to the agent, and it adds to body-text scanning rather than replacing it: a slug mentioned in the body still attaches. Claude Code reads the same field and preloads each listed skill's full content when the agent runs as a subagent. |
 | `capabilities` | object | Rundock-only | No | Human-readable description for the profile page. Conventional keys: `does`, `reads`, `writes`, `connectors`. |
 | `routines` | array of objects | Rundock-only | No | Scheduled tasks. Each routine has `name`, `schedule`, `prompt`, and an optional `description`. |
-| `maxTurns` | number | Rundock-only | No | Conversation turn cap. Preserved in the file for tooling that reads it directly. Not forwarded to the spawn. |
-| `mcpServers` | array of strings | Rundock-only | No | MCP servers shown on the profile under connectors. Actual MCP selection is governed by the workspace's `.mcp.json` and `.claude/settings.local.json`. |
-| `disallowedTools` | array of strings | Rundock-only | No | Listed for documentation. Not forwarded to the spawn: Rundock derives its disallowed-tools list from workspace mode, not from agent frontmatter. |
+| `maxTurns` | number | Universal | No | Turn cap. Rundock does not read it or pass it on the command line. Claude Code reads it from the file itself. |
+| `mcpServers` | array | Universal | No | **Rundock does not read this key**, and it does not appear on the profile. An earlier version of this page said it showed under connectors; it does not. Claude Code reads it from the file and connects the listed servers when the agent runs, alongside the workspace's own `.mcp.json`. |
+| `disallowedTools` | array of strings | Universal | No | Rundock does not read it: the disallowed-tools list Rundock passes at spawn comes from workspace mode, not from agent frontmatter. Claude Code reads the field from the file itself. |
 
 ## The capabilities object
 
@@ -55,7 +55,13 @@ Each value is a string. The convention is plain prose, not bullet lists.
 
 ## The skills array
 
-Use the block form. Inline flow-style arrays do not parse and silently fall through to body-text scanning.
+Both YAML forms parse. The flow form is tried first:
+
+```yaml
+skills: [hook-generator, voice-editor, weekly-report]
+```
+
+and the block form, at any indent, is the fallback:
 
 ```yaml
 skills:
@@ -64,7 +70,7 @@ skills:
   - readwise-highlights
 ```
 
-Each entry is a skill slug as it appears in `.claude/skills/<slug>/`. Slugs are case-insensitive on the match, but write them lowercase to match directory names.
+Each entry is a skill slug as it appears in `.claude/skills/<slug>/`. Slugs are case-insensitive on the match, but write them lowercase to match directory names. The list only takes effect on an agent that is on the team: see the status table under [Common pitfalls](#common-pitfalls).
 
 ## The routines array
 
@@ -141,19 +147,19 @@ Mode does not decide whether agents are kept inside the workspace. That is its o
 
 ## Complete worked example
 
-Here is a complete agent file, `lead-developer.md`. Every field has been verified against the live agent in the workspace.
+Here is a complete agent file, `lead-developer.md`. There are no comments on the frontmatter lines, deliberately: see [Common pitfalls](#common-pitfalls).
 
 ```markdown
 ---
-name: lead-developer                # slug, must match the filename
-displayName: Forge                  # short character-style name on the org chart
-role: Lead Developer                # short role title beneath the display name
-type: specialist                    # orchestrator, specialist, or platform
-order: 4                            # position on the org chart among siblings
-reportsTo: chief-of-staff           # the slug of the parent agent
-icon: ⌘                             # single unicode character
-colour: "#2ECC71"                   # quoted hex, UK spelling
-model: opus                         # any model your runtime serves, or inherit
+name: lead-developer
+displayName: Forge
+role: Lead Developer
+type: specialist
+order: 4
+reportsTo: chief-of-staff
+icon: ⌘
+colour: "#2ECC71"
+model: opus
 description: >
   Lead Developer responsible for all software projects, internal automations,
   and build tooling. Spec-first, incremental, quality-gated engineering.
@@ -182,9 +188,11 @@ project registry, and communication style)
 Notes on this example:
 
 - `name: lead-developer` matches the filename `lead-developer.md`.
+- `displayName` and `role` are what the org chart card shows. `type: specialist` places it under the orchestrator.
 - `order: 4` places Forge fourth on the chart, after the orchestrator (0) and three earlier specialists.
 - `reportsTo: chief-of-staff` puts Forge on the orchestrator's direct line.
-- `colour` uses the UK spelling. The hex value is quoted: YAML treats a leading `#` as a comment if unquoted.
+- `colour` uses the UK spelling. The hex is quoted here by preference: the parser is a line regex, not YAML, so the unquoted form works too.
+- `model` takes any model your runtime serves, or `inherit`.
 - `description` uses YAML's folded-scalar syntax (`>`) so the description spans lines while parsing as a single string.
 - `prompts` are written as the user would phrase them, not as commands.
 
@@ -202,9 +210,21 @@ A few specific things that go wrong silently, in roughly order of frequency.
 
 **`order` collisions.** Two specialists with the same `order` value appear in indeterminate sibling order. Pick a unique integer for each top-level specialist. Use decimals for sub-agents (`1.1`, `1.2`).
 
-**Hex colour without quotes.** YAML treats a `#` at the start of a scalar as the start of a comment. Quote hex colours: `colour: "#E87A5A"`, not `colour: #E87A5A`.
+**Comments after a value become part of the value.** Rundock reads single-value fields with a line regex, not a YAML parser, so it does not strip a trailing `# comment`. `model: opus  # fast` hands the runtime the model name `opus  # fast`, and a comment after `displayName` shows on the org chart. Put comments on their own line. The same line regex is why a hex colour needs no quotes: `colour: #E87A5A` and `colour: "#E87A5A"` both read as `#E87A5A`.
 
-**Inline `skills:` arrays do not parse.** The flow-style `skills: [a, b]` parses as an empty array. Always use the block form with indented `- slug` lines.
+**Status is three-state, and `order` alone does not decide it.**
+
+| `type` | `order` | Status |
+|---|---|---|
+| any | present | `onTeam` |
+| present | absent | `available` |
+| absent | absent | `raw` |
+
+**Skills attach only to `onTeam` agents.** An `available` or `raw` agent gets none however it declares them, and nothing warns. If a `skills:` array seems to do nothing, check the status first.
+
+**Other things that parse cleanly and do nothing.** `description: |` leaves a literal pipe in the text, because only the folded `>` form is stripped. `capabilities:` needs exactly two spaces and word-character keys, or the whole block is dropped. The profile panel shows at most the first 20,000 characters of the body; the running agent still receives the whole file.
+
+**Both `skills:` forms parse.** The flow style `skills: [a, b]` is tried first and the block form with indented `- slug` lines is the fallback. An earlier version of this page said the flow form parsed as empty; it does not.
 
 **Body says "you must delegate using this exact marker".** Do not write delegation marker syntax into the agent's body. Rundock injects it at spawn time. The body should describe what to delegate and to whom, never the marker format.
 

@@ -64,7 +64,7 @@ outside research, say so briefly and hand it back.
 
 Two notes on the example:
 
-- The first paragraph names the role and the most common hand-off shape ("when X needs Y, they hand it to you"). The orchestrator reads the agent's `description` for routing, but other agents read the body when they decide whether to delegate to this one.
+- The first paragraph names the role and the most common hand-off shape ("when X needs Y, they hand it to you"). When the orchestrator decides whether to hand work here, it has the agent's `description`, which Claude Code lists with each agent it can delegate to, and the role and `capabilities.does` line from Rundock's team roster. Rundock shows this first paragraph to every other specialist on the team, so they can recognise when a request belongs here and hand it back.
 - The boundary at the bottom is non-optional. Every specialist should have one. Without it, the agent will try to do whatever you ask, even when the work belongs elsewhere.
 
 ## 4. Set the org chart position
@@ -76,7 +76,7 @@ Set `reportsTo` to the slug of the agent this one reports to. For a flat team, t
 You can also set:
 
 - An `icon`: a single unicode character used as the agent's avatar. Avoid characters that look similar at small sizes.
-- A `colour`: a hex value, quoted, for the org chart card and profile header. UK spelling: the field is `colour`, not `color`. Hex values must be quoted because YAML treats a leading `#` as a comment.
+- A `colour`: a hex value for the org chart card and profile header. UK spelling: the field is `colour`, not `color`. Quotes are optional, because Rundock reads the line directly rather than as YAML. Keep any comment on its own line, not after the value.
 
 ## 5. Assign skills (optional)
 
@@ -88,7 +88,7 @@ skills:
   - web-search
 ```
 
-Use the block form with `- slug` lines. Inline arrays (`skills: [a, b]`) parse as empty.
+The inline form (`skills: [web-search, weekly-report]`) works too. Skills only attach to an agent that is on the team, which the `order` you set in step 4 makes it.
 
 If you do not have skills to assign yet, skip this. You can add them later. To create a skill from scratch, see [Write a skill](/guides/write-a-skill).
 
