@@ -7,9 +7,9 @@ Four principles shape every decision in Rundock. A fifth section below, *Built f
 
 ## Local-first
 
-The whole stack runs on your machine. Your files, your agents, your conversations stay on disk in your workspace. Rundock makes zero outbound network calls. The only network traffic is the active conversation, sent by Claude Code to Anthropic for processing. Close Claude Code and Rundock has no network footprint at all.
+The whole stack runs on your machine. Your files, your agents, your conversations stay on disk in your workspace. Rundock itself contacts only GitHub: the desktop app checks there for app updates, and Rundock fetches a package from there when you add it, check it for updates or update it. None of your files, agents or conversations go with those requests. Your runtime makes its own calls: Claude Code sends the active conversation to Anthropic, Codex sends it to OpenAI, and any connectors you add reach the services you chose.
 
-What this rules out: any feature that requires sending your data to a Rundock server, any cloud-only sync, any usage telemetry, any account system. If you want to run Rundock entirely offline once the conversation ends, you can.
+What this rules out: any feature that requires sending your data to a Rundock server, any cloud-only sync, any usage telemetry, any account system.
 
 For where files live on disk, see [Workspaces](/concepts/workspaces).
 

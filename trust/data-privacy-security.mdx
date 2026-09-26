@@ -11,11 +11,13 @@ It is written to be forwardable to your IT, legal, or compliance lead during eva
 
 Your workspace is a folder on your machine. The agents, skills, instructions, and any knowledge documents you have added all live in that folder. Rundock builds a search index over it, as a local database file at `.rundock/search-index.db` inside the workspace, and sends it nowhere. Beyond that it does not sync your workspace to a Rundock server or analyse its contents in the background.
 
-Per-user state lives in that same `.rundock/` directory: your conversation list, full message transcripts as plain JSONL files, routine run records, the search index above, and the workspace mode. It is local, and it is plain text. You can read a transcript in any editor, search it with `grep`, or delete it with `rm`.
+Per-user state lives in that same `.rundock/` directory: your conversation list, full message transcripts as plain JSON files, one per conversation, routine run records, the search index above, and the workspace mode. It is local, and it is plain text. You can read a transcript in any editor, search it with `grep`, or delete it with `rm`.
 
-Rundock stores no credentials of its own. Claude Code and Codex each hold their own sign-in in their own configuration, outside the workspace folder, and Rundock checks only that a credentials file exists.
+Rundock holds no sign-in of its own. Claude Code and Codex each hold their own sign-in in their own configuration, outside the workspace folder, and Rundock never reads it: it learns that Claude Code is signed in from how its turns go, and that Codex is signed in from whether its `auth.json` file exists. The one kind of credential Rundock does keep is for MCP servers: key values can live in `.rundock/mcp-secrets.json`, a per-user file in the workspace, and Rundock merges them into the server settings only when an agent starts, so they stay out of the `.mcp.json` your team shares.
 
 Rundock sends no telemetry, no analytics, no usage events. There is no Rundock account to create. There is no Rundock backend that touches your data.
+
+Rundock itself contacts only GitHub. The desktop app checks GitHub for app updates each time it starts, and downloads them. When you add a package, check one for updates or update one, Rundock fetches it from its GitHub repository. None of your files, agents or conversations go with those requests.
 
 If your team shares a workspace, that sync runs through whatever sync layer you choose: Dropbox, OneDrive, Google Drive, or git. The sync is directly between team members. Rundock does not see it.
 
@@ -33,13 +35,13 @@ When you send a message to an agent, the following is sent to Anthropic's API vi
 - Metadata about the team (agent names, descriptions, delegation table)
 - Contents of any files the agent reads as part of handling the task
 
-Nothing else leaves your machine. Rundock sends nothing beyond the conversation context above: no pre-loading of your wider workspace, no embedding, and nothing from the local search index. Files outside the conversation context stay on disk untouched.
+Apart from those GitHub requests, which carry none of your content, Rundock sends nothing beyond the conversation context above: no pre-loading of your wider workspace, no embedding, and nothing from the local search index. Files outside the conversation context stay on disk untouched.
 
 When an agent uses a built-in tool (Read, Write, Grep, Bash), the tool runs locally on your machine. The tool's output may be included in subsequent API calls if the agent reasons about it in its reply.
 
 ## Agents on the Codex runtime
 
-If you run agents on the Codex runtime, their conversations are processed by OpenAI instead of Anthropic, under **your own ChatGPT account**: the Codex CLI signs in with your ChatGPT plan, and the data relationship for those agents is directly between you and OpenAI. Rundock's position is unchanged: it starts the CLI locally, sends nothing anywhere itself, and never reads either runtime's credentials (sign-in detection checks that a credentials file exists, nothing more). The training and retention terms that apply to Codex conversations are those of your ChatGPT plan; review them in [OpenAI's data controls](https://help.openai.com/en/articles/7730893-data-controls-faq) for your account type.
+If you run agents on the Codex runtime, their conversations are processed by OpenAI instead of Anthropic, under **your own ChatGPT account**: the Codex CLI signs in with your ChatGPT plan, and the data relationship for those agents is directly between you and OpenAI. Rundock's position is unchanged: it starts the CLI locally, sends none of the conversation anywhere itself, and never reads either runtime's credentials (for Codex, sign-in detection checks that its credentials file exists, nothing more). The training and retention terms that apply to Codex conversations are those of your ChatGPT plan; review them in [OpenAI's data controls](https://help.openai.com/en/articles/7730893-data-controls-faq) for your account type.
 
 If an agent connects to a third-party MCP server, that connection sends data to a separate service. Review the MCP server's data handling independently; Rundock's local-first design and Anthropic's protections do not extend to it.
 
@@ -62,7 +64,7 @@ You can add agents, skills and extensions to a workspace from a GitHub link. Run
 An extension's view is someone else's code, so it runs confined. Each of the following is enforced by Rundock or by the browser engine rather than asked of the extension, and the confinement is tested in the Chromium engine and in the shipped desktop app against a deliberately misbehaving extension.
 
 - **It cannot reach Rundock's page.** The view runs in a frame whose only sandbox permission is to run scripts, which gives it an opaque origin: no access to Rundock's page, storage, scripts, conversations, or connection to its server.
-- **It cannot reach the network.** The view's content security policy refuses every page load, request and external resource. It cannot replace itself with another page: Rundock refuses the navigation, and ends a view that tries. In the desktop app, peer-to-peer connections are switched off for it as well. When you use Rundock in a browser they are not blocked, and the install screen says so.
+- **It cannot load pages or make requests.** The view's content security policy refuses every page load, request and external resource. It cannot replace itself with another page: Rundock refuses the navigation, and ends a view that tries. In the desktop app, peer-to-peer connections are switched off for it as well. When you use Rundock in a browser they are not blocked, and the install screen says so.
 - **It sees only the file it was opened on, and the files that note names.** It receives that one file's path and text, as a copy, and nothing else about your workspace. It cannot list, search or read any other file. The one addition is a note you mark for it: if the extension asked for it at install, a note can list files under `sources:` in its frontmatter, and the view is handed those, by the names you typed. Nothing is searched for, and no write the extension causes can change that list.
 - **It is never given a hidden or linked file.** Files in folders or with names starting with a dot, including your agents' instructions in `.claude/`, Rundock's state in `.rundock/`, `.env` and `.mcp.json`, never open in an extension's view and are never handed to it as a source. Nor is a linked file, a file in a linked folder, or a file with a second name elsewhere, because its visible name could stand for a hidden file or one outside your workspace. Rundock's server decides this from the file itself, and checks again when an extension's change is written.
 - **It can say only a fixed set of things.** Rundock checks every message the view sends against a closed list and refuses anything else. The list is published in the [extension host contract](/reference/extension-contract).
@@ -129,12 +131,12 @@ This is intentional. Rundock is the orchestration layer on your machine. The dat
 
 If you are forwarding this page to someone who needs the headlines:
 
-- Your files stay on your machine. Rundock has no backend, no telemetry, no account.
+- Your files stay on your machine. Rundock has no backend, no telemetry, no account. Rundock itself contacts only GitHub, for app updates and packages, and sends none of your content there
 - Only the active conversation goes to Anthropic for processing; nothing else
 - With a Commercial-organisation API key, content is not used to train models by default, and Anthropic deletes inputs and outputs within 30 days
 - Zero Data Retention is available on request via the Commercial API or Claude Enterprise; it removes the 30-day window for Claude Code inference
 - Third-party MCP servers an agent connects to are outside Rundock's local scope and outside Anthropic's ZDR; review them independently
-- Extensions are installed from a tag or an exact commit, run sandboxed with no network access, see only the file they were opened on and any files that note names, and act only on your click; agents and skills installed from a package are not sandboxed and act like your own
+- Extensions are installed from a tag or an exact commit, run sandboxed so they cannot load pages or make requests (peer-to-peer connections are blocked only in the desktop app), see only the file they were opened on and any files that note names, and act only on your click; agents and skills installed from a package are not sandboxed and act like your own
 - The contractual relationship for the data is between your business and Anthropic, not Rundock
 
 Forward this page to whoever needs to sign off, then talk to your Anthropic representative about contract terms.

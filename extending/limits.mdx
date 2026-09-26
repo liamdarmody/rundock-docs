@@ -27,9 +27,11 @@ Another way to put several files on one page is a note that embeds each of them.
 - **Not the navigation rail, the chat, or a side panel.** An extension draws inside the file pane and nowhere else.
 - **Not other extensions.** Each view has its own frame and nothing is shared between them.
 
-## It cannot reach the network
+## It cannot load or request anything
 
-The frame's content security policy is `default-src 'none'`. Your view cannot fetch, load a script, a stylesheet, a font or an image from anywhere, or send anything out. Images must be `data:` URLs you build yourself.
+The frame's content security policy is `default-src 'none'`. Your view cannot fetch, or load a script, a stylesheet, a font or an image from anywhere. Images must be `data:` URLs you build yourself.
+
+Peer-to-peer (WebRTC) connections are a separate matter. In the desktop app they are switched off for your view as well. In a browser they cannot be switched off, so they are not blocked there, and the install screen tells the person so.
 
 That also means **no libraries from a CDN.** Everything your view needs has to be inside the entry script, or in stylesheets declared in the manifest. If you use a library, bundle it into your entry before you tag a release. Rundock UI is the exception: Rundock puts it into your view for you, so never bundle a copy.
 
