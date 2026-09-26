@@ -17,7 +17,7 @@ The split matters because:
 
 - **Skills are reusable.** A "weekly report" skill can attach to multiple agents. Putting it inside one agent's body means copying it into every other agent that needs it.
 - **Skills keep agent files lean.** A long, detailed workflow inside an agent's body bloats the file and dilutes the agent's identity. Lifting it into a skill keeps the agent body focused on role and voice.
-- **Skills are visible to the orchestrator.** The orchestrator reads each skill's `description` field when routing work. A capability hidden inside an agent's body is invisible to routing.
+- **Skills are visible to the model.** Claude Code offers the model each skill's name and description when it decides whether to use one, and Rundock tells an agent that leads a team which skills each of its members owns. A capability buried in an agent's body appears in neither list.
 
 ## When to make a skill
 
@@ -96,17 +96,20 @@ Length discipline. Live skills cluster around 100 to 200 lines of body text. If 
 
 The full field reference is on the [skill file format](/reference/skill-file-format) page.
 
-## A note on routing
+## How a skill gets chosen
 
-The orchestrator reads each skill's `description` field when deciding whether to route work to an agent that owns it. A skill with no description is invisible to routing.
+Two layers are involved, and they see different things.
 
-This means the description is a routing signal, not a tagline. Write it as: a verb, a clear capability, and the trigger phrase the user is likely to type.
+- **Rundock** tells each agent that leads a team which skills its members own, by slug only: a bare list such as `Skills: alpha, beta`, with no description. That is how an orchestrator knows which agent to hand a request to.
+- **Claude Code**, the runtime agents run in by default, discovers the skills in `.claude/skills/` and offers the model each skill's name and description. That is what the model reads when it decides whether to use a skill. The body loads only once it does.
 
-Good: "Scan recent work surfaces for repeated manual patterns and propose new skills to build, ranked by leverage."
+So name the skill for what it is for, `linkedin-hook-generator` rather than `content-helper`, and write the description as the trigger: what the skill does and when to use it. Put the key use case first, because Claude Code truncates long descriptions in its listing.
+
+Good: "Scan recent work surfaces for repeated manual patterns and propose new skills to build, ranked by leverage. Use when reviewing the week or deciding what to automate next."
 
 Less good: "Helps you find things to automate."
 
-The first one tells the orchestrator exactly when to route a request to the agent that owns this skill. The second is a tagline.
+The first tells the model what the skill does and when it applies. The second is a tagline.
 
 ## Where to next
 
