@@ -11,24 +11,24 @@ Nothing you do here is permanent. Workspaces, agents, and settings can all be ch
 
 ### Setup adapts to the runtimes you have
 
-First-run detects which engines are on your machine. It always sets up Claude Code, which runs your team's orchestrator and Doc himself. If you also have the Codex CLI installed, setup offers an optional step to sign in to Codex, so specialists can run on your ChatGPT plan. The step is skippable, and you can do it later from Settings. A machine without Codex sees the flow exactly as before.
+First-run detects which engines are on your machine. It always sets up Claude Code, which runs your team's orchestrator and Doc himself. If you also have the Codex CLI installed, setup offers an optional step to sign in to Codex, so specialists can run on your ChatGPT plan. The step is skippable: you can sign in later by running `codex login` in a terminal, and Settings shows whether Codex is signed in. A machine without Codex sees the flow exactly as before.
 
-### 1. Doc opens the conversation
+### 1. Choose a workspace folder
 
-Rundock launches and the conversation panel opens with a single agent already talking: Doc. Doc is Rundock's built-in guide. It is a platform agent, not a specialist you build, and it is there to walk you through the first-run flow.
+Rundock opens on a screen that says **Open a workspace to get started**. A workspace is a folder on your machine that holds everything Rundock uses for one team: the agent files, the skill files, and any shared knowledge documents. The full concept is covered on the [Workspaces page](/concepts/workspaces).
 
-Doc is part of Rundock and lives outside your workspace. You do not need to create or configure it. It is always available, and it stays out of the org chart with your own agents.
+You have two options, below any workspaces you have opened before:
 
-### 2. Doc asks for a workspace folder
+- **Open folder.** Use this if you already have a folder you want Rundock to manage, or if you are joining a team that has shared a synced workspace folder with you (see the [team workspace setup guide](/guides/team-workspace) for that case).
+- **New workspace.** Type a name and Rundock creates the folder at `~/Documents/Rundock/<name>` and places the initial files in it.
 
-Doc asks you to pick or create a workspace folder. A workspace is a folder on your machine that holds everything Rundock uses for one team: the agent files, the skill files, and any shared knowledge documents. The full concept is covered on the [Workspaces page](/concepts/workspaces).
+For a first run, **New workspace** is the simplest choice. You can move the folder later if you change your mind.
 
-You have two options:
+### 2. Doc opens the conversation
 
-- **Pick an existing folder.** Use this if you already have a folder you want Rundock to manage, or if you are joining a team that has shared a synced workspace folder with you (see the [team workspace setup guide](/guides/team-workspace) for that case).
-- **Create a new folder.** Doc will create the folder structure and place the initial files in it.
+A workspace with no team yet shows **Welcome to Rundock** and a **Set up your team** button. Press it and a conversation opens with Doc. Doc is Rundock's built-in guide. It is a platform agent, not a specialist you build, and it is there to walk you through the first-run flow.
 
-For a first run, pick a memorable location like `~/Documents/Rundock-Workspace`. You can move it later if you change your mind.
+You do not need to create or configure Doc. Rundock places Doc's file in every workspace, at `.claude/agents/rundock-guide.md`, and brings it up to date each time the workspace opens, so do not edit it. Doc stays out of the org chart with your own agents.
 
 ### 3. Doc walks through first-agent creation
 

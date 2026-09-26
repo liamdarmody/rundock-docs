@@ -7,9 +7,9 @@ Four principles shape every decision in Rundock. A fifth section below, *Built f
 
 ## Local-first
 
-The whole stack runs on your machine. Your files, your agents, your conversations stay on disk in your workspace. Rundock makes zero outbound network calls. The only network traffic is the active conversation, sent by Claude Code to Anthropic for processing. Close Claude Code and Rundock has no network footprint at all.
+The whole stack runs on your machine. Your files, your agents, your conversations stay on disk in your workspace. Rundock itself contacts only GitHub: the desktop app checks there for app updates, and Rundock fetches a package from there when you add it, check it for updates or update it. None of your files, agents or conversations go with those requests. Your runtime makes its own calls: Claude Code sends the active conversation to Anthropic, Codex sends it to OpenAI, and any connectors you add reach the services you chose.
 
-What this rules out: any feature that requires sending your data to a Rundock server, any cloud-only sync, any usage telemetry, any account system. If you want to run Rundock entirely offline once the conversation ends, you can.
+What this rules out: any feature that requires sending your data to a Rundock server, any cloud-only sync, any usage telemetry, any account system.
 
 For where files live on disk, see [Workspaces](/concepts/workspaces).
 
@@ -25,9 +25,9 @@ For the file format, see [Agent file format](/reference/agent-file-format).
 
 You provide taste, direction, and decisions. The team handles execution. Every feature reinforces your judgement, never replaces it.
 
-What this looks like in the product: every tool the orchestrator runs surfaces a permission card you have to approve. Routines fire on a schedule but never auto-approve actions. The orchestrator routes work and summarises results. It does not decide what you actually wanted.
+What this looks like in the product: anything an agent does outside your workspace, and any command that cannot be undone, surfaces a permission card you approve. Code mode lets ordinary build and test commands through without a card, but deleting, forcing and elevating still ask. Routines fire on a schedule, and any card a routine raises waits for you in the approvals dock. The orchestrator routes work and summarises results. It does not decide what you actually wanted.
 
-What this rules out: any auto-approve, any "just run everything" mode, any feature that hides what an agent is about to do. The friction of the permission card is the feature.
+What this rules out: any mode that approves destructive or out-of-workspace actions without asking, any feature that hides what an agent is about to do. The friction of the permission card is the feature.
 
 ## The team is the unit of value
 

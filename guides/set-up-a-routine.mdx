@@ -19,7 +19,7 @@ You need:
 From the orchestrator's own profile page, press **Add routine**. This opens a two-step editor scoped to that agent, so the first step only lists its own skills.
 
 <Note>
-The profile page only offers **Add routine** before an agent has its first one. To add a second routine to an agent that already has one, use the **+** button in the routines panel's header at the bottom of the sidebar instead. If that panel is not scoped to one agent, its first step also asks which agent, not just which skill.
+The profile page only offers **Add routine** before an agent has its first one. To add a second routine to an agent that already has one, open **Routines** in the rail and press **+** in its sidebar header instead. If the sidebar is not scoped to one agent, the form's first step also asks which agent, not just which skill.
 </Note>
 
 ## 2. Step 1: pick a skill
@@ -30,7 +30,7 @@ If the agent has no skills yet, the screen offers to build one instead of showin
 
 ## 3. Step 2: say when
 
-The second screen is a plain-terms schedule builder: a frequency (day, or a specific weekday) and a time. As you choose, the screen shows the sentence it will save, for example:
+The second screen is a plain-terms schedule builder: a frequency (day, or a specific weekday) and a time, offered on the hour and half hour. It also asks where the routine runs: **This computer**, or **Your Agent Computer**, which is shown as not set up yet and cannot be chosen, so every routine runs on this computer today. As you choose, the screen shows the sentence it will save, for example:
 
 ```
 Run Weekly research digest every Friday at 4:00am, on this computer.
@@ -44,31 +44,25 @@ Run Weekly research digest every Friday at 4:00am, on this computer.
 
 ## 4. Find it in the list
 
-Saving returns you to the routines list, where the new routine appears under the agent it belongs to, showing its schedule (`5:00 AM` for a daily routine, `Fri 4:00 AM` for a weekly one).
+Saving returns you to the Routines list, which is ordered by next run. The new routine's row reads as a sentence, such as `Every day at 5:00am, run: Morning briefing`, with the agent's name beneath it.
 
 ## 5. Confirm the routine fires
 
-Rundock has no manual "run now" button: a routine fires on its own schedule and nothing else triggers it early. The way to confirm one works without waiting until 5am tomorrow is to schedule it a couple of minutes out, watch it happen, then put the real schedule back.
+You do not have to wait until 5am tomorrow to see it work. Every row on the Routines list has a **Run now** control, the play button, which runs the routine once, straight away. A manual run moves no schedule: the next scheduled run stays exactly where it was.
 
 <Steps>
-  <Step title="Open the routine and change its schedule">
-    From the routines list, open the routine you just made and go back into the schedule step. Set the time to two minutes ahead of the current local time, on today's day of the week (or "day" for a daily routine). Save.
-  </Step>
-  <Step title="Watch the row">
-    Within 60 seconds of the scheduled time, the row switches to **Still going**. The scheduler ticks every minute, so there can be up to a minute of delay. Open the run from here with **View run** to watch it while it is still in progress.
+  <Step title="Press Run now">
+    On the routine's row, press **Run now**. The row switches to **Running now (started manually)**, and the control is disabled until the run ends. Open the run from here with **View run** to watch it while it is still in progress.
   </Step>
   <Step title="Check what it produced">
     Rundock does not surface the model's own response in a conversation. What tells you the routine did its job is either the file it wrote, the task it created, or the run's own file list (open **View run** or **View last run** to see it: every file the run touched, or an honest note if that can't be established).
   </Step>
   <Step title="Check the outcome">
-    Once the run finishes, its row shows one of **Ran**, **Caught up**, or **Failed**. If it says **Failed**, open the run to see whether it recorded a reason.
-  </Step>
-  <Step title="Set the schedule back">
-    Open the routine again and restore its intended time.
+    Open the run's record to see how it ended. If it failed, the record shows any reason it gave. Once the routine has run on its schedule, its row shows one of **Ran**, **Caught up**, **Missed**, **Failed** or **Stopped**; a manual run's outcome stays on its own record and does not change the row.
   </Step>
 </Steps>
 
-If a run is taking longer than expected, or you started it purely to test the schedule and don't want to wait for it, the run's own screen carries a **Stop** control for as long as it is going. Stopping it does not cancel the routine: it runs again at its next real slot.
+If a run is taking longer than expected, or you started it purely to test and don't want to wait for it, the run's own screen carries a **Stop** control for as long as it is going. Stopping it does not cancel the routine: it runs again at its next real slot.
 
 ## Limits worth knowing
 
@@ -83,12 +77,12 @@ The same limits from the [Routines concept page](/concepts/routines) apply here.
 </Warning>
 
 <Note>
-**No notification when a routine completes.** You see the row update in the routines panel. To know whether the run did the right thing, check the file or task it was meant to produce, or open the run's own record.
+**No notification when a routine completes.** You see the row update in the Routines list. To know whether the run did the right thing, check the file or task it was meant to produce, or open the run's own record.
 </Note>
 
 ## Patterns that work
 
-Three routines that work well in practice, shown here in the frontmatter they resolve to (see [Routine format](/reference/routine-format) if you're writing or scripting this directly rather than using the form):
+Three routines that work well in practice, shown here as you might write them by hand in the agent's frontmatter (see [Routine format](/reference/routine-format) for the format; a routine made in the form also records its skill, where it runs and its approval):
 
 ```yaml
 routines:

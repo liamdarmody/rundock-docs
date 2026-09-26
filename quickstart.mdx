@@ -28,15 +28,23 @@ Build a smaller version of this team in the next two steps. Both agents at once.
 
 ## 2. Set up two agents at once
 
-Open the agents panel and create two agents. The first is the Content Writer; the second is the Researcher. Either route writes a markdown file to your workspace.
+Create two agents. The first is the Content Writer; the second is the Researcher. There are two routes, and either one writes a markdown file per agent to your workspace:
+
+- **Ask Doc.** Open Doc from the team list (it sits under **Rundock Agents**), start a conversation, and ask it to create each agent, pasting in the details and instructions below.
+- **Write the files yourself.** Save each agent as `.claude/agents/<name>.md`, with the details below as its frontmatter and the instructions as the body of the file.
+
+The Researcher reports to the Content Writer, which makes the Content Writer its lead. A specialist can hand work only to agents that report to it, so without that line the Content Writer cannot reach the Researcher.
 
 ### The Content Writer
 
 - **Name:** `content-writer` (lowercase, hyphenated, becomes the filename)
 - **Display name:** Content Writer
 - **Role:** Content Writer
+- **Description:** Drafts short-form written content in the user's voice.
+- **Type:** `specialist`, with **order** `1`
+- **Reports to:** your orchestrator's name (the `name` in its file), if your workspace has one
 
-Paste this into the instructions field as a starting point:
+Use this as its instructions, as a starting point:
 
 ```markdown
 You are the Content Writer. You draft short-form written content for the
@@ -58,15 +66,16 @@ or strategy. If a request is outside content drafting, say so briefly and
 hand back to the user.
 ```
 
-Save the agent.
-
 ### The Researcher
 
 - **Name:** `researcher`
 - **Display name:** Researcher
 - **Role:** Researcher
+- **Description:** Finds supporting facts, statistics and sources for drafts.
+- **Type:** `specialist`, with **order** `1.1`
+- **Reports to:** `content-writer`
 
-Paste this into the instructions field:
+Use this as its instructions:
 
 ```markdown
 You are the Researcher. You find supporting facts, statistics, and
@@ -84,11 +93,11 @@ You do not draft, edit, or publish. If you receive a request outside
 research, hand it back.
 ```
 
-Save. The org chart now shows two specialists.
+Once both files exist, the org chart shows the Content Writer with the Researcher beneath it.
 
 ## 3. Send a task that needs both
 
-Open a conversation with the Content Writer (click its card on the org chart). Send a task that requires evidence:
+Open a conversation with the Content Writer: click its card on the org chart to open its profile, then press **New conversation**. Send a task that requires evidence:
 
 ```
 Draft a LinkedIn post arguing that [your point of view on your topic].

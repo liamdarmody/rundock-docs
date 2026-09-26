@@ -36,6 +36,10 @@ Rundock does not store your Anthropic credentials. It relies entirely on the Cla
 
 Because the sign-in lives with Claude Code, the fix also lives there: re-running `claude` and signing in refreshes the session for both Claude Code and Rundock.
 
+## Agents on Codex
+
+This page is about the Claude Code sign-in. An agent with `runtime: codex` runs on the Codex CLI, which holds its own sign-in with your ChatGPT account. Rundock shows Codex as signed in, under Settings, Workspace, Runtimes, when the Codex CLI's credentials file exists; it never reads the file. If Codex is not signed in, run `codex login` in a terminal, then resend your message. See [Runtimes](/concepts/runtimes).
+
 ## Still stuck?
 
 - Confirm Claude Code itself works: run `claude` in a terminal and send it a message. If that also fails to authenticate, the issue is with the Claude Code sign-in, not Rundock.

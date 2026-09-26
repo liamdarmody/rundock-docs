@@ -28,7 +28,7 @@ my-tracker/
 
 One repository, three kinds of thing:
 
-- **The extension** is `rundock.json` and `view/`. Only the folder holding your entry script is installed as the extension, here `view/`. Tests and tooling can sit beside it and never reach anyone's workspace.
+- **The extension** is `rundock.json` and `view/`. What is installed is the top-level folder holding your entry script, and the top-level folder of each declared stylesheet, here just `view/`. Tests and tooling in a different top-level folder, such as `test/`, never reach anyone's workspace; anything inside `view/` does.
 - **A starter file**, `starter/Tracker.md`, lands at `Tracker.md` in the person's workspace, only if they have nothing there, and is theirs from then on. See [Starter files](/extending/share-agents-and-skills#ship-starter-files).
 - **A skill**, so an agent asked to "move Shape Up to Done" edits the note the same way the view does. Agents and the view then work on one file.
 
@@ -57,7 +57,7 @@ One repository, three kinds of thing:
 - `entry` is the script Rundock runs.
 - `match` and `declares` together say which files your view is for: markdown files whose frontmatter carries `my-tracker`. Without `declares`, a `*.md` extension would claim every note in the workspace.
 - `writes` asks for permission to save changes to the note that is open. Leave it out and your extension is read-only, which is the default and the right choice for many views.
-- `rundockUi` is the [Rundock UI version](/extending/rundock-ui#versions) you built against. A Rundock that provides an older one refuses the install and says why.
+- `rundockUi` is the [Rundock UI version](/extending/rundock-ui#versions) you built against. A Rundock that provides an older minor version, or a different major version, refuses the install and says why.
 - `styles` lists stylesheets, inlined into the view after Rundock's.
 
 Every field is in the [`rundock.json` reference](/reference/rundock-json).
@@ -117,8 +117,9 @@ function boot(win) {
       render();
     }
     // A refusal names what Rundock would not do and why; surface it rather
-    // than failing silently.
-    if (data.type === 'refused' && ui) {
+    // than failing silently. Rundock shows its own notice for a refused
+    // open, openExternal or ask, so those are not shown twice.
+    if (data.type === 'refused' && ui && ['open', 'openExternal', 'ask'].indexOf(data.of) === -1) {
       d.body.insertBefore(ui.alert({ tone: 'danger', message: 'Rundock refused ' + data.of + ': ' + data.reason }), d.body.firstChild);
     }
   });
@@ -133,7 +134,7 @@ That is the whole conversation with Rundock:
 3. **Your script draws, and asks for a height with `resize`.** Send `resize` again whenever your content changes height.
 4. **When the person changes something, send `change`** with the note's whole new text. Send it on every edit if you like: Rundock waits until the changes pause and then writes once, through the same save its own editors use, and it still writes the note if the person moves to another file straight away. There is no path: Rundock writes the file your view was opened on and nothing else. For an explicit "save now", send `save` with the same shape. Keep no save timer of your own.
 
-Anything Rundock will not carry comes back as `refused`, naming what was refused and why. The starter shows it in a Rundock UI alert, which is worth doing while you develop. An uncaught error in your script is reported for you: Rundock removes the view and shows the plain rendering with the error named.
+Anything Rundock will not carry comes back as `refused`, naming what was refused and why. The starter shows it in a Rundock UI alert, which is worth doing while you develop, except for a refused `open`, `openExternal` or `ask` that Rundock has already told the person about (its `hostShowsRefusal` check). An uncaught error in your script is reported for you: Rundock removes the view and shows the plain rendering with the error named.
 
 Every message and its exact shape is in the [extension host contract](/reference/extension-contract).
 
@@ -204,7 +205,7 @@ Use Rundock UI for every control and container. Draw only your own domain conten
 
 ## 4. Style it
 
-Your stylesheet is for layout. Every colour, radius and control already comes from Rundock. The starter's `view/style.css` in full:
+Your stylesheet is for layout. Every colour, radius and control already comes from Rundock. The layout rules from the starter's `view/style.css`:
 
 ```css
 /* No outer padding: Rundock's frame carries the note's own padding, so the
@@ -267,7 +268,7 @@ Push the repository to GitHub and create a tag, for example `v0.1.0`. Then, in R
 your-name/my-tracker@v0.1.0
 ```
 
-The confirmation screen lists what your extension asks for, read from the package itself: the notes it claims and that it can change them. If this Rundock provides an older Rundock UI than the one you declared, the install is refused with the reason. Install it, accept the skill and the starter note on the next screen, and open `Tracker.md`.
+The confirmation screen lists what your extension asks for, read from the package itself: the notes it claims and that it can change them. If this Rundock provides an older minor or a different major version of Rundock UI than the one you declared, the install is refused with the reason: see [Versions](/extending/rundock-ui#versions). Install it, accept the skill and the starter note on the next screen, and open `Tracker.md`.
 
 An extension is always installed from a tag or an exact commit, never a branch. To try a change, push it, tag it, then use **Check for updates** on the package's card in Packages, or paste the new tag.
 

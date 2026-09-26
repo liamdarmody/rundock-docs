@@ -1,4 +1,7 @@
-# Team Workspace Setup Guide
+---
+title: 'Set up a team workspace'
+description: 'Share one workspace across a team using Dropbox, OneDrive, Google Drive, or git, and keep per-user state out of the sync.'
+---
 
 Setting up Rundock for a team is straightforward. Your workspace lives in a folder, your team syncs that folder using a tool you already use, and Rundock handles the rest. This guide walks through the supported sync options, the trade-offs, and what each team member needs to do.
 
@@ -38,7 +41,7 @@ Two things stay on your machine automatically, wherever your workspace lives:
 Two more things live *inside* the workspace folder, which means they sync unless you exclude them. This is the most important part of this guide to get right:
 
 - **`.rundock/`** holds your conversation history, message transcripts, session records, and the search index. **On git most of the work is done for you, and it is worth checking:** Rundock appends `.rundock/` to `.gitignore` when it sets up a workspace, but it skips that write if the file already mentions `.rundock` in any form, and a failed write is not surfaced, so open the file and confirm the line is there before you push. **On Dropbox, OneDrive, and Google Drive nothing is done for you.** Those tools do not read `.gitignore`, so unless you exclude the folder yourself, your conversation history syncs to everyone with access. See "Excluding `.rundock/`" below.
-- **`.mcp.json`** holds your MCP server configuration. This file syncs on *every* option, including git. Many MCP servers take an API key directly in this file, so **open it and check before you share the folder.** If it contains keys, either move those servers to a per-user configuration or accept that everyone with folder access can read them.
+- **`.mcp.json`** holds your MCP server configuration. This file syncs on *every* option, including git. Many MCP servers take an API key, and a key written into this file reaches everyone with folder access, so **open it and check before you share the folder.** Rundock reads MCP credential values from `.rundock/mcp-secrets.json`, a per-user file keyed by server name, so move any key there. That file is covered only by the same `.rundock/` exclusion, so on Dropbox, OneDrive or Google Drive it syncs too unless you exclude the folder.
 
 The principle to hold on to: agents, skills, and knowledge are meant to be shared, and are safe to share. Conversation history and MCP configuration live in the same folder for now but are not meant to be shared, so on cloud sync tools you have to exclude them deliberately.
 
@@ -104,7 +107,7 @@ Steps for the team admin and each team member.
 
 1. Install Dropbox on your machine and sign in.
 2. Wait for the shared workspace folder to sync. On Mac, you'll find it under `~/Library/CloudStorage/Dropbox-[YourTeam]/`. On Windows, under `C:\Users\[you]\Dropbox\[YourTeam]\`.
-3. Open Rundock. On first launch, the folder picker asks "Which folder is your workspace?" Select the synced workspace folder.
+3. Open Rundock. On the workspace screen, press **Open folder** and choose the synced workspace folder.
 4. Rundock loads. You now have access to every agent and skill in the shared workspace.
 
 When the admin or another team member adds or updates an agent, Dropbox propagates the change to your machine within seconds. Rundock picks up the change at the start of your next conversation.
@@ -210,8 +213,8 @@ A short list of cross-cutting things to know.
 
 - **Single shared folder.** Today, every team member sees the same agents and skills. There is no per-team or per-role permission tiering within the workspace. As your team grows, this may feel limiting. See "What's next" below.
 - **Async sync.** Updates propagate when the sync tool decides. Dropbox and OneDrive are typically near-instant for small files. Google Drive can be slower. Git syncs only when someone pushes (or on the auto-sync interval).
-- **Mid-conversation updates.** If an agent is updated while you're mid-conversation, the change takes effect at the start of your next conversation. Active conversations continue with the version loaded at start.
-- **MCP configuration is shared, not per-user.** `.mcp.json` lives in the workspace folder, so whatever it contains applies to the whole team and syncs on every option. That is convenient when the servers need no secrets, and a liability when they do. Keep secret-bearing servers out of the shared file.
+- **Mid-conversation updates.** If an agent is updated while you're mid-conversation, a conversation with the orchestrator picks up the change on your next message. A conversation with any other agent continues with the version loaded at its start.
+- **MCP configuration is shared, not per-user.** `.mcp.json` lives in the workspace folder, so whatever it contains applies to the whole team and syncs on every option. That is convenient when the servers need no secrets, and a liability when they do. Keep the keys themselves in `.rundock/mcp-secrets.json`, which stays per-user as long as `.rundock/` is excluded.
 - **Conversation history is per-user, but only if you exclude it.** On git that rests on the `.gitignore` entry Rundock writes at setup, which you should confirm is present. On Dropbox and OneDrive you exclude it by hand, and on Google Drive you cannot.
 
 ## What's next

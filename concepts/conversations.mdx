@@ -26,21 +26,21 @@ Deleting a conversation is a separate, deliberate action. The bin icon only appe
 
 Most conversations start with one agent. From there, the orchestrator (the top of your org chart) routes work to specialists when a request falls outside its own scope. The conversation keeps a single thread but tracks who said what, with handoff dividers showing where delegation begins and ends.
 
-When a specialist finishes its work, control returns to the orchestrator with the specialist's output in context. You do not have to keep starting new conversations to switch agents.
+When a specialist finishes its work, control returns to whoever delegated it, the orchestrator or a lead specialist, with the specialist's output in context. You do not have to keep starting new conversations to switch agents.
 
 ## What the sidebar tells you
 
 The conversation sidebar surfaces a lot of state at a glance:
 
-- **Filter pills** (All, Unread) sit above the list. Tap a pill to narrow the list to what needs attention right now. The Unread pill auto-hides when nothing is unread. Pinned conversations are always grouped at the top, so there is no separate Pinned pill.
+- **Filter pills** (All, Unread) sit above the list. Tap a pill to narrow the list to what needs attention right now. The Unread pill is always shown, and says "You're all caught up" when nothing is unread. Pinned conversations are always grouped at the top, so there is no separate Pinned pill.
 - **Lists** let you group conversations by hand. Right-click any conversation to add it to a named list, or create one on the spot. Lists appear as their own pills beside All and Unread and filter the sidebar. A conversation can belong to several lists, and deleting a list never deletes the conversations in it.
-- **Left-border colour** on each row signals status: green for a working agent or unread messages, orange for a pinned and idle conversation, no border otherwise. Green takes priority over orange.
-- **Recency labels** on the right of each row show when each conversation was last active: `HH:MM` for today, "Yesterday", day name for 2 to 6 days ago, or `DD/MM/YYYY` for older. Working conversations show the pulsing green dot instead.
-- **Pinning** keeps important conversations at the top of the list and marks them with the orange border. Pin lives in the hover button on active-session items and the chat header.
+- **A dot** on each row signals status: a pulsing dot while an agent is working, a still dot for unread messages, and none otherwise.
+- **Recency labels** on the right of each row show when each conversation was last active: `HH:MM` for today, "Yesterday", day name for 2 to 6 days ago, or `DD/MM/YYYY` for older. Working conversations show the pulsing dot.
+- **Pinning** keeps important conversations at the top of the list and marks them with a pin beside the title. Pin lives in the hover button on active-session items in the sidebar.
 
 ## Where they live on disk
 
-A workspace's conversation index lives at `.rundock/conversations.json` as a single JSON array. Full message transcripts live under `.rundock/transcripts/<sessionId>.jsonl`, one file per agent session, with delegation chains producing multiple session files per conversation.
+A workspace's conversation index lives at `.rundock/conversations.json` as a single JSON array. Full message transcripts live under `.rundock/transcripts/<conversationId>.json`, one file per conversation, including every agent that took part in it.
 
 Conversations are workspace-local. They do not sync across workspaces, and they are not pushed to any external server. See [Workspaces](/concepts/workspaces) for the full directory layout.
 
