@@ -13,7 +13,7 @@ Routines power the kind of automation that needs to happen unattended: a morning
 
 ## Add a routine
 
-The normal way in is the Add routine form, reached from an agent's page or from the routines panel. It is two short steps:
+The normal way in is the Add routine form, reached from an agent's page or from **Routines** in the rail. It is two short steps:
 
 1. **Pick a skill.** Every routine schedules one of the agent's existing skills. There is no freeform prompt field: the instruction is derived from the skill you pick, so what fires is always something the agent already knows how to do.
 2. **Say when.** Choose a frequency (daily, or a specific weekday) and a time, in one plain sentence: "Run Weekly research digest every Friday at 4:00am, on this computer." Confirm, and the routine is live.
@@ -26,23 +26,25 @@ For a full walkthrough with screenshots, see [Set up a routine](/guides/set-up-a
 
 ## What a routine looks like once it's running
 
-The routines panel shows every routine across every agent in the workspace, one flat list. Once a routine has run at least once, its row shows what happened last time, in one of four tones:
+**Routines** in the rail shows every routine across every agent in the workspace, one list, with a sidebar that narrows it to one agent's routines. Once a routine has run at least once, its row shows what happened last time, in one of five tones:
 
 - **Ran:** the routine fired on schedule and finished. Shown in the success colour.
 - **Caught up:** Rundock was closed at the scheduled time and the routine fired once you opened it again. Also a success, just a quieter one: the row names both the time it actually ran and the time it was due, so the delay reads as legible rather than alarming.
 - **Missed:** a scheduled slot went by with Rundock closed, and it fell outside the same-day catch-up window. This is history, not an error: the row names the cause (Rundock was closed) rather than treating it as a failure.
-- **Failed:** the run actually failed. This is the only one of the four that gets an alarming colour, on purpose: a routine that ran late or was missed while your laptop was shut is the ordinary case for most setups, and dressing that up as a warning teaches you to ignore the one signal that matters.
+- **Stopped:** you stopped the run. History rather than a failure, shown in the same quiet tone as Missed.
+- **Failed:** the run actually failed. This is the only one of the five that gets an alarming colour, on purpose: a routine that ran late or was missed while your laptop was shut is the ordinary case for most setups, and dressing that up as a warning teaches you to ignore the one signal that matters.
 
-While a routine is actively running, its row shows "Still going" instead, with a way to open it and watch. This is the first release where you can do that: before, the row went blank for as long as a run was in progress.
+While a routine is actively running, its row shows "Still going" instead, with a way to open it and watch.
 
 ## See what a run did
 
 Every run leaves a record: the files it changed, when it started, how long it took, and how it ended. Reach it from a "View run" link on a routine still going, or "View last run" once it has finished.
 
-The run screen shows one of five outcomes, each in its own words so they cannot be mistaken for one another:
+The run screen shows one of six outcomes, each in its own words so they cannot be mistaken for one another:
 
 - **Finished:** the run got to the end and did what it was asked to.
 - **Stopped early:** the run started and did not get through what it was asked to (a real failure).
+- **Reported failed:** the run ended cleanly, but the agent said it could not do its job, with `RUN STATUS: failed: <reason>` (see below).
 - **Stopped:** you asked the run to stop, and it ended. Deliberately not read as a failure: this ending was witnessed, it just was not the one the routine was working towards.
 - **No ending recorded:** Rundock closed while the run was under way, so nothing recorded how it turned out. Also not read as a failure: it may have finished a moment before Rundock closed, and nothing here claims otherwise.
 - **Still going:** self-explanatory, and the one state that offers the Stop control described below.
@@ -54,6 +56,18 @@ Below the outcome, the run's file list: what it changed, or an honest statement 
 A run's own screen carries a Stop control whenever it is still going, including in the brief window before its process has actually started. Pressing it shows "Stopping…" immediately; the run ends in its own time; its record then reads **Stopped**, with a real duration, since the ending was witnessed.
 
 Stopping a run does not cancel the routine. It runs again at its next scheduled slot, same as any other routine, just not again in the period you stopped it.
+
+## Run a routine now
+
+Every row on the Routines list has a **Run now** control that runs the routine once, straight away, while you watch. It takes the same path a scheduled run does, and leaves the same record, marked as started manually. It works on any routine, including one that is paused, not yet turned on, or waiting for approval, which is how you try a routine before you approve it.
+
+A manual run moves no schedule: the next scheduled run stays exactly where it was. The control is disabled while a run of that routine is going.
+
+## Approving a changed routine
+
+A routine you make in the form is approved from the moment you save it. Changing what it runs, its prompt, its skill or where it runs, lapses that approval: the routine pauses, its row takes the attention colour and says what it runs has changed, and **Review and resume** approves it as it now stands. A routine a package brought in waits the same way for your approval before its first run. Changing only when a routine runs, or pausing it, leaves the approval standing.
+
+A pause you set yourself looks different on purpose: the row dims, reads **Paused**, and **Resume** brings it back.
 
 ## What routines are good for
 
@@ -71,9 +85,9 @@ The shape that ties these together: the routine is doing context-heavy work outs
 
 The scheduler ticks every 60 seconds. On each tick, Rundock checks every routine on every agent and fires any whose schedule has come due.
 
-Each routine has a `lastRun` guard so daily routines do not re-fire the same calendar day, and weekly routines do not re-fire on the same weekday they last ran on. The guard is held in memory.
+Each routine has a `lastRun` guard so daily routines do not re-fire the same calendar day, and weekly routines do not re-fire on the same weekday they last ran on. The guard is held in memory and saved to `.rundock/routine-state.json` after every run, so it survives a restart.
 
-When a routine fires, Rundock spawns a headless Claude Code subprocess with the routine's prompt as the input message. The subprocess runs with skipped permissions, because there is no user available to approve tool calls in real time.
+When a routine fires, it runs on its agent's runtime. For a Claude Code agent, Rundock spawns a headless Claude Code subprocess with the routine's prompt as the input message, running with skipped permissions because there is no user available to approve tool calls in real time. A routine on a Codex agent runs as a turn on the Codex CLI.
 
 If the routine's agent does raise a permission card, it appears in the **approvals dock**, over whatever screen you have open, naming the routine and the agent. It never lands in a conversation, and a card nobody answers is denied at the usual timeout. See [Routine format](/reference/routine-format#scheduler-behaviour) for the detail.
 
@@ -94,11 +108,11 @@ Practical implication: any routine that needs to leave a trace must write that t
 </Warning>
 
 <Note>
-**No notification when a routine completes.** You notice a routine ran by either seeing the row update in the routines panel, or seeing the file the agent wrote, or seeing the tasks the agent created.
+**No notification when a routine completes.** You notice a routine ran by either seeing the row update in the Routines list, or seeing the file the agent wrote, or seeing the tasks the agent created.
 </Note>
 
 <Note>
-**Schedule format is exact and quietly fails on bad input.** Cron expressions are not supported. Times must be two-digit zero-padded. Weekdays must be lowercase, full word. A routine with an unrecognised schedule registers without errors and never fires. If a routine appears to do nothing, the schedule string is the first thing to check. See [Routine format](/reference/routine-format) for the full pattern reference.
+**Schedule format is exact, and a schedule it cannot read never fires.** Cron expressions are not supported. Times must be two-digit zero-padded. Weekdays must be the full word. A routine with an unrecognised schedule never fires; its row says Rundock cannot read the schedule, names the two forms that work, and shows no next run. If a routine appears to do nothing, the schedule string is the first thing to check. See [Routine format](/reference/routine-format) for the full pattern reference.
 </Note>
 
 ## Always-on routines

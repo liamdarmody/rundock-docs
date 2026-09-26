@@ -34,7 +34,7 @@ The parser is intentionally lenient. It accepts standard YAML for the field type
 | `prompts` | array of strings | Rundock-only | No | Starter prompts shown in the conversation panel on first open. Two to four entries is typical. |
 | `skills` | array of strings | Universal | No | Explicit list of skill slugs. Both the flow form (`skills: [a, b]`) and the block form parse. Rundock uses it to attach skills to the agent, and it adds to body-text scanning rather than replacing it: a slug mentioned in the body still attaches. Claude Code reads the same field and preloads each listed skill's full content when the agent runs as a subagent. |
 | `capabilities` | object | Rundock-only | No | Human-readable description for the profile page. Conventional keys: `does`, `reads`, `writes`, `connectors`. |
-| `routines` | array of objects | Rundock-only | No | Scheduled tasks. Each routine has `name`, `schedule`, `prompt`, and an optional `description`. |
+| `routines` | array of objects | Rundock-only | No | Scheduled tasks. Each routine has `name`, `schedule`, `prompt`, `enabled: true` to run, and an optional `description`. |
 | `maxTurns` | number | Universal | No | Turn cap. Rundock does not read it or pass it on the command line. Claude Code reads it from the file itself. |
 | `mcpServers` | array | Universal | No | **Rundock does not read this key**, and it does not appear on the profile. An earlier version of this page said it showed under connectors; it does not. Claude Code reads it from the file and connects the listed servers when the agent runs, alongside the workspace's own `.mcp.json`. |
 | `disallowedTools` | array of strings | Universal | No | Rundock does not read it: the disallowed-tools list Rundock passes at spawn comes from workspace mode, not from agent frontmatter. Claude Code reads the field from the file itself. |
@@ -74,17 +74,18 @@ Each entry is a skill slug as it appears in `.claude/skills/<slug>/`. Slugs are 
 
 ## The routines array
 
-Each entry is a YAML object with `name`, `schedule`, `prompt`, and an optional `description`.
+Each entry is a YAML object with `name`, `schedule`, `prompt`, `enabled`, and an optional `description`. A routine needs `enabled: true` to run: without it, the routine is listed and waits to be turned on.
 
 ```yaml
 routines:
   - name: Morning briefing
     schedule: every day at 05:00
     prompt: Run the morning briefing
+    enabled: true
     description: Triage today's tasks, calendar, and content pipeline at 5am.
 ```
 
-The `schedule` field accepts only specific human-readable forms. Cron is not supported. Routines fire only while Rundock is running. Full reference at [ROUTINES.md](https://github.com/liamdarmody/rundock/blob/main/ROUTINES.md) on GitHub.
+The `schedule` field accepts only specific human-readable forms. Cron is not supported. Routines fire only while Rundock is running. A routine made in the form also carries `skill`, `runOn`, `paused` and plan-approval keys: see [Routine format](/reference/routine-format) for every field, and [ROUTINES.md](https://github.com/liamdarmody/rundock/blob/main/docs/ROUTINES.md) on GitHub for the full source.
 
 ## The prompts array
 
@@ -233,4 +234,4 @@ A few specific things that go wrong silently, in roughly order of frequency.
 ## Where to next
 
 - The [Agents concept page](/concepts/agents) covers what an agent is and how delegation works at the conceptual level.
-- The full source of truth is `AGENTS.md` in the [Rundock GitHub repo](https://github.com/liamdarmody/rundock/blob/main/AGENTS.md). It includes the parser specifics and tracks any new fields as they ship.
+- The full source of truth is `AGENTS.md` in the [Rundock GitHub repo](https://github.com/liamdarmody/rundock/blob/main/docs/AGENTS.md). It includes the parser specifics and tracks any new fields as they ship.
