@@ -53,7 +53,7 @@ Open Rundock from the Desktop shortcut or Start Menu. The setup wizard:
 
 - Detects Claude Code, and shows the one-line install command (PowerShell or WinGet) if it is missing.
 - Adds Claude Code to your PATH so `claude` works in a terminal.
-- Gives you a one-click **Sign in to Claude** button that opens the browser sign-in. No terminal commands required.
+- Gives you a one-click **Sign in to Claude** button. It opens a terminal window running Claude Code's sign-in, which hands off to your browser. Follow its prompts; there are no commands to type.
 
 Once the wizard shows both steps complete, continue to [first-run setup](/first-run).
 
@@ -67,7 +67,7 @@ For Linux, or anyone who wants to run Rundock from source. This is also the cont
 
 ### Requirements
 
-- Node.js 20 or later. Check with `node --version`.
+- Node.js 22 or later. Check with `node --version`.
 - Claude Code installed and authenticated. Confirm with `claude --version`.
 
 ### Clone, install, and run
@@ -81,7 +81,7 @@ npm start
 
 Open [http://localhost:3000](http://localhost:3000) in your browser. Rundock runs in the browser and behaves the same as the desktop app.
 
-If you want to modify Rundock or contribute changes, this is the route to take. The Contributing section covers it in more depth.
+If you want to modify Rundock or contribute changes, this is the route to take. [CONTRIBUTING.md](https://github.com/liamdarmody/rundock/blob/main/CONTRIBUTING.md) in the repository covers it in more depth.
 
 ## Where to next
 

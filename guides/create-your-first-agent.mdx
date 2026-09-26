@@ -14,9 +14,12 @@ You need:
 - Rundock open with a workspace selected.
 - A clear sense of what role you are creating. One sentence describing what the agent is for. If you cannot describe it in one sentence, the role is too vague to write good instructions for. Refine the role first.
 
-## 1. Open the agents panel
+## 1. Choose how to create it
 
-Open the agents panel in Rundock and start the new-agent flow. Or, if Doc is in the conversation, ask Doc to help you create one. Either route writes the same markdown file to your workspace.
+There are two routes, and both write the same markdown file to your workspace:
+
+- **Ask Doc.** Open Doc from the team list (it sits under **Rundock Agents**), start a conversation, and give it the details from the steps below. Doc writes the file for you.
+- **Write the file yourself.** Create `.claude/agents/<slug>.md` in your workspace, with the details from the steps below as its frontmatter and the instructions as the body of the file.
 
 ## 2. Name and role
 
@@ -36,6 +39,11 @@ Open the agents panel in Rundock and start the new-agent flow. Or, if Doc is in 
 
     Example: `Research Assistant`
   </Step>
+  <Step title="Description">
+    One line saying what the agent does. It is required: an agent file without a `description` is never started.
+
+    Example: `Finds supporting facts, statistics, and references for the team.`
+  </Step>
 </Steps>
 
 ## 3. Write the instructions
@@ -44,7 +52,7 @@ This is the most important part. The frontmatter is identity. The instructions b
 
 Good instructions focus on the role, not on technique. They tell the agent who it is, what it handles, what it does not handle, and how it should sound. They do not try to teach the agent how to do its job. The model already knows how to research, write, or analyse: it needs to know what role it is playing.
 
-Paste this into the instructions field as a starting point and adapt the bracketed parts:
+Use this as the agent's instructions, the body of the file, as a starting point and adapt it to your role:
 
 ```markdown
 You are the Research Assistant. You find supporting facts, statistics,
@@ -94,7 +102,7 @@ If you do not have skills to assign yet, skip this. You can add them later. To c
 
 ## 6. Save
 
-Save the agent. Rundock writes the markdown file to `.claude/agents/<slug>.md` in your workspace. The agent appears on the org chart in the position you set.
+Once the file is saved at `.claude/agents/<slug>.md`, whether Doc wrote it or you did, Rundock picks it up and the agent appears on the org chart in the position you set.
 
 <Note>
 The agent file is just a markdown file. You can edit it directly in any text editor (VS Code, Obsidian, even TextEdit) or through Rundock's interface. Both routes write to the same file.
@@ -102,7 +110,7 @@ The agent file is just a markdown file. You can edit it directly in any text edi
 
 ## 7. Test the agent
 
-Click the new agent on the org chart to open a conversation scoped to it.
+Click the new agent on the org chart to open its profile, then press **New conversation** to start a conversation scoped to it.
 
 Send a real task appropriate to the role. For the Research Assistant example:
 

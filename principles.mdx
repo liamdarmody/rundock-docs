@@ -25,9 +25,9 @@ For the file format, see [Agent file format](/reference/agent-file-format).
 
 You provide taste, direction, and decisions. The team handles execution. Every feature reinforces your judgement, never replaces it.
 
-What this looks like in the product: every tool the orchestrator runs surfaces a permission card you have to approve. Routines fire on a schedule but never auto-approve actions. The orchestrator routes work and summarises results. It does not decide what you actually wanted.
+What this looks like in the product: anything an agent does outside your workspace, and any command that cannot be undone, surfaces a permission card you approve. Code mode lets ordinary build and test commands through without a card, but deleting, forcing and elevating still ask. Routines fire on a schedule, and any card a routine raises waits for you in the approvals dock. The orchestrator routes work and summarises results. It does not decide what you actually wanted.
 
-What this rules out: any auto-approve, any "just run everything" mode, any feature that hides what an agent is about to do. The friction of the permission card is the feature.
+What this rules out: any mode that approves destructive or out-of-workspace actions without asking, any feature that hides what an agent is about to do. The friction of the permission card is the feature.
 
 ## The team is the unit of value
 

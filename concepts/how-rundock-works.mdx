@@ -38,7 +38,7 @@ The `.claude/` folder is hidden by default in Finder and File Explorer. Cloud sy
 
 The org chart you see in Rundock is a visual layer over the agent files. Each card on the chart is one file in `.claude/agents/`. The position, the colour, the icon, and the role label all come from the YAML frontmatter at the top of that file.
 
-Move an agent on the chart and you are editing that agent's `order` and `reportsTo` fields. Add a new agent and you are creating a new file. Delete one from the team and the file is removed.
+To move an agent on the chart, change the `order` and `reportsTo` fields in its file, by hand or by asking Doc. Adding an agent means creating a new file, and deleting an agent means deleting its file.
 
 This is why your team is portable. You can read it in Finder, edit it in any text editor, copy it to another machine, or commit it to a git repo. Nothing is locked inside a database.
 
@@ -46,7 +46,7 @@ This is why your team is portable. You can read it in Finder, edit it in any tex
 
 You send a message to the orchestrator. The orchestrator reads its instructions, looks at who is on the team, and decides which specialist should handle the work.
 
-It then hands the work to that specialist with the relevant context. The specialist reads its own instructions and the context the orchestrator passed, does the work, and hands the result back. If the specialist needs help from another specialist along the way, it can delegate again.
+It then hands the work to that specialist with the relevant context. The specialist reads its own instructions and the context the orchestrator passed, does the work, and hands the result back. If the specialist leads agents of its own, the ones that report to it, it can delegate onward to them. Otherwise, when work belongs to someone else, it hands back.
 
 You watch all of this happen in the conversation panel. The hand-offs are visible: who asked who, what was passed, what came back. When something goes wrong, you can see exactly which agent to fix.
 
@@ -80,7 +80,7 @@ The end-to-end shape of one message:
     From the conversation context. If the conversation is scoped to a specialist, the message goes to that specialist. If it is scoped to the orchestrator, the orchestrator receives it.
   </Step>
   <Step title="Claude Code spawns the agent as a subprocess">
-    The agent's frontmatter and body are loaded as the system prompt. Rundock injects the team roster, delegation mechanics, and scope boundary.
+    The agent's frontmatter and body are loaded as the system prompt. Rundock injects the team roster, delegation mechanics, and scope boundary. An agent with `runtime: codex` is run by the Codex CLI instead, with its instructions carried in the first turn's prompt.
   </Step>
   <Step title="The agent processes the message">
     It may call tools (Read, Write, Bash, MCP servers) and it may delegate to other agents.
@@ -90,7 +90,7 @@ The end-to-end shape of one message:
   </Step>
 </Steps>
 
-This is the whole loop. Everything Rundock does, from the agents panel to the org chart to the routines scheduler, is built on top of these primitives.
+This is the whole loop. Everything Rundock does, from the team list to the org chart to the routines scheduler, is built on top of these primitives.
 
 ## Where to next
 
