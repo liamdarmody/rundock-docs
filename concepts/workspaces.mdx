@@ -29,7 +29,7 @@ What each part is for:
 
 The `.claude/` folder is hidden by default in Finder and File Explorer. Cloud sync services handle hidden folders correctly: they sync exactly the same way as visible folders. If you want to inspect the contents directly, enable "Show hidden files" in your file browser.
 
-Concept first, syntax second. The full directory layout reference is being added under the Reference section. The pieces above are what you need to understand the model.
+Concept first, syntax second. The full directory layout is in [Workspace structure](/reference/workspace-structure). The pieces above are what you need to understand the model.
 
 ## What syncs, what stays local
 
@@ -39,9 +39,12 @@ A workspace is split into two parts: the shared team content, and the per-user s
 
 **Per-user state lives in `.rundock/`, a hidden directory at the root of the workspace folder.** It holds:
 
-- Your conversation list, and full message transcripts, one file per agent session.
+- Your conversation list, and full message transcripts, one file per conversation.
 - Routine run records, one file per run, and the scheduling state behind them.
 - The search index, the workspace mode, and scratch files written while an agent works.
+- Your pinned files, and the "Always allow" answers you have given.
+- MCP credential values, in `mcp-secrets.json`.
+- Installed extensions and their saved settings, package install receipts, and the backups a package update keeps.
 
 **Because `.rundock/` sits inside the workspace folder, it syncs when the workspace folder syncs.**
 
@@ -49,7 +52,7 @@ On git, Rundock appends `.rundock/` to the workspace's `.gitignore` when it sets
 
 On Dropbox, OneDrive, and Google Drive nothing excludes the directory by default, so you exclude it yourself. The [team workspace setup guide](/guides/team-workspace) gives the steps for each tool, and records no way to exclude it on Google Drive.
 
-`.mcp.json` is in the same position. It holds your MCP server configuration, it lives in the workspace folder, and it syncs on every option including git. MCP servers commonly take an API key directly in that file, so read it before you share the folder.
+`.mcp.json` is in the same position. It holds your MCP server configuration, it lives in the workspace folder, and it syncs on every option including git. Keep API keys out of it: Rundock reads MCP credential values from `.rundock/mcp-secrets.json`, a per-user file keyed by server name, and merges them in only when a Claude Code agent starts. A key already written into `.mcp.json` keeps working, but it travels with the folder until you move it. Because `mcp-secrets.json` sits in `.rundock/`, it is one more reason to exclude that directory from any cloud sync.
 
 Two things do stay on your machine wherever your workspace lives. Your Claude or ChatGPT sign-in is held by the runtime's own command-line tool, in its own configuration outside the workspace folder, and Rundock never reads it. Your recent-workspace list, which the desktop app keeps as a small file in your home directory, records which folders you have opened.
 
@@ -61,9 +64,12 @@ The split as a quick table:
 | `.claude/skills/` | Routine run records |
 | `CLAUDE.md` | Search index and workspace mode |
 | Knowledge documents | Scratch files |
+| | Pins and "Always allow" answers |
+| | MCP credentials (`mcp-secrets.json`) |
+| | Installed extensions, receipts and update backups |
 
 <Note>
-Moving conversation history out of the workspace folder, so that excluding it is no longer necessary, is planned work. Until it lands, treat the exclusion as required setup on any cloud sync tool. `.mcp.json` stays where it is: it is shared workspace configuration, so read it before you share the folder.
+Moving conversation history out of the workspace folder, so that excluding it is no longer necessary, is planned work. Until it lands, treat the exclusion as required setup on any cloud sync tool. `.mcp.json` stays where it is: it is shared workspace configuration, so check it holds no keys before you share the folder.
 </Note>
 
 ## Single-workspace model today
@@ -76,7 +82,7 @@ Finer-grained workspace organisation is on the roadmap. Until it ships, the supp
 
 ## Mid-conversation updates
 
-A specific behaviour worth knowing about: when an agent file is updated while you are mid-conversation, the change takes effect at the start of your next conversation, not in the active one. Active conversations continue with the version that was loaded when they began. If you are tweaking an agent and want to see the effect, finish the current conversation and start a fresh one.
+A specific behaviour worth knowing about: when an agent file changes while you are mid-conversation, whether in Rundock or in another editor, a conversation with the orchestrator picks up the change on your next message. A conversation with any other agent carries on with the version that was loaded when it started. If you are tweaking a specialist and want to see the effect, start a fresh conversation.
 
 ## Where to next
 

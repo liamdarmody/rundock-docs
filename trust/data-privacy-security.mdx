@@ -13,7 +13,7 @@ Your workspace is a folder on your machine. The agents, skills, instructions, an
 
 Per-user state lives in that same `.rundock/` directory: your conversation list, full message transcripts as plain JSON files, one per conversation, routine run records, the search index above, and the workspace mode. It is local, and it is plain text. You can read a transcript in any editor, search it with `grep`, or delete it with `rm`.
 
-Rundock holds no sign-in of its own. Claude Code and Codex each hold their own sign-in in their own configuration, outside the workspace folder, and Rundock never reads it: it learns that Claude Code is signed in from how its turns go, and that Codex is signed in from whether its `auth.json` file exists. The one kind of credential Rundock does keep is for MCP servers: key values can live in `.rundock/mcp-secrets.json`, a per-user file in the workspace, and Rundock merges them into the server settings only when an agent starts, so they stay out of the `.mcp.json` your team shares.
+Rundock holds no sign-in of its own. Claude Code and Codex each hold their own sign-in in their own configuration, outside the workspace folder, and Rundock never reads it: it learns that Claude Code is signed in from how its turns go, and that Codex is signed in from whether its `auth.json` file exists. The one kind of credential Rundock does keep is for MCP servers: key values can live in `.rundock/mcp-secrets.json`, a per-user file in the workspace, and Rundock merges them into the server settings only when a Claude Code agent starts, so they stay out of the `.mcp.json` your team shares.
 
 Rundock sends no telemetry, no analytics, no usage events. There is no Rundock account to create. There is no Rundock backend that touches your data.
 
