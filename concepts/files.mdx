@@ -21,7 +21,7 @@ A file's frontmatter appears in a properties panel above the editor. Click a val
 
 ## Any file type, not just markdown
 
-Open an HTML or SVG file and Rundock shows the real rendered page, with its own styles and fonts, in a locked-down preview where scripts never run and the page cannot reach the network. Images open as images; PDFs open as readable documents. File types Rundock cannot preview say so plainly. The Edit toggle still shows editable source for text and HTML.
+Open an HTML or SVG file and Rundock shows the real rendered page, with its own styles and fonts, in a locked-down preview where scripts never run and the page cannot reach the network. Images open as images; PDFs open as readable documents. File types Rundock cannot preview say so plainly, unless an installed extension opens that type in its own view. The Edit toggle still shows editable source for text and HTML.
 
 ## Kanban boards
 
@@ -30,6 +30,18 @@ A markdown file that is an Obsidian Kanban board opens as a real column board. D
 ## Reviewing agent work
 
 When an agent produces a file, you review it where it lives. Select a passage and press Comment to leave anchored feedback. Agents propose inline edits with Accept and Reject buttons, replies thread and resolve, and a review panel lists everything open. Feedback is stored in the file itself as CriticMarkup, a small block of plain text readable in any editor, attributed honestly: you show as "Me", agents under their names. The same review flow now covers rendered HTML and SVG files, not only markdown.
+
+## Pins, connections and the Map
+
+**Pins** sits in the rail directly below Files. Pin the file you have open with the pin at the top right, or right-click a file in the sidebar and choose Pin. Pins are kept in `.rundock/pins.json` in the workspace.
+
+The file view carries a **connections** list: what links to the open file, and what it links to. Clicking an entry opens that file.
+
+**Map**, last in the rail, draws the workspace as a graph: every file a node and every resolved link between files an edge. Type a keyword to narrow it, and click a node to open the file.
+
+## Files opened by an extension
+
+An installed extension can open a kind of file, such as every `.csv` file, in its own view instead of Rundock's. See [Install a package](/extending/install-a-package) and [What an extension cannot do](/extending/limits).
 
 ## Files stay in sync
 
