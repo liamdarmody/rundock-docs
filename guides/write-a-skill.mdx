@@ -40,17 +40,17 @@ Skill frontmatter is lean. Two fields matter:
 ```yaml
 ---
 name: Weekly Report
-description: Compile a structured weekly summary of progress, blockers, and next steps from the last seven days of work.
+description: Compile a structured weekly summary of progress, blockers, and next steps from the last seven days of work. Use when asked for a weekly report or status update.
 ---
 ```
 
 A few things to know about these fields:
 
 - **`name`** is the display name shown on the agent profile and the skill list. Plain prose is fine, not just a slug-style identifier.
-- **`description`** is one paragraph and it is the **routing signal**. The orchestrator reads this when deciding whether to route work to an agent that owns the skill. Write it as a verb, a clear capability, and the trigger phrase the user is likely to type. A skill with no description is invisible to routing.
+- **`description`** is one paragraph, and it is the skill's **trigger**. Claude Code offers the model each skill's name and description when it decides whether to use one, so say what the skill does and when to use it, key use case first. Rundock shows the description in its interface, but the roster Rundock gives a leading agent lists skills by slug only, so name the skill's folder for what it is for too.
 
 <Note>
-Other YAML fields you might be tempted to add (`displayName`, `icon`, `colour`, `model`, `allowed-tools`) are silently ignored by Rundock for skill files. The fields persist on disk but no Rundock surface reads them. Keep skill frontmatter to `name` and `description`.
+Other YAML fields you might be tempted to add (`displayName`, `icon`, `colour`, `model`, `allowed-tools`) are silently ignored by Rundock for skill files. The fields persist on disk but no Rundock surface reads them. Claude Code does read `model` and `allowed-tools` when it runs the skill: see the [skill file format](/reference/skill-file-format) reference. Start with `name` and `description`.
 </Note>
 
 ## 4. Write the skill body
@@ -156,7 +156,7 @@ skills:
   - weekly-report
 ```
 
-Use the block form (`-` lines indented under `skills:`). Inline flow-style arrays (`skills: [weekly-report]`) parse as empty and silently fall through to body-text scanning.
+Either form works. Rundock tries the flow style (`skills: [weekly-report]`) first and falls back to the block form (`-` lines indented under `skills:`), stripping quotes either way. An earlier version of this page said the flow form parsed as empty; it does not.
 
 A skill can be assigned to multiple agents. List the same slug in each agent's frontmatter that should own it.
 
@@ -175,7 +175,7 @@ Run the weekly report.
 The agent should pick up the skill, follow the steps, and produce output in the format you defined. If it does not, three things to check:
 
 1. **Is the skill discovered?** Restart Rundock and check the skills panel. If `weekly-report` does not appear, the folder structure or filename is wrong.
-2. **Is the description specific enough?** The orchestrator uses the description for routing. Vague descriptions get vague routing.
+2. **Do the name and description say when to use it?** Claude Code offers the model each skill's name and description, and that is what it reads when deciding whether to use the skill. A vague name, or a description that never says when the skill applies, is what gets a skill overlooked.
 3. **Are the steps concrete enough?** The agent should not have to infer where to read or write. If it asks for clarification, the steps are too thin.
 
 Iterate the body, not the agent. The whole point of a skill is that you can refine the procedure without touching the agent's identity.

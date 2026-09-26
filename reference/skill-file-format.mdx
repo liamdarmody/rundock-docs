@@ -40,14 +40,14 @@ Skill frontmatter is intentionally lean. Rundock's parser reads two fields and s
 | Field | Type | Scope | Required | Purpose |
 |---|---|---|---|---|
 | `name` | string | Universal | Recommended | Display name for the skill, shown on the agent profile and in the skill list. If omitted or equal to the slug, Rundock title-cases the slug (with brand-word overrides like LinkedIn, Notion, MCP). |
-| `description` | string | Universal | Recommended | One-paragraph description of what the skill does and when to use it. The orchestrator uses this for routing decisions. A skill with no description is invisible to routing. |
+| `description` | string | Universal | Recommended | One-paragraph description of what the skill does and when to use it. Claude Code offers it to the model, with the skill's name, when the model decides whether to use a skill, so it is the skill's trigger: put the key use case first. Rundock shows it in its interface; the roster Rundock gives a leading agent lists skills by slug only. |
 | `allowed-tools` | array | Universal (Claude Code) | No | Tools Claude Code is allowed to invoke while running this skill. Rundock does not read this field; Claude Code does, when the skill is loaded into a subprocess. |
 | `model` | string | Universal (Claude Code) | No | Model override for this skill. Same caveat as `allowed-tools`: Rundock does not read it, Claude Code may. In practice, behaviour follows the invoking agent's model. |
 | `displayName` | string | Rundock-only | No (not parsed) | Not parsed for skills. Rundock derives display name from `name` and the slug. Listed only to flag that the field is not honoured even though the convention exists for agents. |
 | `icon` | string | Rundock-only | No (not parsed) | Not parsed. Skills inherit the icon of their assigned agents in the UI. |
 | `colour` | string | Rundock-only | No (not parsed) | Not parsed. Skills inherit accent colours from their assigned agents. |
 
-The minimal valid skill frontmatter is just `name` and `description`. Both can be omitted entirely, but a skill without a description is invisible to the orchestrator's routing decisions, so always write one.
+The minimal valid skill frontmatter is just `name` and `description`. Both can be omitted entirely: Rundock still assigns the skill by slug, and Claude Code falls back to the first non-empty line of the body for the description. Write one anyway, because it is what the model reads when deciding whether to use the skill.
 
 ## The body
 
@@ -118,10 +118,19 @@ Rundock matches skills to agents in two passes.
 
 Use explicit assignment when the relationship is permanent and load-bearing. Let body-text fallback handle weaker references.
 
-Unassigned skills are still callable. If a skill has no owner via either pass, it registers with `status: 'unassigned'`. The orchestrator can still route work to it if its `description` matches the request strongly enough. The skill simply does not appear under any agent's profile until it is assigned.
+Unassigned skills are still usable. If a skill has no owner via either pass, Rundock registers it with `status: 'unassigned'`: it shows as unassigned in the skills panel, appears under no agent's profile, and no leading agent's roster lists it. Rundock does nothing else with it.
+
+Claude Code is a separate layer. By default it offers every skill in `.claude/skills/` to every agent it runs in the workspace, by name and description, whether or not Rundock assigned it, so an agent can still use an unassigned skill when the description fits the request. Skills under `System/Playbooks/` are Rundock's own location, and Claude Code does not discover them.
 
 <Note>
-Platform skills (slugs prefixed with `rundock-`) are gated to platform agents, currently only Doc. Non-platform agents do not see them. Non-platform skills are gated to non-platform agents and Doc does not see them.
+**Only agents that are on the team are considered.** An agent whose status is `available` or `raw` is skipped entirely and gets no skills however it declares them. Nothing warns, so this reads as the assignment being broken.
+
+The `rundock-` prefix then gates in both directions, as two separate rules:
+
+- A **platform** agent, currently only Doc, is assigned `rundock-` skills and nothing else.
+- Every **other** agent is assigned anything except `rundock-` skills.
+
+Neither case warns. The skill simply does not attach. These rules govern Rundock's assignment only, and Claude Code's own listing is not filtered by them.
 </Note>
 
 ## Workspace mode
@@ -137,7 +146,7 @@ Here is a complete skill file. Frontmatter is the parser-recognised set, the bod
 ```markdown
 ---
 name: Skill Discovery
-description: Scan recent work surfaces for repeated manual patterns and propose new skills or playbooks to build, ranked by leverage.
+description: Scan recent work surfaces for repeated manual patterns and propose new skills or playbooks to build, ranked by leverage. Use when reviewing the week or deciding what to automate next.
 ---
 
 Scan recent work surfaces for repeated manual patterns and produce a
@@ -208,7 +217,7 @@ references.
 Notes on this example:
 
 - The frontmatter holds only `name` and `description`. Anything else would be ignored.
-- The `description` opens with a verb in present tense and finishes with the trigger phrase. This is the field the orchestrator reads when deciding whether to route work.
+- The `description` opens with a verb in present tense and finishes with when to use it. This is the text Claude Code offers the model when it decides whether to use the skill.
 - The body opens with one paragraph that re-states what the skill does, then jumps straight to "Use this skill when".
 - Steps are numbered, imperative, and reference specific file paths.
 - Boundaries are explicit. This is the discipline that keeps a skill leaf-shaped.
@@ -218,17 +227,17 @@ Notes on this example:
 
 A handful of specific things that go wrong silently.
 
-**Frontmatter beyond `name` and `description` is ignored.** Setting `displayName`, `icon`, `colour`, or any other Rundock-only field on a skill file does nothing. The fields persist but no surface reads them.
+**Rundock-only fields do nothing on a skill.** Setting `displayName`, `icon`, `colour`, or any other Rundock-only field on a skill file does nothing. The fields persist but no surface reads them.
 
 **Flat skill files are not discovered.** A file at `.claude/skills/my-skill.md` is invisible. The skill must live at `.claude/skills/<slug>/SKILL.md` (or the Playbooks equivalent).
 
 **Frontmatter typos fail silently.** A misspelled `descripton` or `naem` is silently ignored. The skill loads with empty values for those fields.
 
-**Inline `skills:` arrays on the agent side do not parse.** The flow-style `skills: [a, b]` parses as an empty array on the agent file. Always use the block form.
+**Both `skills:` forms parse.** The flow style `skills: [a, b]` is tried first and the block form is the fallback. An earlier version of this page said the flow form parsed as an empty array; in 0.15.0 it does not.
 
 **Slug case sensitivity.** Rundock lowercases slugs before matching, so `Hook-Generator` in an agent's `skills:` would match a `hook-generator` directory. Keep all slugs lowercase end to end for readability.
 
-**Description is the routing signal.** The orchestrator reads the skill's `description` field, not its body, when deciding whether to route work. A skill with no description is invisible to routing, even if the body is rich.
+**A vague name or description gets a skill overlooked.** Claude Code decides whether to use a skill from its name and description, not its body, so a rich body behind a description that never says when the skill applies leaves the model nothing to match a request against. Rundock's roster cannot make up for it: it lists skills by slug only.
 
 ## Where to next
 
