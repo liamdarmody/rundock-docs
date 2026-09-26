@@ -1,0 +1,50 @@
+---
+title: 'Publish and get listed'
+description: 'Tag a release people can pin to, and list your package in the Rundock Directory.'
+---
+
+A package is published the moment its repository is public on GitHub. Anyone with the link can install it. Getting it listed in the [Directory](https://rundock.ai/directory) is how people who do not have the link find it.
+
+## Tag a release
+
+People install an extension from a tag or an exact commit, never a branch, so a tag is what makes your extension installable by a name people can read. A link that names a branch is refused, whatever the branch is called. A plain link to your repository installs its newest version tag, for agents and skills as much as for an extension. A repository with no version tags installs the exact commit fetched, and is never offered updates.
+
+**Tag a release to ship updates.** Only a version tag newer than the one a person installed is offered to them as an update.
+
+1. Set `version` in `rundock.json` to the version you are releasing, if the package has one. Set `displayName` there too if your package's name does not read well title-cased: see [`displayName`](/reference/rundock-json#displayname). If your view uses [Rundock UI](/extending/rundock-ui), check `rundockUi` names the version you built and tested against.
+2. Commit, then create a tag with the same version, for example `v1.0.0`, and push it.
+3. Optionally, create a GitHub release from the tag with notes on what changed.
+
+Use version numbers that sort, such as `v1.0.0`, `v1.1.0`, `v2.0.0`. **Check for updates** on the Packages page offers only a tag newer than the installed one, and a tag it cannot order is one it cannot compare.
+
+**Never move a tag.** A person who installed `v1.0.0` saw what `v1.0.0` contained on the confirmation screen, which names the commit the tag resolved to. Publish a fix as a new tag. A tag you move is reported to the people who installed it as a tag that changed, and is never offered as an update.
+
+## The string people paste
+
+Give people one exact string, and use the same one everywhere you mention the package:
+
+```
+owner/repo@v1.0.0
+```
+
+A GitHub link to the repository, a release page or a tree at the tag works too. See [Install a package](/extending/install-a-package#paste-the-link) for every accepted form.
+
+## Get listed in the Directory
+
+The Directory lists agents, skills, packs, extensions and resources. Every listed extension shows the exact string to paste into Rundock, with a button to copy it.
+
+{/* SHIPS WITH: Rundock Site commit 75bde5c on branch directory/extension-category, not yet on main. The fields below match that template; merge the site change before this page goes live. */}
+To submit, [open a Directory submission](https://github.com/liamdarmody/rundock-site/issues/new?template=directory-submission.md) and fill in:
+
+- **GitHub URL:** the repository's link.
+- **Type:** agent, skill, pack, extension or resource. A repository carrying an extension is an extension, even if it also ships agents and skills.
+- **Ref:** the tag or exact commit to list, such as `v1.0.0`. Required for an extension and optional otherwise. Never a branch name such as `main`.
+- **Name, author, description and tags** as you want them to appear.
+
+The listing shows the repository and ref as one string to paste. When you release a new version, submit the new ref so the listing points at it.
+
+## Before you submit
+
+- Install the package from its link into a fresh workspace, exactly as a stranger would.
+- Make sure the README says what the package does, what the extension claims, and whether it writes to files.
+- For an extension, read [What an extension cannot do](/extending/limits) once more against what your README promises.

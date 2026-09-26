@@ -18,7 +18,7 @@ your-workspace/                   # the workspace folder itself
 ├── .rundock/                     # per-user state (hidden, inside the workspace)
 │   ├── conversations.json        # the conversation list
 │   ├── lists.json                # how conversations are grouped
-│   ├── state.json                # workspace mode, setup state, last-seen path
+│   ├── state.json                # workspace mode, sandbox switch, working folders, setup state
 │   ├── transcripts/              # one JSONL file per agent session
 │   ├── runs/                     # one record per routine run
 │   ├── routine-state.json        # last-run state, so a restart does not double fire
@@ -26,7 +26,12 @@ your-workspace/                   # the workspace folder itself
 │   ├── child-pids.json           # process ids for running agents
 │   ├── scratch/                  # working files written while an agent runs
 │   ├── startup.log               # server startup log
-│   └── search-index.db           # the search index
+│   ├── search-index.db           # the search index
+│   ├── extensions.json           # the extensions you have installed
+│   ├── extensions/               # each installed extension's files
+│   ├── extension-state/          # each extension's own preferences, per note
+│   ├── receipts/                 # what each package install and update did
+│   └── package-updates/          # author versions and backups saved by updates
 ├── .mcp.json                     # workspace-level MCP server config (optional)
 ├── CLAUDE.md                     # workspace-wide instructions
 └── [knowledge files]             # anything else you add
@@ -111,8 +116,9 @@ Per-user state, in a hidden directory at the root of the workspace folder. Rundo
 - **`conversations.json`**: the conversation list. **`lists.json`**: how those conversations are grouped.
 - **`transcripts/`**: full message transcripts, one JSONL file per agent session. A conversation that delegates produces several.
 - **`runs/`**: routine run records, one file per run. **`routine-state.json`** and **`routine-slots.json`**: the scheduling state behind catch-up.
-- **`state.json`**: the workspace mode (Knowledge or Code), setup state, and a record of where the workspace was last seen, which Rundock compares against the current path to notice that the folder has moved. The list of workspaces you have opened is kept separately: in your home directory in the desktop app, and beside the server's own code when Rundock is run from source.
+- **`state.json`**: the workspace mode (Notes or Code), whether agents are kept inside the workspace (`sandboxSwitch`), the [folders agents can also change](#folders-agents-can-also-change) (`workingFolders`), setup state, and a record of where the workspace was last seen, which Rundock compares against the current path to notice that the folder has moved. The list of workspaces you have opened is kept separately: in your home directory in the desktop app, and beside the server's own code when Rundock is run from source.
 - **`search-index.db`**: the search index. **`scratch/`**, **`child-pids.json`** and **`startup.log`**: working files for running agents.
+- **`extensions.json`** and **`extensions/`**: the extensions you have installed, each with the source and version it was pinned to, and its files. Uninstalling its package removes both. **`extension-state/`**: each extension's own preferences for the notes it opens, such as column widths, one folder per extension and one file per note, kept on this machine and never in your notes. Uninstalling the package removes that extension's folder. **`receipts/`**: one receipt per package install or update, listing what arrived, what you decided for each item, the exact commit fetched, and a fingerprint of each file as it was written; a package's receipts are removed with it when you uninstall it. **`package-updates/`**: the author's versions of anything an update kept as yours, and backups of what it replaced, one folder per package. Kept on this machine only until you clear them from the Packages page. See [Install a package](/extending/install-a-package).
 
 Your runtime sign-in lives elsewhere: Claude Code and Codex each hold their own in their own configuration, outside the workspace folder, and Rundock reads none of it. Rundock stores no keys of its own.
 
@@ -142,7 +148,7 @@ The split as a table.
 | `.claude/settings.local.json` | Workspace folder | **Yes, unless excluded** | Per-user permission and MCP overrides, meant to stay on one machine. Rundock does not write this exclusion, so add it to your sync tool's exclusion list, or to `.gitignore` if you sync via git. |
 | `.rundock/conversations.json`, `.rundock/transcripts/` | Workspace folder | **Yes, unless excluded** | Your conversation list and every message transcript. Meant to be per-user. |
 | `.rundock/runs/` | Workspace folder | **Yes, unless excluded** | One record per routine run, so this grows with every scheduled run. |
-| `.rundock/state.json`, `.rundock/search-index.db` | Workspace folder | **Yes, unless excluded** | Workspace mode, setup state, last-seen path, and the search index. |
+| `.rundock/state.json`, `.rundock/search-index.db` | Workspace folder | **Yes, unless excluded** | Workspace mode, the sandbox switch, working folders, setup state, last-seen path, and the search index. |
 
 Everything in the `.rundock/` rows is covered by the `.gitignore` entry Rundock writes at setup, subject to the two limits in the warning above, and has to be excluded by hand on Dropbox and OneDrive. The guide records no way to exclude it on Google Drive.
 
@@ -163,10 +169,10 @@ Workspace mode is a workspace-level setting that changes agent behaviour at the 
 
 | Mode | What it changes |
 |---|---|
-| **Knowledge mode** (default) | Restricts file writes for executable file types (`.js`, `.py`, `.sh`, etc) so agents cannot accidentally write or modify code in a knowledge-work workspace. Tool permission cards are shown for most operations. |
-| **Code mode** | Removes the executable-file write restriction. Auto-approves common build and dev tools so agents can iterate on code without permission card interruptions. Used for software project workspaces. |
+| **Notes** (default) | Restricts file writes for executable file types (`.js`, `.py`, `.sh`, etc) so agents cannot accidentally write or modify code in a workspace of notes and documents. Commands that change something ask first. |
+| **Code** | Removes the executable-file write restriction. Auto-approves common build and dev tools so agents can iterate on code without permission card interruptions. Used for software project workspaces. |
 
-Mode is set in the workspace settings drawer, or by editing `.rundock/state.json` directly:
+Mode is set in **Settings**, under **Permissions**, where it is the question **What are you working on?**, or by editing `.rundock/state.json` directly:
 
 ```json
 {
@@ -174,9 +180,49 @@ Mode is set in the workspace settings drawer, or by editing `.rundock/state.json
 }
 ```
 
+The stored values are `notes` and `code`. A workspace an earlier release stored as `knowledge` is read as Notes, and stays as it is until you change the mode.
+
 When a workspace is first opened, Rundock auto-detects the likely mode by looking for `package.json`, `pyproject.toml`, `Cargo.toml`, and similar markers.
 
 The mode affects every agent in the workspace, not just one. There is no per-agent override.
+
+## Keep agents inside this workspace
+
+Whether agents can change files outside the workspace folder is its own switch, **Keep agents inside this workspace**, in **Settings**, under **Permissions**, below the mode. It is independent of the mode: switching between Notes and Code never moves it. It uses macOS's built-in sandbox, and it applies to Claude Code agents.
+
+- **On:** agents can change files in this workspace and the temporary folders they need. Changes elsewhere are blocked.
+- **Off:** agents can change or delete files outside this workspace wherever your account allows. Your approval settings still apply.
+
+A workspace Rundock opens for the first time starts with the switch on, in both modes. Turning it off asks first, "Agents will be able to change or delete files outside this workspace wherever your account allows. Your approval settings still apply.", with **Keep it on** and **Turn it off**.
+
+A workspace set up by an earlier release keeps the state it had, and shows a one-time notice: "Keeping agents inside this workspace is now its own switch. Yours is still on. Switching between Notes and Code won't change it." (or "still off").
+
+The row always states what is in force, in one word beside it:
+
+| State | When |
+|---|---|
+| **On** or **Off** | macOS. The switch is shown where Rundock controls the setting. |
+| **Unavailable** | Windows and Linux, or a Mac where the sandbox cannot run. Your approval settings still apply. |
+| **Status unknown** | Where Codex is the workspace's default runtime. Codex runs its own sandbox, from its own config file, and Rundock cannot confirm whether it is active. See [Runtimes](/concepts/runtimes#permissions-and-sandboxing). |
+
+Where something other than Rundock decides, the row is read-only, with a lock and a line naming who:
+
+- **Rules you wrote yourself.** If `.claude/settings.local.json` holds a sandbox block that Rundock did not write, the row shows its state and says it was set up outside Rundock. **Bring your custom rules into Rundock** opens a review first: it lists each folder you added by hand, which becomes one of the folders below, and names any rule Rundock cannot represent, which is dropped. Nothing changes until you choose **Bring in my rules**, and if the file changed after you reviewed it, nothing is brought in and you are asked to review it again.
+- **Another settings file turns it on.** Claude Code turns the sandbox on when any of its settings files does. If your organisation's managed Claude Code settings, the project's `.claude/settings.json` or your own `~/.claude/settings.json` turns it on, the row reads **On** and names which, because Rundock's switch cannot turn it off while that file turns it on.
+
+The switch is stored in `.rundock/state.json` as `sandboxSwitch`, and applied through the sandbox block Rundock writes into `.claude/settings.local.json`.
+
+### Folders agents can also change
+
+Under the switch is a list of folders agents can change as well as the workspace, such as a projects folder beside it. Naming a parent, such as `~/Projects`, covers everything inside it, including folders created later. The list is in force whether the switch is on or off, and the line above it says what it does in each case:
+
+- **Switch on:** agents can change files in these folders too. Anywhere else, changes are blocked unless you approve them.
+- **Switch off, Code:** agents can change files in these folders without asking. Anywhere else, Rundock asks before a file edit, and before a command it can see reaching outside.
+- **Switch off, Notes:** agents can edit files in these folders without asking. Anywhere else, changes need your approval.
+
+A permission card for a file outside the workspace offers **Always allow this folder**, which adds that folder to the same list, for this workspace only. A folder that has gone, such as a drive that is not mounted, stays named and starts covering again if it comes back. Codex agents are unaffected by the list, and `~/.claude` is never included, so your credentials always ask. Removing a folder applies to new conversations; one already running keeps the folders it started with.
+
+The list is stored in `.rundock/state.json` as `workingFolders`.
 
 ## Where to next
 

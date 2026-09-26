@@ -1,0 +1,79 @@
+---
+title: 'What an extension cannot do'
+description: 'The limits of the extension sandbox, stated up front, so you spend your time on something that can be built.'
+---
+
+An extension runs someone else's code inside a person's workspace, so it runs in a sandbox. The sandbox is the reason a person can install your extension without reading every line of it, and it is also the reason some ideas cannot be built as an extension today.
+
+Read this before you start. It is much cheaper to learn a limit here than halfway through a weekend.
+
+## It sees one file, and the files its note names
+
+Your view is handed the text of the file it was opened on, once, and nothing else about the workspace. The one way it sees more is when the person names the files.
+
+- **It cannot list, search or read other files.** There is no message that reaches the filesystem. A dashboard that gathers figures from every file in a folder cannot be built.
+- **A note can name files for it.** If your manifest declares `sources` with a `declares` marker, a note carrying that marker can list files under `sources:` in its frontmatter, and your view is handed each one's text. The list is exact paths the person typed: nothing is searched for or matched by pattern, at most 12 names. See [Hand the view several files](/extending/build-an-extension#hand-the-view-several-files).
+- **It is never given a hidden or linked file.** Nothing under `.claude/`, `.rundock/`, or any other folder or file whose name starts with a dot, such as `.env` or `.mcp.json`, is ever opened in an extension's view or handed to it as a source, however it was reached. Nor is a linked file, a file in a linked folder, or a file with a second name elsewhere, because its visible name could stand for a hidden file or one outside the workspace.
+- **It can save only the file it was opened on, and the files its note names**, and only when the manifest asks for `writes`. No message carries a path your view chooses. A write your view causes can never change the note's own `sources:` list.
+- **Very large files are not handed over.** A file over two million characters opens in the plain rendering instead, with the limit named. A note and its sources together are held to the same limit.
+
+Another way to put several files on one page is a note that embeds each of them. A line holding only embeds becomes a row of panels, up to three side by side, each drawn by its own extension on its own file only, and read-only. See [Show up inside other notes](/extending/build-an-extension#show-up-inside-other-notes).
+
+## It cannot reach Rundock
+
+- **Not Rundock's page.** Your view runs in a frame with an opaque origin. It cannot read or change anything outside its own frame: no Rundock DOM, no cookies, no storage, no scripts.
+- **Not the connection to Rundock's server, the conversations, or the permission system.** None of them is a message your view can send, so any attempt is refused.
+- **Not an agent.** A view can draft a message to an agent its manifest names, with `ask`, and that is all: the draft waits, unsent, in a new conversation for the person to send or not. The view never learns the conversation, the reply, or whether the person sent it.
+- **Not the navigation rail, the chat, or a side panel.** An extension draws inside the file pane and nowhere else.
+- **Not other extensions.** Each view has its own frame and nothing is shared between them.
+
+## It cannot reach the network
+
+The frame's content security policy is `default-src 'none'`. Your view cannot fetch, load a script, a stylesheet, a font or an image from anywhere, or send anything out. Images must be `data:` URLs you build yourself.
+
+That also means **no libraries from a CDN.** Everything your view needs has to be inside the entry script, or in stylesheets declared in the manifest. If you use a library, bundle it into your entry before you tag a release. Rundock UI is the exception: Rundock puts it into your view for you, so never bundle a copy.
+
+It cannot navigate away either. A view that tries to replace itself with another page is ended.
+
+## It acts only after a click, one request per click
+
+Three messages act outside the view: `open`, which opens another workspace file the way a link would, `openExternal`, which opens a web address outside Rundock, and `ask`, which drafts a message to an agent. Each needs the person's click inside your view, and **one click authorises one request, across every view**.
+
+- A script cannot send them on its own. A request with no click in the view is refused, and Rundock tells the person, in a line above your view, that it stopped your extension.
+- A second request on the same click is not honoured by itself. Neither is a request from a view that appeared because of that click, such as the note your button just opened. Rundock cannot see clicks inside a frame, so when it cannot tell whether a request came from a fresh click in your view, it asks the person in its own bar above the view, "Open Tracker.md?", with **Open** and **Dismiss**. Your view cannot draw, read or press that bar.
+- The browser's record of a click lasts a few seconds. So a person who clicks inside your view within a few seconds of the click that opened it may see the bar rather than the action. **Open** then does what your view asked.
+
+Rundock shows the person every refusal and question about these requests itself, so do not show your own notice for them. The exact rules are in [One click, one request](/reference/extension-contract#one-click-one-request).
+
+A link in your view cannot open by being followed, because the frame may not navigate. Offer it with `openExternal`, and Rundock opens it outside the app: in the system browser in the desktop app, or a new tab in a browser.
+
+## It is drawn with Rundock's components
+
+Rundock puts [Rundock UI](/extending/rundock-ui) into every view: buttons, fields, tabs, tables, boards, meters and the rest, in Rundock's own look and both themes. Use them for every control and container, and keep your own CSS to layout. What you draw yourself goes inside a `ui.canvas`.
+
+Your view is full bleed: it fills the file pane, in the pane's own colour, with a note's padding already on its body. It draws there and nowhere else. It cannot add a rail entry, a chat panel or a toolbar.
+
+## It keeps only its own preferences between openings
+
+Each time the file is opened, your view starts fresh from `init`. What it can keep is its own preferences for that note, such as a chosen tab or the widths someone dragged: up to 64 KB of plain JSON per note, kept by Rundock in its own folder, per machine, never in the note. See [View state](/extending/rundock-ui#view-state).
+
+Anything that is the person's data belongs in the file, where they and their agents can read it. A view that names `'theme'` in its `ready` is restyled in place when the theme changes and keeps what it holds; one that does not is rebuilt and starts fresh. See [Theme changes](/reference/extension-contract#theme-changes).
+
+## Rundock does not review extensions
+
+Nobody checks an extension's code before someone installs it. The person installing it sees exactly what the manifest claims and what the sandbox allows, read from the package, and decides. Your agents and skills, if you ship any, are not sandboxed at all: they act with the same access as the person's own agents, and the install screen says so.
+
+## If you hit a limit
+
+If what you want to build needs something on this page, [open an issue](https://github.com/liamdarmody/rundock/issues) describing what you were trying to do. A limit that stops a real extension is worth knowing about, and the answer is sometimes a capability Rundock provides on its own side of the sandbox rather than one handed to extensions.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Build an extension" icon="code" href="/extending/build-an-extension">
+    A working extension in one file.
+  </Card>
+  <Card title="Extension host contract" icon="file-code" href="/reference/extension-contract">
+    Every message a view can send and receive.
+  </Card>
+</CardGroup>

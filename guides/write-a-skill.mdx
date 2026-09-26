@@ -100,15 +100,14 @@ or "what happened this week".
 
 ## Steps
 
-1. Read the daily notes for every day in the window from `_Daily Notes/`.
-2. Pull all completed tasks from Todoist for the window using the
-   `find-completed-tasks` tool.
-3. Pull all meetings from the window from Granola.
+1. Read the daily notes for every day in the window from `Daily/`.
+2. Pull all completed tasks for the window from the tasks connector.
+3. Pull all meetings from the window from the meeting notes folder.
 4. Group findings into three sections:
    - **Shipped:** what was delivered or published.
    - **Blockers:** anything that stalled, with a one-line cause.
    - **Next:** the three most important things for the coming week.
-5. Write the report to `_Daily Notes/weekly/<YYYY-MM-DD>-week.md`.
+5. Write the report to `Daily/weekly/<YYYY-MM-DD>-week.md`.
 
 ## Output format
 
@@ -119,7 +118,7 @@ End with a one-sentence summary of the week.
 ## Edge cases
 
 - **No daily notes for some days in window:** skip silently.
-- **Todoist unavailable:** note in the Blockers section that task data
+- **Tasks connector unavailable:** note in the Blockers section that task data
   was unavailable, continue with the rest.
 - **Window has zero meetings:** omit the section header rather than
   writing "no meetings".

@@ -1,0 +1,150 @@
+---
+title: 'Install a package'
+description: 'Add agents, skills or an extension to your workspace from a GitHub link, update and uninstall packages, and manage extensions.'
+---
+
+A package is a GitHub repository carrying agents, skills, an extension, or a mix. You install one by pasting its link. Rundock reads the repository, tells you exactly what is in it, and writes nothing until you say yes.
+
+<Warning>
+Rundock does not review packages. What you install is your choice. Read the confirmation screen before you accept it: every line on it was read from the package itself, not taken from its author's description.
+</Warning>
+
+## Paste the link
+
+1. Open **Settings** and choose **Packages**.
+2. Paste the repository's link into **Add a package** and press **Add**.
+
+Rundock reads the repository and then shows one of two screens, depending on what it found.
+
+Any of these spellings work:
+
+| You paste | What it means |
+|---|---|
+| `https://github.com/owner/repo` | The repository. Rundock installs its newest version tag, for any package. A repository with no version tags installs the exact commit fetched, and is never offered updates. |
+| `owner/repo` | The same, shorter. |
+| `owner/repo@v1.2.0` | The repository at the tag named after `@`. |
+| `owner/repo@<commit>` | The repository at an exact commit, written as its full 40-character id. |
+| `https://github.com/owner/repo/releases/tag/v1.2.0` | A release page. The release's tag is the pin. |
+| `https://github.com/owner/repo/tree/v1.2.0` | A tree link. The reference in it is the pin. |
+
+The [Directory](https://rundock.ai/directory) shows the exact string to paste for every listed extension.
+
+## If it adds agents and skills
+
+You see how many agents and skills Rundock found, and a plain statement that they are not sandboxed: once added, they act with the same access your own agents have. If any agent carries a [routine](/concepts/routines), the screen names each one and when it will first run, because a routine runs with no one at the keyboard. If an agent or skill carries settings that act without asking you, such as hooks, a permission mode, a list of allowed tools or its own MCP servers, the screen names it, because those do their work without a permission card.
+
+If the package ships **starter files**, such as a portfolio or a watchlist for its agents to work on, the screen names each one by path. They are added only where you have nothing at that path, and they are yours from then on: removing the package never removes them, and updating it never replaces them. A starter file you already have is named as kept, and nothing can replace it.
+
+Choose **Add to my team** to add them, or **Cancel** to leave your workspace as it was.
+
+**If something with the same name is already in your workspace**, Rundock shows a review instead. For each clash it tells you whether the incoming file is identical to yours or different, and you choose per item: skip it and keep yours, or overwrite yours with the package's version. An agent that would arrive as a second team leader can be added as a specialist under your existing leader instead. Nothing is written until you confirm the review, and if your workspace changes while you are deciding, Rundock discards the review rather than acting on stale choices.
+
+**Once added, they are yours.** They appear in Team and Skills like anything else, and you can edit or delete them freely. Each imported agent carries a `source:` line in its frontmatter recording where it came from. It is information only: it confers nothing and enforces nothing.
+
+The package then has its own card on the Packages page, with each item linking to where it now lives. Rundock also keeps a receipt of the install, recording what arrived, the exact commit that was fetched, and a fingerprint of every file as it was written. It is history, never authority: it is what lets a later update tell a change the package's author made from a change you made, and an update still reads what is in your workspace now and asks before it changes anything. Deleting a receipt removes that line of history and nothing else.
+
+## If it contains an extension
+
+An extension is always installed from a tag or an exact commit, and never from a branch. A branch names whatever was pushed to it last, so the code the confirmation screen describes could change after you agreed to it.
+
+- **A tag, release page or tree link** is installed at that tag. Rundock fetches the name as a tag, so a branch that happens to share the tag's name never arrives in its place.
+- **An exact commit**, written as its full 40-character id, is installed at that commit.
+- **A link that names nothing** is pinned to the repository's newest version tag. A repository with no version tags is installed at the exact commit fetched, and is never offered updates.
+- **A link to a branch**, such as `main` or any other branch, is refused, with the reason on the field and your link kept: use a tag or an exact commit.
+
+The confirmation screen names the commit a tag resolved to, so you know the exact code you are agreeing to. If the extension has the same name as one you already installed from a different repository, the screen says so plainly, and an update that arrives under a different name is refused. Updates follow the same rule: see [Update a package](#update-a-package). A package of only agents and skills may still be read from a branch a link names, because those arrive as files you can read and edit rather than code that runs.
+
+The confirmation screen is headed **Install** followed by the extension's name and version, and splits into two parts:
+
+- **What will run.** Which files the extension asks to render, and what its view can and cannot do. Every extension's view runs in a sandbox with no access to Rundock's page, your other files or the network. The screen also says it can keep up to 64 KB of its own settings for each note it opens, in Rundock's folder, never in your notes, and that uninstalling it removes them. Separate lines say so if the extension asked to edit the files it opens, to read the files a note lists under `sources:`, or to draft messages to named agents on your team, and that nothing it drafts is sent until you send it.
+- **What you will keep.** Where the extension's own files go, and whether the repository also carries agents, skills and starter files. Those are never added by this step. Once the extension is installed you are offered them separately, on the screen described above, and nothing about them lands until you answer.
+
+Choose **Install it** to install, or **No, remove what was fetched** to leave nothing behind.
+
+For the full list of what the sandbox enforces, see [Data, privacy, and security](/trust/data-privacy-security#extensions-and-packages).
+
+## Your installed packages
+
+The Packages page shows one card for each package you have installed, under **Installed packages**. A card shows:
+
+- **The package's name**, which is its author's `displayName` where the package sets one, and otherwise its name, title-cased. Beside it, the version tag it is at, or the commit it was installed from.
+- **Where it came from**, as a link to the repository.
+- **What it said last time it checked**, such as "Up to date" or "Update available: v1.3.0".
+- **What it carries**: a count of its agents, skills, routines, starter files and extension, and each one by name, linking to where it lives. An item you have since removed stays listed, marked removed, and one the package no longer carries is marked too.
+- **Check for updates**, or **Update to** a newer version once one is known, and **Uninstall**.
+
+## Update a package
+
+A package updates as one unit, from its card: its agents, skills, routines, starter files and extension together, in one step.
+
+**Only a new release is offered.** Rundock looks for a version tag newer than the one you installed, and nothing else: new commits on a branch are never offered. It checks when you open Packages or press **Check for updates**, never in the background, and reuses what it learned about a repository for an hour.
+
+- **A package installed from a commit**, because its repository had no version tags, is never offered an update. Its card says "Installed from a commit. Paste the link again to get the latest."
+- **A package added from a folder** on your computer, rather than a link, cannot be checked for updates, and its card says so.
+- **A tag the author moved** to different code after you installed it is reported on the card, and never offered as an update.
+
+**Nothing changes until you confirm.** **Update to** opens a review under the card, headed with the package and the version, which lists what the update would do, grouped:
+
+- **Changed by the author:** these will update. An agent you added under your own leader keeps that on its new version. If the extension's new version asks for something the old one did not, such as changing the files it opens, the review names it.
+- **New in this version:** these will be added. A new routine is named with its schedule and whether it arrives on or off, and anything that would act without asking is named, as at install.
+- **New starter templates:** your starter files are never touched. When the author changes one, the new template lands beside yours, named for the new version, such as `Portfolio (v1.3.0).md`, whether or not you edited yours, so you can move your data across when you are ready.
+- **You and the author both changed these**, **Already in your workspace** and **Changed since they were added:** yours are kept, and the author's version is saved for you to review.
+- **These would now act without asking:** an item whose new version adds hooks, a permission mode, a list of allowed tools or its own MCP servers is not updated. The author's version is saved for you to review.
+- **You edited these:** kept as yours. The author has not changed them.
+- **You removed these:** they stay removed.
+- **No longer in the package:** kept, and marked as no longer from the package.
+
+Choose **Update** followed by the package's name to go ahead, or **Cancel**. If something in your workspace changed while you were reviewing, nothing is updated and you are asked to review the update again.
+
+**Your routine switches are not edits.** Turning a routine on or off, pausing it, choosing where it runs and approving its plan are carried onto the author's new version. If the author changed what a routine does, its next run asks for approval again.
+
+**The author's versions and your backups** are saved under `.rundock/package-updates/<owner>-<repo>/`: the author's version of anything kept as yours, in a folder named for the new release, and the previous contents of everything the update replaced, in a folder named for the old one. The folder is hidden on purpose, so a saved copy is never shown as a second file of yours or read by an agent in place of yours. It is kept on this computer only, and nothing clears it by itself: the Packages page shows its size with **Clear**, which asks first and never touches your workspace files.
+
+**Bringing the author's changes in is yours to do.** An update does not merge your edits with the author's. When it kept anything of yours, the summary offers a prompt to copy and give an agent, naming each of your files beside the author's version.
+
+**All or nothing.** The extension, every agent, skill and starter file, the saved copies and the receipt land together. If anything fails, or Rundock stops part way, nothing changes, and an interrupted update is put back the next time the workspace opens. An update waits while a routine of an agent it would change is running. An extension that is off stays off.
+
+An update cannot be undone in one step. The backups keep the old files if you need them.
+
+## Uninstall a package
+
+**Uninstall** on a package's card asks first, and lists exactly what would go and what would stay:
+
+- **Goes:** each agent and skill that is exactly as the package installed it, and the package's extension. Switching a routine on or off, pausing it or approving its plan does not count as changing its agent.
+- **Stays:** anything you changed since it was installed, and every starter file, whether or not you touched it. They are yours from then on.
+
+Nothing is removed until you press the button that names the package, such as **Uninstall Reading List**. Everything that goes, goes together or not at all, and if anything in the package changed after you opened the question, nothing is removed and you are asked to look again. An uninstall waits while a routine of an agent it would remove is running. Removed agents leave the team, and their routines stop with them.
+
+The package then leaves the Packages page. The receipts that recorded it go with it. Any author versions and backups its updates saved in `.rundock/package-updates/` are kept until you clear them.
+
+## The Extensions page
+
+**Settings**, **Extensions**, just below Packages, lists every installed extension with its version and when it was added.
+
+- **On and Off.** Each extension has a switch. Off turns it off without removing it: files it would have claimed open in Rundock's own viewer again. While an extension is off, Rundock refuses to serve its code to any window and tells every open window, which ends a view that is showing.
+- **Its package.** "From the Reading List package" links to that package's card on the Packages page. Where Rundock knows a newer release of the package exists, the row says **Update available in Packages**. Updates happen there, never on this page.
+- **What it claims.** An extension that claims only notes carrying a frontmatter marker says which, and one whose claim Rundock could not honour says why.
+- **An extension that couldn't load** has no switch. It says "Rundock couldn't load this extension." and links to its package, where you can uninstall it.
+
+An extension leaves only with its package: the Extensions page has no Uninstall of its own.
+
+**Pause all extensions**, below the list, turns every extension off at once. It is the quickest way back to a plain Rundock when something is wrong and you cannot tell which extension is responsible. Nothing is uninstalled, and no extension's own setting changes. While paused, the page shows the banner "All extensions are paused. Each one goes back to its own setting when you resume." Every extension's switch keeps its own on or off position, but is greyed out and cannot be changed until you resume. **Resume extensions** brings each one back to its own setting.
+
+With nothing installed, the page says so and offers **Go to Packages**.
+
+## When an extension asks to open something
+
+An extension can open another file, open a web address, or draft a message to an agent, and only after you click inside its view. One click allows one such request. If Rundock cannot tell that a request came from your click in that view, for example because you clicked in the view within a few seconds of opening it, it asks you in a bar directly above the view, such as "Open Tracker.md?", with **Open** and **Dismiss**. The bar is Rundock's own, and the extension cannot draw, read or press it. If an extension tries to open something with no click at all, Rundock stops it and says so in the same place.
+
+A web address always opens outside Rundock: in your browser from the desktop app, or in a new tab when you use Rundock in a browser.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="What can I build?" icon="compass" href="/extending/what-can-i-build">
+    Agents, skills and extensions, and how to make your own.
+  </Card>
+  <Card title="Data, privacy, and security" icon="shield" href="/trust/data-privacy-security#extensions-and-packages">
+    What the extension sandbox enforces.
+  </Card>
+</CardGroup>

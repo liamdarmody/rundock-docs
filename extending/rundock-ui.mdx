@@ -1,0 +1,226 @@
+---
+title: 'Rundock UI'
+description: "The component library Rundock puts into every extension view: what it gives you, every component, how it is versioned, and where a view sits in the pane."
+---
+
+Rundock UI is Rundock's own component library, handed to your extension. Your view calls `Rundock.ui.<component>(options)`, gets an element back, and puts it on the page. Buttons, fields, tabs, tables, boards and the rest are Rundock's; what you draw inside a `canvas` is yours.
+
+Rundock puts the library into every extension view, with its stylesheet and the colours of the theme showing, before your script runs. You never bundle a copy, so your view always matches the Rundock it is running in. When Rundock restyles a button, your buttons change with it, and you publish nothing.
+
+## See every component
+
+A running Rundock shows every component in every state, in both themes, at `/rundock-ui/gallery`. In browser mode that is:
+
+```
+http://localhost:3000/rundock-ui/gallery
+```
+
+Each theme on that page is a real extension view built by Rundock the way it builds yours, so what you see there is exactly what your view gets. Keep it open while you build.
+
+## Use it
+
+The library is on `window.Rundock.ui` before your entry script starts, so you can call it straight away:
+
+```js
+const ui = Rundock.ui;
+
+const panel = ui.card({
+  title: 'Risk limits',
+  children: [
+    ui.slider({ label: 'Largest single position', value: 15, min: 0, max: 100, format: (v) => `${v}%`, onChange }),
+    ui.checkbox({ label: 'Prefer tax-advantaged accounts', checked: true, onChange }),
+    ui.button({ label: 'Save', variant: 'primary', onClick: persist }),
+  ],
+});
+document.body.appendChild(panel);
+```
+
+- **Every factory takes one options object and returns an element.** You compose them like any other DOM node.
+- **Labels are always text.** A label containing `<b>` shows `<b>`; nothing you pass is parsed as markup.
+- **A wrong option is refused by name.** An unknown `variant` or `tone`, or a callback that is not a function, throws a `TypeError` naming the component and the option, for example `Rundock.ui.button: variant must be one of primary, secondary, danger, danger-confirm`. An uncaught error ends your view and names the reason, so you find out while building.
+- **Your styles win.** Components are styled by classes that start with `rui-`, and your own stylesheets are inlined after Rundock UI's, so you can override any of them. Use Rundock UI for controls and containers, and keep your own CSS to layout.
+
+For a whole extension built this way, see [Build an extension](/extending/build-an-extension).
+
+## Components
+
+Twenty-two components, from twenty-three factories: an empty state and a loading placeholder are one component with a factory each. Every one is shown, in every state, in the [gallery](#see-every-component).
+
+| Component | Factory | What it is for |
+|---|---|---|
+| Button | `button({ label, variant, onClick, disabled, type })` | An action. `primary`, `secondary` (the default), `danger` for a button that starts a destructive action, and `danger-confirm` for the final destructive action itself. |
+| Icon button | `iconButton({ label, icon, variant, state, onClick })` | A button that is only an icon, with a required `label` for its accessible name and tooltip. The `send` variant is the chat composer's send button, and `setState` moves it between `empty`, `active` and `cancel`. |
+| Card | `card({ title, subtitle, actions, children, interactive, onClick })` | A container. Its header stands 16px clear of its children. `actions` puts controls, such as tabs or a button, at the end of the title line, and they wrap under the title on a narrow card. With `interactive: true` it becomes a button you can reach with the keyboard. |
+| Field | `field({ label, control, help, error })` | A label, help and error text around a control, with the accessibility wired for you. `field.setError(message)` shows or clears an error. |
+| Input | `input({ type, value, placeholder, align, readOnly, invalid, onChange })` | Text or number entry. Numbers are right-aligned in tabular figures and keep your formatting. |
+| Select | `select({ options, value, label, onChange })` | A native select, drawn in Rundock's style. |
+| Checkbox | `checkbox({ label, checked, indeterminate, onChange })` | A native checkbox with a generous click target. |
+| Toggle | `toggle({ label, checked, onChange })` | An on or off switch, announced as one. |
+| Slider | `slider({ label, value, min, max, step, format, onChange })` | A range, with its value shown and announced through your `format`, so a screen reader hears "35%" rather than "35". |
+| Tabs | `tabs({ label, options, value, orientation, onChange })` | Switching between views, horizontal or vertical, with full keyboard support. Tabs can show and hide panels for you. |
+| Option list | `optionList({ label, options, value, onChange })` | One choice from a short list, in the tabs' look, as a radio group. |
+| Table | `table({ columns, rows, caption, onEdit, resizable, onResize, stateKey })` | Rows of data. Numeric columns align right; a column's `render` or `format` can return a chip or other element. Columns size themselves, can be resized, and can be edited in place: see [Tables](#tables). |
+| Chip | `chip({ tone, label })` | A status label: `neutral`, `accent`, `attention`, `success` or `danger`. |
+| Empty state | `emptyState({ icon, title, subtitle, children })` | What to show when there is nothing to show yet. |
+| Loading | `loading({ label })` | A placeholder while something loads, announced politely. |
+| Board | `board({ columns, onCardMove })` | Columns of cards. Every card has a menu that moves it, so the board works from the keyboard; drag and drop is an extra. |
+| Canvas | `canvas({ render, label, failedText })` | The one place you draw as you like. It shows a skeleton while your `render` works and a quiet failure with Retry if it throws. Give it a `label`: Rundock cannot name what you drew. |
+| Meter | `meter({ label, value, limit, isMinimum, marker, format })` | A share of something against an optional limit, turning to danger past it. |
+| Alert | `alert({ tone, message, action, urgent })` | An inline banner, with an optional action. |
+| Stat | `stat({ label, value, delta, trend, negative })` | A headline number, with its direction said in words as well as shown. |
+| Relative time | `relativeTime({ iso, now, staleAfterMs, prefix })` | "Updated 12 minutes ago", marked stale after the time you choose. |
+| Live chip | `liveChip({ label })` | A small "Live" chip with a pulsing dot. |
+| Menu | `menu({ trigger, label, items, onSelect })` | A menu button, with single-choice items if you need them. `{ separator: true }` in `items` draws a rule between groups, such as between the moves and a Remove; the keys pass over it and it chooses nothing. |
+
+`Rundock.ui.version` says which version of the library is running.
+
+The full options, defaults and keyboard behaviour of every component are in `docs/RUNDOCK-UI.md` in the [Rundock repository](https://github.com/liamdarmody/rundock).
+
+## Versions
+
+`Rundock.ui.version` is a string, `"MAJOR.MINOR"`. This release of Rundock provides `"1.0"`.
+
+- **A minor version adds.** A new component, a new option or a new state.
+- **A major version changes** what an existing call does or accepts.
+- **A change of look is neither.** Rundock puts the library into your view itself, so a restyle reaches every extension at once and asks nothing of you.
+
+Declare the version you built against in your manifest, as `extension.rundockUi`:
+
+```json
+{
+  "name": "my-tracker",
+  "version": "0.1.0",
+  "extension": {
+    "entry": "view/main.js",
+    "match": "*.md",
+    "declares": "my-tracker",
+    "rundockUi": "1.0"
+  }
+}
+```
+
+**The rule:** an extension built against `X.Y` installs on a Rundock that provides `X.Z`, where `Z` is `Y` or greater, and on nothing else. An older minor might lack something you call, and another major might answer a call differently. Rundock refuses any other install and says why, for example: "the extension was built against Rundock UI 1.3, newer than the 1.0 this Rundock provides: update Rundock to install it."
+
+`rundockUi` is optional. An extension that declares nothing installs as before and still gets the library, with no check. A value that is not `MAJOR.MINOR`, such as `"1"` or `" 1.0"`, is refused.
+
+To use a newer component where it exists and fall back where it does not, test for it: `typeof Rundock.ui.meter === 'function'`, or read `Rundock.ui.version`.
+
+## Tables
+
+`table` takes `columns`, an array of `{ key, label, numeric, align, render, format, width, minWidth, widest, grow, resizable, edit }`, and `rows`, an array of objects. A `numeric` column is right-aligned with tabular figures. `caption` is read by assistive technology and not shown. There is no sorting in this version.
+
+### Widths
+
+A table measures each column once, the first time it is laid out: its natural width is its header and its widest value on one line. It then fixes the widths, so editing a cell never shifts a column.
+
+- **Every column takes its natural width**, except text wider than 280px, which is capped there. A value cut off by the cap ends in an ellipsis, with its whole text as the cell's title. A numeric column, a checkbox or a row menu is never capped, and no column is narrower than its header.
+- **The main column takes the spare room.** When the table is wider than its columns, the widest text column takes all the spare room and every other column keeps its natural width, so a short column stays tight and a row menu sits at the right edge. A numeric column, a control such as a checkbox or a row menu, and a column with a fixed `width` are never chosen.
+- **`grow: true`** chooses the main column yourself, such as a notes column, instead of leaving it to the widest.
+- **When no column can take it,** for example when every column is fixed, numeric or a control, or the main column has been resized, the rest goes to an empty filler column after the last, so rows still run the full width. The filler has no header, is hidden from assistive technology and is never focusable.
+- **A table wider than its container** keeps its widths and scrolls sideways inside its own wrapper, never the page.
+
+A column that may show something wider than its first rows do, such as "Not priced", names it in `widest`: text or an element, or an array of them, measured with the cells. `minWidth` sets a floor in pixels. `width` fixes a column, as pixels or a CSS length such as `"96px"`, `"20%"` or `"12ch"`, and always wins. When the container's width changes, the spare room is given out again, but never while a cell is being edited.
+
+### Resizing
+
+`resizable: true` on the table gives every column a resize handle on its header's right edge, and `resizable` on a column turns it on or off for that column alone. A handle is a focusable separator named for its column, such as "Resize the Quantity column". Drag it, or focus it and press the arrow keys, 8px a step or 32px with Shift. Enter or a double-click puts the column back to the default rule. A column never goes below its header or its `minWidth`.
+
+`onResize({ key, width })` reports each resize, and `width: null` after a reset. A view that keeps widths passes each kept width back as that column's `width` when it redraws the table. **Never write widths into the person's notes**: a width is a view preference, not their data.
+
+**Kept widths.** `stateKey: '<name>'` on a resizable table keeps its widths across a reload and a return to the note, with no code of yours: the table reads and writes them in the view's own state, under the key `rui.table.<name>`. A kept width wins over the default rule until the person resets that column, and never falls below the column's header or `minWidth`. `stateKey` is 1 to 54 letters, digits, `.`, `_`, `:` or `-`; give each table in a view its own. Where there is no view state, such as the gallery, a table with `stateKey` behaves exactly as one without it. Like all view state, kept widths are per machine, and a renamed or moved note starts without them.
+
+### Format
+
+`format(value, row)` is what a cell shows, as text or an element. A column takes `format` or `render`, not both. An editable column must use `format`, because the table redraws the cell from its value after an edit.
+
+### Editing
+
+A column with `edit` can be changed in place; one without is read-only.
+
+```js
+Rundock.ui.table({
+  caption: 'Positions',
+  columns: [
+    { key: 'ticker', label: 'Ticker', width: 78 },
+    { key: 'account', label: 'Account' },
+    { key: 'quantity', label: 'Quantity', numeric: true, width: 96,
+      edit: { type: 'number', min: 0, label: (row) => `${row.ticker} in ${row.account}` } },
+    { key: 'held', label: 'Held', width: 64, edit: { type: 'checkbox', when: (row) => !row.locked } },
+  ],
+  rows,
+  onEdit: ({ row, key, value, previous }) => save(row, key, value), // true, a message, or a promise of either
+});
+```
+
+- **`edit.type`** is `number` (the default), `text`, `select` or `checkbox`. `min` and `max` bound a number. `options`, required for `select`, are strings or `{ value, label }`. `label(row)` names the row for assistive technology. `when(row)` returning false leaves that one cell read-only.
+- **Keys.** Click, tap, Enter or F2 opens the editor over the cell. Enter commits and Escape cancels. Tab commits and opens the next editable cell, Shift+Tab the one before. Leaving the editor commits. There is no arrow-key movement between cells.
+- **A number** is digits with an optional `-` and one `.`, with `,` read as grouping. Anything else, or a number outside `min` and `max`, is refused by the table with the range in words, such as "Enter a number of 0 or more.", and never reaches `onEdit`. An unchanged value closes without asking.
+- **`onEdit({ row, key, value, previous })` decides.** Return `true` to accept. Return a message to refuse: the value reverts, and the message shows on a line of its own directly under the row, spanning the table and naming the column, such as "Quantity: More than this account holds.", and focus stays in the editor. Return a promise to hold the cell while you save: the cell shows "Saving…" until the promise settles as `true` or a message. Anything else, a throw or a promise that fails, refuses with "This change was not saved.", so the table never shows a value you did not confirm.
+- **A checkbox** shows as a checkbox all the time and toggles in place with one click or Space, asking `onEdit` with `true` or `false`. A refusal unticks it again.
+- **The table never writes anything**, neither the file nor your `rows`. Updating your own data, and anything derived from it, is yours to do in `onEdit`. With no `onEdit`, nothing can be edited: every cell reads as text, and a checkbox is shown disabled.
+
+## View state
+
+`Rundock.viewState` keeps your view's own preferences for the note it is showing, such as a chosen tab or the widths someone dragged, so you never write them into the person's note.
+
+```js
+const tab = Rundock.viewState.get('tab') || 'board';
+// ...later, when the person picks a tab:
+Rundock.viewState.set('tab', 'table');
+```
+
+- **`get(key)`** returns the value kept under `key`, or `undefined`. It works from your entry's first line: the state is in the frame before your script runs.
+- **`set(key, value)`** changes the view's copy at once and asks Rundock to keep the whole state. `set(key, undefined)` removes the entry.
+- **A key** is 1 to 64 letters, digits, `.`, `_`, `:` or `-`. Any other key throws a `TypeError` and nothing is sent. Keys starting `rui.` belong to Rundock UI, so do not use that prefix for your own.
+- **The limits** are those of a view's own state: plain JSON, 64 KB per note, kept per machine, and refused from an embedded view. A refusal arrives as `refused` with `of: 'setState'`, and your copy stays as you set it, so the view keeps working for the session. See [A view's own state](/reference/extension-contract#a-views-own-state).
+
+A fenced-block extension, which belongs to no one note, has no `Rundock.viewState`.
+
+## Where a view sits: full bleed
+
+A view opened on its own is the pane, not a box inside it. The frame fills the file pane edge to edge and top to bottom, and paints the pane's own colour in both themes, with no border or rounded corners. Your page's `body` carries the same padding a note has, so your view's first line starts exactly where a note's first line of text does.
+
+**Do not add an outer padding or a background of your own.** Rundock has already placed your view; extra padding makes it look inset.
+
+There are two variations, each a class on your `body`:
+
+- **An edge-to-edge canvas.** Add `rundock-full-bleed` to the body, and the padding goes to zero:
+
+  ```js
+  document.body.classList.add('rundock-full-bleed');
+  ```
+
+  Setting `body { padding: ... }` in your own stylesheet works too, since it comes after Rundock's.
+
+- **Embedded in another note.** When your view is shown inside another note, Rundock adds `rundock-embedded` to the body. The panel around it already pads it, so the body has no padding and paints the panel's colour. You need do nothing, but your view should read well at a third of the pane's width. See [Show up inside other notes](/extending/build-an-extension#show-up-inside-other-notes).
+
+## What the library can and cannot do
+
+Rundock UI runs inside your view's frame, as your code does, with no more reach than your code has. It builds elements and listens to them. It sends no message to Rundock, reads nothing outside the frame and fetches nothing. The frame's sandbox, its content security policy and the closed list of messages in the [extension host contract](/reference/extension-contract) are exactly the same with it as without it.
+
+In the light theme, your `body` also carries the class `light`, the same class Rundock's own page carries, so a rule written `body.light ...` behaves in your view as it does in Rundock. The `theme` in `init` says the same thing.
+
+When the theme changes while your view is open, a view whose `ready` says `handles: ['theme']` is restyled in place: every component follows, and the view keeps its state, including edits not yet saved. A view that does not say so is rebuilt and starts again from the file. A view that edits should say it. See [Theme changes](/reference/extension-contract#theme-changes).
+
+## Design rules the components follow
+
+These are the decisions behind the look. If you draw your own content in a `canvas`, follow them too and it will sit comfortably beside the components.
+
+- **Two oranges, each for one kind of shape.** Action orange, `--accent-action`, fills a shape that carries white text or an icon: the primary button, the accent chip and the send button. Control orange, `--accent-control`, fills a bare shape: a checked checkbox, a toggle that is on, a slider's fill and thumb, the selected option's dot and a meter's fill. Text on a fill needs more contrast than a shape against its background does, which is why there are two.
+- **The brand orange, `--accent`, is never a fill.** It is for outlines, focus rings, hover and drag highlights, and links.
+- **Danger differs by form as well as colour.** Action orange and red are too close in brightness to tell apart by colour alone. A button that starts a destructive action is a red outline; only the final destructive action is solid red.
+- **Status is a solid fill with dark or white text**, never coloured text on a pale tint of the same colour, which is hard to read in the light theme.
+- **A control's edge is `--text-3`**, which stands out clearly against the surfaces controls sit on. `--border` is for decorative dividers only.
+- **Named, not only coloured.** Every state a component shows by colour is also carried by a word, a role, a shape or a mark.
+- **Motion stops when reduced motion is on**, and everything that waits breathes on one two-second rhythm.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Build an extension" icon="code" href="/extending/build-an-extension">
+    A complete extension built on Rundock UI.
+  </Card>
+  <Card title="What an extension cannot do" icon="lock" href="/extending/limits">
+    The sandbox your view runs in.
+  </Card>
+</CardGroup>

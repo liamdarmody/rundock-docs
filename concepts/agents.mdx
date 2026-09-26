@@ -70,6 +70,14 @@ You see all of this in the conversation panel. The delegation is visible: who as
 
 The mechanism that makes this work is a delegation marker that Rundock injects at spawn time. You do not have to write it into your agent's instructions, and you should not. The agent's body says **what** to delegate and **to whom** ("if a request involves research, hand it to the Researcher"); Rundock provides the rest.
 
+### Where work goes back
+
+Work handed back goes to the agent that asked for it. In a team with a lead between the orchestrator and a specialist, as with the Content Writer and the Researcher above, that is the lead, not the orchestrator:
+
+- **Finished.** The lead takes the conversation back, with the specialist's output in front of it, and waits for your next message.
+- **My part is done, more remains.** The lead takes the conversation back and carries on, for example by handing the next step to another of its specialists.
+- **Out of scope.** The request needs somebody outside the lead's team, so it goes straight to the orchestrator, which routes it.
+
 ## The instructions body
 
 The instructions body is the most important part of an agent file. The frontmatter is a few short fields that define identity. The body is everything that defines behaviour.

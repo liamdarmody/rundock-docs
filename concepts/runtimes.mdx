@@ -50,6 +50,8 @@ The two runtimes protect your machine differently, and Rundock is honest about t
 - **Claude Code agents** use Rundock's permission system: terminal commands and connector actions appear as cards you approve or deny, with low-risk read-only commands approved automatically.
 - **Codex agents** stream their replies as they think, over one long-lived process, and run inside Codex's own sandbox for reads and writes in your workspace. Any action that needs extra access, a command outside the sandbox or a write it cannot normally make, raises the same permission card you approve or deny, mid-turn, on every platform. An ignored request is declined automatically so a turn never hangs.
 
+**Keep agents inside this workspace**, in Settings under Permissions, is Rundock's switch for Claude Code agents on macOS. Where Codex is the workspace's default runtime, that row reads **Status unknown**, because Codex runs its own sandbox from its own config file and Rundock cannot confirm whether it is active. A workspace whose agents use both runtimes shows a read-only row for Codex, **Keep Codex agents inside this workspace**, beneath the Claude Code one. See [Keep agents inside this workspace](/reference/workspace-structure#keep-agents-inside-this-workspace).
+
 ### Codex file writes on Windows
 
 On macOS and Linux, the Codex sandbox enforces workspace-only writes natively. On Windows, Codex needs its native sandbox enabled before it can write files directly. One config line does it: add this to `%USERPROFILE%\.codex\config.toml`:

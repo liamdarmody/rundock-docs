@@ -1,0 +1,123 @@
+---
+title: 'rundock.json'
+description: 'Every field of the package manifest, what it claims, and the reason Rundock gives when it refuses one.'
+---
+
+`rundock.json` sits at the root of a package's repository. It declares an extension, and it can give the package a name for people to read. A package of only agents and skills needs no manifest, though it may carry one with just `name`, `version` and `displayName`: see [What can I build?](/extending/what-can-i-build#when-you-need-a-manifest).
+
+Rundock reads the manifest strictly. A field it cannot understand is refused by name, with the reason shown on the install screen, rather than guessed at or quietly ignored. A half-understood claim about code is worse than none.
+
+## A complete example
+
+```json
+{
+  "name": "reading-list",
+  "displayName": "Reading List",
+  "version": "1.2.0",
+  "extension": {
+    "entry": "ui/index.js",
+    "styles": ["ui/reading-list.css"],
+    "match": "*.md",
+    "declares": "reading-list",
+    "writes": true,
+    "sources": true,
+    "asks": ["librarian"],
+    "rundockUi": "1.0"
+  }
+}
+```
+
+## Top-level fields
+
+| Field | Type | Required | Purpose |
+|---|---|---|---|
+| `name` | string | Yes | The package's name, as a slug: lowercase letters, digits and single dashes. The extension's name on the Extensions page, the name of the folder the extension is installed into, and, title-cased, the package's name wherever `displayName` is absent. |
+| `displayName` | string | No | What people should call the package. See [`displayName`](#displayname). |
+| `version` | string | Yes | The version you are releasing, shown on the install screen and on the Extensions page. Keep it in step with your tag. |
+| `extension` | object | Yes, for an extension | What the extension is. A manifest without this block declares no extension, and the repository is read as a package of agents and skills only. |
+
+Agents and skills are never listed in the manifest. Rundock finds them where Claude Code keeps them, in `.claude/agents/` and `.claude/skills/`: see [Share agents and skills](/extending/share-agents-and-skills).
+
+### `displayName`
+
+Optional. When it is there, the install screen, the package's card on the Packages page and the Extensions page's "From the ... package" line use it as written. When it is not, they title-case `name`, so `investment-partner` reads "Investment Partner", but `csv-table` reads "Csv Table". Set it whenever title case would read wrongly:
+
+```json
+{ "name": "csv-table", "displayName": "CSV Viewer", "version": "1.0.4" }
+```
+
+It must be plain text of 1 to 60 characters, with no `<` or `>`, line break or control character. Spaces around it are trimmed. A `displayName` that breaks the rule is refused at install, by name, rather than cleaned up.
+
+## The `extension` block
+
+| Field | Type | Required | Purpose |
+|---|---|---|---|
+| `entry` | string | Yes | Path to the one script Rundock runs, relative to the repository root. |
+| `match` | string | Yes, unless `draws` is set | Which files the extension renders, always of the form `*.<ext>`, such as `*.csv`. |
+| `declares` | string | No | A frontmatter key. With it, the extension claims only the files of its `match` whose frontmatter carries that key. |
+| `writes` | boolean | No | `true` lets the extension save changes to the file it was opened on. Absent means `false`: read-only. |
+| `styles` | array of strings | No | Paths to stylesheets, relative to the repository root, inlined into the view ahead of your script. |
+| `draws` | string | No | The language of fenced code blocks the extension draws inside notes, such as `timeline`. |
+| `sources` | boolean | No | `true` lets the view be handed the files a note lists under `sources:` in its frontmatter. Only with `declares`. |
+| `asks` | array of strings | No | The agents the view may draft a message to, one to four agent ids. |
+| `rundockUi` | string | No | The [Rundock UI](/extending/rundock-ui) version the extension was built against, as `"MAJOR.MINOR"`. |
+
+### `entry`
+
+A relative path to a regular file inside the repository. It is refused if it is absolute, climbs out of the repository with `..`, passes through a symlink, or does not exist.
+
+Your entry is the whole of your code. Rundock inlines it into the view, and the view can load nothing else, so any library you use must be bundled into this one file.
+
+**What gets installed** is decided by where the entry and styles sit. For each one, Rundock installs the top-level folder it lives in, or the file itself if it sits at the root. With an entry of `ui/index.js`, the whole `ui/` folder is installed and nothing else. Keep examples, tests and tooling outside that folder.
+
+### `match`
+
+The only form Rundock accepts is `*.<ext>`, which claims every file with that extension. A rule in any other form is shown on the extension's row on the Extensions page as a claim it could not make, rather than silently dropped.
+
+An extension never claims a file whose path has a segment starting with a dot, whatever its rule says.
+
+### `declares`
+
+A frontmatter key, in the same slug form as `name`. The extension then claims only files matching `match` whose frontmatter contains that key, whatever its value. This is how an extension owns a kind of markdown note without claiming every note in the workspace.
+
+- On the same kind of file, a claim with `declares` beats another extension's claim without one, because it is more specific.
+- Rundock's own markers cannot be declared: `kanban-plugin` belongs to Rundock's board view.
+- If two extensions declare the same key, the one listed first on the Extensions page keeps it, and the other's row says why it is claiming nothing.
+
+### `writes`
+
+Must be the literal `true` or `false`. A string such as `"true"` is refused rather than read as yes.
+
+With `writes: true`, the view may send `change` or `save` with the whole new text of the file it was opened on, and the install screen tells the person the extension can change the files it opens. Without it, both are refused. A view embedded in another note is read-only whatever this says. See the [extension host contract](/reference/extension-contract).
+
+### `styles`
+
+An array of paths, each validated exactly as `entry` is. A stylesheet that does not resolve inside the repository refuses the whole install. Stylesheets are inlined into the view after Rundock's own palette and defaults, so your rules win.
+
+You can also create a `<style>` element from your script and declare no stylesheets at all.
+
+### `draws`
+
+The language of a fenced code block, in the same slug form as `name`, matched against what follows the opening fence. A value in any other form, such as `Mermaid`, is refused rather than corrected. An extension with `draws` receives each such block's text and returns a drawing. With `draws` alone it claims no file type; set `match` as well to render whole files too. If two extensions draw the same language, the one listed first on the Extensions page keeps it. See [Draw a fenced block instead of a file](/extending/build-an-extension#draw-a-fenced-block-instead-of-a-file).
+
+An extension must claim something: a manifest with neither `match` nor `draws` is refused.
+
+### `sources`
+
+Must be the literal `true` or `false`, and `true` is allowed only together with `declares`: an install that sets `sources` without a marker is refused. `sources` is an ordinary frontmatter key that many notes carry, so an extension claiming every note of a type could otherwise collect every note's list.
+
+With it, a note the extension claims by its marker hands the view the files it lists under `sources:`, each as its written name and text, and each refused by name if it breaks a rule, such as a hidden, linked or missing file. With `writes: true` as well, the view may write those files back. The install screen tells the person the extension can read the files a note lists. The rules are in [Named sources](/reference/extension-contract#named-sources).
+
+### `asks`
+
+An array of one to four agent ids, each lowercase letters, digits, `-` and `_`, at most 64 characters, with no agent named twice. After a click inside the view, the view may open a new conversation with one of these agents with a message in the box, unsent. The install screen names each agent that is on the person's team. An agent the manifest does not name is refused, and the person is never asked about one. See [Asking an agent](/reference/extension-contract#asking-an-agent).
+
+### `rundockUi`
+
+The Rundock UI version the extension was built against, exactly `"MAJOR.MINOR"`, such as `"1.0"`. An extension built against `X.Y` installs only on a Rundock providing `X.Z` with `Z` equal to or greater than `Y`; anything else is refused with the reason. Leave it out and the extension installs with no check, and still gets the library. A value in any other form, including one with surrounding spaces, is refused. See [Versions](/extending/rundock-ui#versions).
+
+## What is not in the manifest
+
+- **Permissions, beyond `writes`, `sources` and `asks`.** There is nothing else to ask for. The sandbox sets what every extension can do, and the install screen states it, read from the package rather than from any description the author gives.
+- **Counts of agents and skills.** The install screen counts them from the repository.
+- **The pinned version.** The person installing pins it, from the link they paste.

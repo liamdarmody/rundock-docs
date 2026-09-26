@@ -1,0 +1,110 @@
+---
+title: 'Share agents and skills'
+description: 'Package agents, skills and teams so other people can add them to their workspace from a link, and write them so they still work when they get there.'
+---
+
+A package of agents and skills is a GitHub repository laid out the way Claude Code already expects. There is no Rundock format to adopt and no manifest to write. If your agents work in your own workspace, the same files work in someone else's.
+
+## Repository structure
+
+```
+my-team/
+├── README.md                 for people reading on GitHub; not imported
+├── .claude/
+│   ├── agents/
+│   │   ├── team-lead.md
+│   │   └── researcher.md
+│   └── skills/
+│       └── weekly-review/
+│           ├── SKILL.md
+│           └── references/
+│               └── template.md
+└── starter/
+    └── Reviews/
+        └── Weekly Review.md  lands at Reviews/Weekly Review.md
+```
+
+The rules Rundock applies when it reads the repository:
+
+- **Agents** are files directly inside `.claude/agents/`, one per agent, each named `<slug>.md`.
+- **Skills** are folders directly inside `.claude/skills/`, one per skill, each named `<slug>`. Everything inside a skill's folder travels with it, including subfolders.
+- **A slug** is lowercase letters, digits and single dashes: `weekly-review`, not `Weekly_Review`.
+- **No symlinks** anywhere in either folder.
+- **Starter files** are the files inside `starter/`, which land at the same path in the workspace. See [Ship starter files](#ship-starter-files).
+- **Only agents, skills and starter files are imported.** A `CLAUDE.md`, a `README.md`, and any other file in the repository stay on GitHub.
+
+Anything that breaks a rule is refused by name, with the file it concerns, rather than quietly left out. A package that offered less than it holds would be a package whose contents escaped review.
+
+The file formats are the ones you already use: see [Agent file format](/reference/agent-file-format) and [Skill file format](/reference/skill-file-format).
+
+## A team is agents plus `reportsTo`
+
+There is no separate team file. A team is a set of agents whose frontmatter says who reports to whom, so shipping a team means shipping the agents with their `reportsTo` lines intact. Give one agent `order: 0` to make it the team's leader, as described in [Agent file format](/reference/agent-file-format).
+
+If the person installing already has a leader of their own, the import notices. They can skip your leader and have your specialists report to theirs, or add your leader as a specialist under theirs, and the `reportsTo` lines are rewritten to match their choice.
+
+## Routines travel with their agents
+
+A [routine](/concepts/routines) is declared in its agent's frontmatter, so it arrives with the agent. The install screen names every routine, its schedule and when it will first run, because a routine acts with no one at the keyboard. Keep that in mind when you ship one: a routine that runs every morning is a routine running every morning in a stranger's workspace.
+
+A routine's agent has no conversation, so if it needs an approval while it runs, the card appears in the approvals dock, over whatever screen the person has open, naming the routine and the agent. Unanswered, it is denied at the usual timeout. Ship routines that can do their job without asking.
+
+If a routine's skill can fail in a way the run cannot see, such as finishing cleanly without doing its job, have it end its final message with the line `RUN STATUS: failed: <reason>` whenever it could not do its job. The person's run history then shows the run as reported failed, with your reason, rather than as a success. The exact rules are in [Routine format](/reference/routine-format#declaring-that-a-run-failed).
+
+## Ship starter files
+
+Your agents often work on files of the person's own: a portfolio, a watchlist, a decision journal. Put a starting version of each under `starter/`, laid out as it should land: `starter/Investments/Portfolio.md` lands at `Investments/Portfolio.md`. No manifest field is needed.
+
+- **Only where nothing exists.** A starter file is written only when its path is empty. If the person already has a file there, theirs is kept, and nothing in the install can replace it.
+- **Theirs afterwards.** Once it lands it is an ordinary workspace file. Nothing Rundock does later removes or replaces it: not uninstalling the package, not an update, and not a later install.
+- **Byte for byte.** It lands exactly as you wrote it.
+- **Never hidden.** Every folder and file name under `starter/` must be visible. A name starting with a dot, such as `.gitkeep`, a symlink, or two paths that differ only by case makes the whole package refuse to install, by name.
+- **Not a package on its own.** A repository with starter files and no agents or skills has nothing to add.
+
+The install screen names each starter file by path, says it is added only where nothing exists and stays the person's, and names any it is keeping because the person already has one. Write starter files so they work straight away, with sample content your agents can read.
+
+## Write agents that travel well
+
+An agent that works in your workspace was written against your workspace. Before you publish, read each file as someone who has never seen your folders.
+
+- **No paths from your machine.** An absolute path, a home directory, or a folder only you have will not exist on theirs. Describe what the agent should look for, or tell the person which folder to point it at.
+- **No keys, tokens or account names.** Anything in the file is published the moment you push it.
+- **Name the skills it uses.** An agent's `skills:` list should name skills the package also ships, or say plainly which ones the person needs to supply.
+- **Expect to be edited.** Your agent arrives as the person's own file. Write it so the parts they are most likely to change, such as tone, audience or house style, are easy to find.
+- **Say what it is for in the description.** The description is what the person reads on the install screen and in Team, before they have opened the file.
+
+## What happens after install
+
+Once imported, your agents, skills and starter files are ordinary files in the person's workspace, and they can edit or delete them freely. The package keeps a card on their Packages page, which is where it is updated and uninstalled.
+
+- **Updates come from tagged releases.** When you push a new version tag, the person is offered it as an update. Whatever they edited is kept, and your new version of it is saved beside it for them to review. A starter file is never replaced: a changed template lands beside theirs, named for the new version. Pushing commits without a tag changes nothing, and a repository with no version tags gets no updates at all. See [Update a package](/extending/install-a-package#update-a-package).
+- **Uninstalling keeps their work.** Uninstall removes each agent and skill that is exactly as installed. Anything the person edited stays, and so does every starter file.
+
+If they paste your link again later, that is a fresh import rather than an update, and any file that would overwrite their edited version is shown to them first.
+
+## For authors: when a data format changes
+
+A starter file often holds the person's own data, which an update never touches. If a new version of your extension reads a new format:
+
+- Put a `schemaVersion` in the data file's frontmatter, or your format's equivalent.
+- Have the extension read every format it has ever written, and upgrade a file only when the person saves it.
+- Ship the new template at a new path, or let Rundock place it beside the old one, and have your agents' instructions name the file they should use.
+
+A migration skill in the package is a welcome extra, but not a substitute: an agent's migration is not deterministic, and the extension must still open the person's existing file.
+
+Each imported agent carries a `source:` line in its frontmatter recording where it came from. That line is information only. It gives you no rights over the file and stops nothing.
+
+## Try it before you publish
+
+Push your repository, open a workspace you do not mind changing, and paste the link into Settings, under Packages. What you see is exactly what the person installing sees. Check the counts match what you meant to ship, then add them and talk to each agent once.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Publish and get listed" icon="globe" href="/extending/publishing">
+    Tag a release and list your package in the Directory.
+  </Card>
+  <Card title="Build an extension" icon="code" href="/extending/build-an-extension">
+    Add a view for a kind of file, in the same repository.
+  </Card>
+</CardGroup>

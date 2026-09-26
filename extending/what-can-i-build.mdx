@@ -1,0 +1,106 @@
+---
+title: 'What can I build?'
+description: 'Agents, skills and extensions, delivered as a package. What each one is, which one you are building, and when you need a manifest.'
+---
+
+You can build three things for other people to install: **agents**, **skills**, and **extensions**. A GitHub repository containing any of them is a **package**, and a person installs it by pasting its link into Rundock.
+
+## Which one am I building?
+
+One question decides it.
+
+- **Does it add teammates or abilities?** That is an agent or a skill. You are sharing knowledge, judgement, or a way of working.
+- **Does it change how a file looks or behaves?** That is an extension. You are adding a way of seeing something.
+- **Both?** One repository carries both. Somebody pastes one link and gets your extension and your agents together.
+
+Build your view from [Rundock UI](/extending/rundock-ui), the components Rundock puts into every extension: buttons, tabs, tables, boards and more, already in Rundock's look. If you find yourself rebuilding something Rundock has that is not there, such as a sidebar or a chat panel, stop and [tell us](https://github.com/liamdarmody/rundock/issues). That is usually a sign Rundock has not exposed something it should have.
+
+## Agents and skills are content
+
+Agents and skills are ordinary markdown files. When someone installs them they land in that person's workspace, in the same `.claude/agents/` and `.claude/skills/` folders as the agents and skills they wrote themselves, and **they become theirs**. They can open your agent, disagree with a line and change it. That is what they are for.
+
+That has two consequences worth knowing before you start:
+
+- **Uninstalling removes only what is still as you shipped it.** A person can uninstall your package from the Packages page. Each agent and skill that is exactly as installed goes; anything they edited, and every starter file, stays theirs.
+- **Updates are offered, and their edits are kept.** When you tag a new release, it is offered as an update from the package's card. Whatever the person changed is kept, and your new version of it is saved beside it for them to review. Nothing is pushed into their workspace without their say-so.
+
+Write for that. You are giving someone a starting point they will edit.
+
+Agents and skills are **not sandboxed**. Once added, they act with the same access the person's own agents have, and the install screen says so. See [Share agents and skills](/extending/share-agents-and-skills).
+
+## An extension is code
+
+An extension changes how a file opens. Rundock already works this way internally: a markdown file with `kanban-plugin` in its frontmatter opens as a board instead of text. That is a renderer, and an extension is the same idea written by someone else.
+
+Your extension declares which files it can display, such as every `.csv` file, or only the markdown files carrying a frontmatter key you name. Somebody opens one of those files and gets your view instead of the plain one, drawn with Rundock's own components. A note can also name other files for your view to be handed, which is how a dashboard over several files is built, and your view can draft a message to one of the person's agents for them to send.
+
+Extensions stay yours. They install from a tag or an exact commit of your repository, never a branch, and are updated and uninstalled with their package.
+
+**Your code runs in a sandbox**, so it can do less than you might expect. Read [What an extension cannot do](/extending/limits) before you write any of it. It is the page most likely to save you a weekend.
+
+## When you need a manifest
+
+A manifest is a file called `rundock.json` at the root of your repository.
+
+**Agents and skills need no manifest.** A repository with `.claude/agents/*.md` and `.claude/skills/*/SKILL.md` already says everything Rundock needs. So a repository that was never built for Rundock still installs: somebody pastes the link and Rundock tells them how many agents and skills it found, then asks before adding anything. You may still add a `rundock.json` with just `name`, `version` and `displayName`, to give the package the name people see.
+
+**An extension always needs one**, because an entry point and a match rule are things you claim rather than things Rundock can read off the disk. A repository without a valid manifest has no extension to install, whatever else it carries. See the [`rundock.json` reference](/reference/rundock-json).
+
+## What a package looks like
+
+A package carrying both halves:
+
+```
+my-package/
+├── rundock.json              the manifest, required for the extension
+├── view/
+│   └── main.js               the extension: one script
+├── starter/
+│   └── Portfolio.md          a file that lands in the workspace, once
+└── .claude/
+    ├── agents/
+    │   └── analyst.md        one file per agent
+    └── skills/
+        └── weekly-review/
+            └── SKILL.md      one folder per skill
+```
+
+Leave out `rundock.json` and `view/` and you have a package of agents and skills. Leave out `.claude/` and `starter/` and you have an extension. Starter files are files your agents or your view work on, such as a portfolio, added only where the person has nothing at that path and theirs from then on: see [Ship starter files](/extending/share-agents-and-skills#ship-starter-files).
+
+## What happens when someone installs it
+
+They paste your repository link into Settings, under Packages, and see what is in the box before anything is written. The screen splits by what can be undone:
+
+- **What will run.** Your extension, sandboxed, removable later.
+- **What you will keep.** Your agents, skills and starter files, theirs to edit.
+
+Rundock reads that list from your package, not from anything you say about it. **You cannot describe your extension as doing less than it does.** See [Install a package](/extending/install-a-package) for the whole flow as the person installing it sees it.
+
+## Examples to learn from
+
+Each of these installs from its link in Settings, Packages, and each is small enough to read before you do.
+
+- **[Rundock package starter](https://github.com/liamdarmody/rundock-package-starter):** a template repository with a team package and a team that brings its own view, a checker that reads a package the way Rundock will, and tests.
+- **[Lean Agent Team](https://github.com/liamdarmody/lean-agent-team):** agents and skills only, no code, with a routine.
+- **[CSV Viewer](https://github.com/liamdarmody/rundock-csv-extension):** an extension in one file, that draws every `.csv` file as a table.
+- **[Investment Partner](https://github.com/liamdarmody/rundock-investment-partner):** a full package: a dashboard built from Rundock UI, three agents, skills and starter notes.
+
+## Where to next
+
+<CardGroup cols={2}>
+  <Card title="Share agents and skills" icon="users" href="/extending/share-agents-and-skills">
+    Repository structure, writing agents that travel well, and what happens on import.
+  </Card>
+  <Card title="Build an extension" icon="code" href="/extending/build-an-extension">
+    A working extension in one file, and how to test it locally.
+  </Card>
+  <Card title="Rundock UI" icon="shapes" href="/extending/rundock-ui">
+    The components Rundock gives every extension view.
+  </Card>
+  <Card title="What an extension cannot do" icon="lock" href="/extending/limits">
+    The sandbox's limits, stated up front so you build something that works.
+  </Card>
+  <Card title="Publish and get listed" icon="globe" href="/extending/publishing">
+    Tag a release and list your package in the Directory.
+  </Card>
+</CardGroup>

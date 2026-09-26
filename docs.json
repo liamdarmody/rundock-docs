@@ -45,12 +45,26 @@
         ]
       },
       {
+        "group": "Extending",
+        "pages": [
+          "extending/what-can-i-build",
+          "extending/install-a-package",
+          "extending/share-agents-and-skills",
+          "extending/build-an-extension",
+          "extending/rundock-ui",
+          "extending/limits",
+          "extending/publishing"
+        ]
+      },
+      {
         "group": "Reference",
         "pages": [
           "reference/agent-file-format",
           "reference/skill-file-format",
           "reference/routine-format",
-          "reference/workspace-structure"
+          "reference/workspace-structure",
+          "reference/rundock-json",
+          "reference/extension-contract"
         ]
       },
       {
