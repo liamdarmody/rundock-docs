@@ -51,12 +51,12 @@ your-workspace/
 The `SKILL.md` file inside the folder is the skill definition. The folder shape exists so a skill can keep references, templates, sub-files, and assets next to its definition without polluting the skills root.
 
 <Warning>
-Flat skill files at `.claude/skills/my-skill.md` are not discovered. Rundock only walks subdirectories of `.claude/skills/` looking for `SKILL.md`. The skill must live at `.claude/skills/<slug>/SKILL.md` to be picked up.
+Flat skill files at `.claude/skills/my-skill.md` are not discovered. Rundock walks subdirectories of `.claude/skills/` looking for `SKILL.md` (and, for older workspace layouts, `System/Playbooks/<slug>/PLAYBOOK.md`). A new skill must live at `.claude/skills/<slug>/SKILL.md` to be picked up.
 </Warning>
 
 ## How skills attach to agents
 
-Rundock matches skills to agents in two passes.
+Rundock matches skills to agents in two passes. Two rules apply to both. Only agents on the team are considered: an agent with no `order` gets no skills, however it declares them. And the `rundock-` prefix gates both ways: Doc and other platform agents get only `rundock-` skills, and every other agent gets everything except them.
 
 **Pass 1: explicit assignment via the agent's `skills:` array.** The agent's frontmatter declares which skills it owns. Each entry is a skill slug:
 

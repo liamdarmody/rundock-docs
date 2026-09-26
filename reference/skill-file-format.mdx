@@ -16,7 +16,7 @@ Rundock scans two locations:
 <workspace>/System/Playbooks/<slug>/PLAYBOOK.md
 ```
 
-Both locations use a folder named after the slug, with a single definition file inside. The convention going forward is `.claude/skills/`. The Playbooks path exists for legacy Personal-OS-style workspaces.
+Both locations use a folder named after the slug, with a single definition file inside. Put new skills in `.claude/skills/`. The Playbooks path exists for older workspace layouts, and a skill there is named to its agent but cannot be opened by it, because the agent's runtime loads skills from `.claude/skills/`. Saving one in Rundock does not change it either: it creates a second skill with the same slug under `.claude/skills/`.
 
 <Warning>
 Flat skill files at `.claude/skills/<slug>.md` are not discovered. Rundock only walks subdirectories looking for `SKILL.md` (or `PLAYBOOK.md`). The folder shape is required.
@@ -39,7 +39,7 @@ Skill frontmatter is intentionally lean. Rundock's parser reads two fields and s
 
 | Field | Type | Scope | Required | Purpose |
 |---|---|---|---|---|
-| `name` | string | Universal | Recommended | Display name for the skill, shown on the agent profile and in the skill list. If omitted or equal to the slug, Rundock title-cases the slug (with brand-word overrides like LinkedIn, Notion, MCP). |
+| `name` | string | Universal | Recommended | The skill's command name in Claude Code, which sets the `/` command that runs it, so use the folder's slug. Rundock also shows it on the agent profile and in the skill list. If omitted or equal to the slug, Rundock title-cases the slug for display (with brand-word overrides like LinkedIn, Notion, MCP). |
 | `description` | string | Universal | Recommended | One-paragraph description of what the skill does and when to use it. Claude Code offers it to the model, with the skill's name, when the model decides whether to use a skill, so it is the skill's trigger: put the key use case first. Rundock shows it in its interface; the roster Rundock gives a leading agent lists skills by slug only. |
 | `allowed-tools` | array | Universal (Claude Code) | No | Tools Claude Code is allowed to invoke while running this skill. Rundock does not read this field; Claude Code does, when the skill is loaded into a subprocess. |
 | `model` | string | Universal (Claude Code) | No | Model override for this skill. Same caveat as `allowed-tools`: Rundock does not read it, Claude Code may. In practice, behaviour follows the invoking agent's model. |
@@ -145,7 +145,7 @@ Here is a complete skill file. Frontmatter is the parser-recognised set, the bod
 
 ```markdown
 ---
-name: Skill Discovery
+name: skill-discovery
 description: Scan recent work surfaces for repeated manual patterns and propose new skills or playbooks to build, ranked by leverage. Use when reviewing the week or deciding what to automate next.
 ---
 
@@ -250,4 +250,4 @@ A handful of specific things that go wrong silently.
   </Card>
 </CardGroup>
 
-The full source of truth is `SKILLS.md` in the [Rundock GitHub repo](https://github.com/liamdarmody/rundock/blob/main/SKILLS.md). It tracks any new fields as they ship.
+The full source of truth is `SKILLS.md` in the [Rundock GitHub repo](https://github.com/liamdarmody/rundock/blob/main/docs/SKILLS.md). It tracks any new fields as they ship.

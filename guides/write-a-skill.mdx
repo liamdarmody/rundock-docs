@@ -39,14 +39,14 @@ Skill frontmatter is lean. Two fields matter:
 
 ```yaml
 ---
-name: Weekly Report
+name: weekly-report
 description: Compile a structured weekly summary of progress, blockers, and next steps from the last seven days of work. Use when asked for a weekly report or status update.
 ---
 ```
 
 A few things to know about these fields:
 
-- **`name`** is the display name shown on the agent profile and the skill list. Plain prose is fine, not just a slug-style identifier.
+- **`name`** is the skill's command name in Claude Code: it sets the `/` command you type to run the skill, so it needs to be a typeable name, not prose. Use the folder's slug, lowercase and hyphenated. When `name` matches the slug, Rundock shows it title-cased on the agent profile and the skill list, here as Weekly Report.
 - **`description`** is one paragraph, and it is the skill's **trigger**. Claude Code offers the model each skill's name and description when it decides whether to use one, so say what the skill does and when to use it, key use case first. Rundock shows the description in its interface, but the roster Rundock gives a leading agent lists skills by slug only, so name the skill's folder for what it is for too.
 
 <Note>
