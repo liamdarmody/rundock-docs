@@ -45,6 +45,38 @@ If an agent connects to a third-party MCP server, that connection sends data to 
 
 In short: the conversation is the unit of transmission. If a file is not referenced in the conversation, it is not sent.
 
+## Extensions and packages
+
+You can add agents, skills and extensions to a workspace from a GitHub link. Rundock does not review packages, and what you install is your choice, so this section says exactly what protects you and what does not.
+
+**Nothing is written until you accept.** Rundock reads the repository and shows what it contains first. The facts on that screen, such as which files an extension asks to render, whether it can change them, and how many agents, skills and routines come with it, are read from the package itself rather than taken from its author's description. Declining removes everything that was fetched.
+
+**An extension is installed from a tag or an exact commit, never a branch.** A branch names whatever was pushed last, so the code the confirmation screen describes could change after you agree to it. Rundock fetches a tag as a tag, so a branch sharing its name cannot arrive in its place, and the screen names the commit it resolved to. The code you approved is the code that runs. An update is new code, held to the same rule, and is offered only for a newer version tag. It is reviewed under the package's card before anything changes, and the review names any permission the new extension version asks for that the old one did not. Nothing updates on its own.
+
+**Agents and skills from a package are not sandboxed.** Once added, they are ordinary files in your workspace and act with the same access as your own agents, under the same workspace mode, the same approval cards and the same [Keep agents inside this workspace](/reference/workspace-structure#keep-agents-inside-this-workspace) switch. The install screen says so, and names every routine that will run on a schedule. Review them as you would any agent you did not write.
+
+**Starter files never replace yours.** A package can bring files for its agents to work on, such as a portfolio. Each is written only where nothing exists, is named on the install screen first, and is yours afterwards, and an update never replaces it. A package whose starter files include a hidden name or a link is refused whole.
+
+### What the extension sandbox enforces
+
+An extension's view is someone else's code, so it runs confined. Each of the following is enforced by Rundock or by the browser engine rather than asked of the extension, and the confinement is tested in the Chromium engine and in the shipped desktop app against a deliberately misbehaving extension.
+
+- **It cannot reach Rundock's page.** The view runs in a frame whose only sandbox permission is to run scripts, which gives it an opaque origin: no access to Rundock's page, storage, scripts, conversations, or connection to its server.
+- **It cannot reach the network.** The view's content security policy refuses every page load, request and external resource. It cannot replace itself with another page: Rundock refuses the navigation, and ends a view that tries. In the desktop app, peer-to-peer connections are switched off for it as well. When you use Rundock in a browser they are not blocked, and the install screen says so.
+- **It sees only the file it was opened on, and the files that note names.** It receives that one file's path and text, as a copy, and nothing else about your workspace. It cannot list, search or read any other file. The one addition is a note you mark for it: if the extension asked for it at install, a note can list files under `sources:` in its frontmatter, and the view is handed those, by the names you typed. Nothing is searched for, and no write the extension causes can change that list.
+- **It is never given a hidden or linked file.** Files in folders or with names starting with a dot, including your agents' instructions in `.claude/`, Rundock's state in `.rundock/`, `.env` and `.mcp.json`, never open in an extension's view and are never handed to it as a source. Nor is a linked file, a file in a linked folder, or a file with a second name elsewhere, because its visible name could stand for a hidden file or one outside your workspace. Rundock's server decides this from the file itself, and checks again when an extension's change is written.
+- **It can say only a fixed set of things.** Rundock checks every message the view sends against a closed list and refuses anything else. The list is published in the [extension host contract](/reference/extension-contract).
+- **It cannot act on its own.** Opening another file, opening a web address, or drafting a message to an agent happens only after you click inside the view, and one click allows one request, across every extension view. When Rundock cannot tell that a request came from your click in that view, it asks you in its own bar above the view, with Open and Dismiss, which the extension cannot draw, read or press. A request with no click at all is stopped, and Rundock tells you which extension tried.
+- **It cannot reach your agents.** An extension can put a drafted message in a new conversation with an agent its manifest named and the install screen showed you. Nothing is sent until you send it, and the extension never sees the conversation, the reply, or whether you sent it.
+- **Web addresses open outside Rundock.** A web link anywhere in Rundock, in an extension or not, opens in your browser, and the app itself never navigates away.
+- **Its own settings stay out of your notes.** An extension can keep up to 64 KB of its own preferences for each note it opens, such as column widths, in Rundock's own folder, never in your notes. They are never handed to any other view, and uninstalling the package removes them.
+- **It changes only what it was allowed to.** An extension can save only the file it was opened on, and the files that note names, only when its manifest asked for that, and the install screen tells you when it did. It cannot name any other file to write.
+- **Its components are Rundock's, with no extra reach.** Rundock puts its own component library into every extension view. It runs inside the view with the view's limits, sends nothing and fetches nothing, so it widens nothing above.
+- **It is removed cleanly.** Switching an extension off, pausing every extension, or updating or uninstalling its package ends its view, and uninstalling deletes its files under `.rundock/extensions/`. Agents and skills you have edited, and every starter file, stay, because they are yours.
+- **You can turn every extension off at once.** **Pause all extensions**, under Settings, Extensions, turns them all off without changing any extension's own setting, and **Resume extensions** brings each one back to its own setting. While an extension is off, paused or by its own switch, Rundock refuses to serve its code to any window and tells every open window, which ends a view that is showing.
+
+For what building an extension within these limits looks like, see [What an extension cannot do](/extending/limits).
+
 ## Training
 
 Anthropic's Commercial Terms state directly that "Anthropic may not train models on Customer Content from Services". Inputs and outputs sent to the API are not used to train Anthropic's models unless you opt in.
@@ -102,6 +134,7 @@ If you are forwarding this page to someone who needs the headlines:
 - With a Commercial-organisation API key, content is not used to train models by default, and Anthropic deletes inputs and outputs within 30 days
 - Zero Data Retention is available on request via the Commercial API or Claude Enterprise; it removes the 30-day window for Claude Code inference
 - Third-party MCP servers an agent connects to are outside Rundock's local scope and outside Anthropic's ZDR; review them independently
+- Extensions are installed from a tag or an exact commit, run sandboxed with no network access, see only the file they were opened on and any files that note names, and act only on your click; agents and skills installed from a package are not sandboxed and act like your own
 - The contractual relationship for the data is between your business and Anthropic, not Rundock
 
 Forward this page to whoever needs to sign off, then talk to your Anthropic representative about contract terms.

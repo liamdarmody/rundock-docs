@@ -1,0 +1,376 @@
+---
+title: 'Build an extension'
+description: 'Build a view for a kind of note on Rundock UI, ship it with a starter file and a skill, test it, and install it in Rundock.'
+---
+
+An extension is one script that draws a file. Rundock hands it the text of the file someone opened, and the script turns that text into a view, built from [Rundock UI](/extending/rundock-ui), the components Rundock puts into every view. This page builds a complete one: a tracker, where a note marked `my-tracker` is drawn as a board you can work from the keyboard, with counts, a way to add items, and a table view. Edits go straight back into the note.
+
+It is the same extension as `extension-package/` in the [Rundock package starter](https://github.com/liamdarmody/rundock-package-starter), a template repository, so you can copy the starter and follow along, or build it here from nothing.
+
+Read [What an extension cannot do](/extending/limits) first. Everything below is shaped by it.
+
+## What you are building
+
+```
+my-tracker/
+├── rundock.json                  the manifest
+├── view/
+│   ├── main.js                   the whole view
+│   └── style.css                 layout only
+├── starter/
+│   └── Tracker.md                a note that lands in the person's workspace
+├── .claude/
+│   └── skills/
+│       └── my-tracker/
+│           └── SKILL.md          tells agents how the note is laid out
+└── test/                         tests, never installed
+```
+
+One repository, three kinds of thing:
+
+- **The extension** is `rundock.json` and `view/`. Only the folder holding your entry script is installed as the extension, here `view/`. Tests and tooling can sit beside it and never reach anyone's workspace.
+- **A starter file**, `starter/Tracker.md`, lands at `Tracker.md` in the person's workspace, only if they have nothing there, and is theirs from then on. See [Starter files](/extending/share-agents-and-skills#ship-starter-files).
+- **A skill**, so an agent asked to "move Shape Up to Done" edits the note the same way the view does. Agents and the view then work on one file.
+
+## 1. Write the manifest
+
+`rundock.json`, at the root of the repository:
+
+```json
+{
+  "name": "my-tracker",
+  "version": "0.1.0",
+  "extension": {
+    "entry": "view/main.js",
+    "match": "*.md",
+    "declares": "my-tracker",
+    "writes": true,
+    "rundockUi": "1.0",
+    "styles": [
+      "view/style.css"
+    ]
+  }
+}
+```
+
+- `name` is a lowercase slug and is how the extension is known in Settings.
+- `entry` is the script Rundock runs.
+- `match` and `declares` together say which files your view is for: markdown files whose frontmatter carries `my-tracker`. Without `declares`, a `*.md` extension would claim every note in the workspace.
+- `writes` asks for permission to save changes to the note that is open. Leave it out and your extension is read-only, which is the default and the right choice for many views.
+- `rundockUi` is the [Rundock UI version](/extending/rundock-ui#versions) you built against. A Rundock that provides an older one refuses the install and says why.
+- `styles` lists stylesheets, inlined into the view after Rundock's.
+
+Every field is in the [`rundock.json` reference](/reference/rundock-json).
+
+## 2. Decide the file format
+
+The view draws a note like this, `starter/Tracker.md`:
+
+```markdown
+---
+my-tracker: true
+title: Reading list
+---
+
+## Now
+- Designing Data-Intensive Applications
+- The Mom Test
+
+## Next
+- Shape Up
+- Working in Public
+
+## Done
+- The Design of Everyday Things
+```
+
+Each `## Heading` is a column and each `- item` under it is a card. The frontmatter marker is what tells Rundock to open the note in your view.
+
+**Keep the format lossless.** The note is the person's, and agents edit it too. The starter's `parse` keeps every line, in order, including blank lines and anything it does not understand, and `serialize` writes them back, so saving a note you did not change gives back exactly the bytes you read. Test that: it is the check most likely to save someone's file.
+
+## 3. Write the view
+
+`view/main.js` holds the parser, the serializer and the view in one file. The parts that talk to Rundock are short. The view says `ready`, waits for `init`, draws, and hands every edit back:
+
+```js
+function boot(win) {
+  var ui = win.Rundock && win.Rundock.ui;
+  var d = win.document;
+  var send = function (message) { win.parent.postMessage(message, '*'); };
+  var doc = null;
+
+  function save() {
+    send({ type: 'change', content: serialize(doc) });
+  }
+
+  function resize() {
+    send({ type: 'resize', height: d.documentElement.scrollHeight });
+  }
+
+  // ...render() draws the view: see below...
+
+  win.addEventListener('message', function (event) {
+    var data = event.data;
+    if (!data || typeof data !== 'object') return;
+    if (data.type === 'init') {
+      doc = parse(data.content);
+      render();
+    }
+    // A refusal names what Rundock would not do and why; surface it rather
+    // than failing silently.
+    if (data.type === 'refused' && ui) {
+      d.body.insertBefore(ui.alert({ tone: 'danger', message: 'Rundock refused ' + data.of + ': ' + data.reason }), d.body.firstChild);
+    }
+  });
+  send({ type: 'ready', handles: ['theme'] });
+}
+```
+
+That is the whole conversation with Rundock:
+
+1. **Your script says `ready`.** Until it does, Rundock waits. A view that never says it is removed after a few seconds and the plain rendering comes back. `handles: ['theme']` tells Rundock this view can be restyled in place when the person switches theme. This view edits the note, so it says so: without it, a theme change rebuilds the view and an edit not yet sent would be lost.
+2. **Rundock sends `init`**, once, with the file's `path`, its full text as `content`, and the `theme` showing, `'light'` or `'dark'`.
+3. **Your script draws, and asks for a height with `resize`.** Send `resize` again whenever your content changes height.
+4. **When the person changes something, send `change`** with the note's whole new text. Send it on every edit if you like: Rundock waits until the changes pause and then writes once, through the same save its own editors use, and it still writes the note if the person moves to another file straight away. There is no path: Rundock writes the file your view was opened on and nothing else. For an explicit "save now", send `save` with the same shape. Keep no save timer of your own.
+
+Anything Rundock will not carry comes back as `refused`, naming what was refused and why. The starter shows it in a Rundock UI alert, which is worth doing while you develop. An uncaught error in your script is reported for you: Rundock removes the view and shows the plain rendering with the error named.
+
+Every message and its exact shape is in the [extension host contract](/reference/extension-contract).
+
+### Draw with Rundock UI
+
+`render` builds the whole view from Rundock UI. A heading, a row of counts, a way to add an item, and two ways to see the list:
+
+```js
+var entry = ui.input({ placeholder: 'A new item' });
+var where = ui.select({ label: 'Section', options: doc.sections.map(function (s, i) { return { value: String(i), label: s.title }; }) });
+var add = ui.field({ label: 'Add an item', control: entry, help: 'It lands at the end of the section you choose.' });
+var addButton = ui.button({
+  label: 'Add', variant: 'primary', onClick: function () {
+    if (!addItem(doc, Number(where.querySelector('select').value), entry.value)) {
+      add.setError('Write something to add first.');
+      entry.focus();
+      return;
+    }
+    add.setError(null);
+    entry.value = '';
+    save();
+    drawStats();
+    drawContent();
+    entry.focus();
+  },
+});
+
+// Two ways to see the same list.
+root.appendChild(ui.tabs({
+  label: 'Tracker view',
+  options: [{ value: 'board', label: 'Board' }, { value: 'table', label: 'Table' }],
+  value: view,
+  onChange: function (value) { view = value; drawContent(); },
+}));
+```
+
+The counts are one `ui.stat` per section. The board is `ui.board`, with a column per section and a card per item:
+
+```js
+content.appendChild(ui.board({
+  columns: doc.sections.map(function (section, s) {
+    return {
+      id: String(s),
+      title: section.title,
+      cards: entriesOf(section).map(function (e) { return { id: e.id, title: e.item }; }),
+    };
+  }),
+  // The board has already moved the card and kept focus on it; the
+  // note follows, and only the counts are redrawn.
+  onCardMove: function (cardId, to) {
+    if (!moveItem(doc, cardId, Number(to))) return;
+    save();
+    drawStats();
+    resize();
+  },
+}));
+```
+
+The table is `ui.table`, with a `ui.chip` in the section column. A note with no sections gets `ui.emptyState` saying how to start one.
+
+What you get for free by building this way:
+
+- **It works from the keyboard.** Every board card has a menu that moves it, the tabs follow arrow keys, and the field wires its label and error for a screen reader. You wrote none of that.
+- **It matches Rundock.** Both themes, today and after Rundock's next restyle, with nothing to republish.
+- **Nothing you draw is markup.** Labels are set as text, so an item called `<script>` shows as those characters. If you do build HTML yourself, anywhere, escape every piece of the file's text before it goes near `innerHTML`: the note is whatever the person or their agents put in it.
+
+Use Rundock UI for every control and container. Draw only your own domain content yourself, such as a chart, inside [`ui.canvas`](/extending/rundock-ui#components). The full list is on the [Rundock UI](/extending/rundock-ui) page, and a running Rundock shows every component at `/rundock-ui/gallery`.
+
+## 4. Style it
+
+Your stylesheet is for layout. Every colour, radius and control already comes from Rundock. The starter's `view/style.css` in full:
+
+```css
+/* No outer padding: Rundock's frame carries the note's own padding, so the
+   view's first line starts where a note's text does. */
+.tracker { display: flex; flex-direction: column; gap: 16px; }
+.tracker h1 { margin: 0; }
+.tracker > .rui-tabs { align-self: flex-start; }
+.tracker-stats { display: flex; flex-wrap: wrap; gap: 12px; }
+.tracker-add { display: grid; grid-template-columns: minmax(180px, 1fr) 160px auto; gap: 10px; align-items: start; }
+/* Line the select and the button up with the input, below the field's label. */
+.tracker-add > .rui-select-wrap, .tracker-add > .rui-btn { margin-top: 24px; }
+.tracker-add > .rui-btn { padding-top: 10px; padding-bottom: 10px; }
+```
+
+**Add no outer padding or background.** Your view is full bleed: the frame fills the pane, paints the pane's own colour, and your `body` already carries the padding a note has. For an edge-to-edge canvas, add `rundock-full-bleed` to `document.body`. See [Where a view sits](/extending/rundock-ui#where-a-view-sits-full-bleed).
+
+If you need a colour in your own drawing, use Rundock's custom properties, such as `var(--text-1)`, `var(--border)` and `var(--accent-control)`, so it follows the theme. Because the view said `handles: ['theme']`, a theme switch rewrites those values in place and keeps the view as it is. A view that does not say so is rebuilt with the new values and a fresh `init`, and anything it held only in memory, such as scroll position, starts over. See [Theme changes](/reference/extension-contract#theme-changes).
+
+## 5. Ship a skill with it
+
+`.claude/skills/my-tracker/SKILL.md` tells an agent what the view assumes:
+
+```markdown
+---
+name: my-tracker
+description: Keeps a tracker note up to date. Use when the person asks to add, move or finish an item in a note marked my-tracker.
+---
+
+# My tracker
+
+A tracker note is a markdown file whose frontmatter carries `my-tracker: true`. Its body is a list of sections, each a level two heading (`## Now`) followed by one item per line (`- An item`). Rundock draws it as a board with the my-tracker view.
+
+To add an item, append `- <item>` under the section it belongs to. To move one, cut its line and paste it under the other heading. To finish one, move it under `## Done`. Keep the frontmatter as it is: the marker is what tells Rundock to draw the note as a board.
+```
+
+The skill and the starter note are offered to the person after the extension installs, and land in their workspace as their own files. See [Share agents and skills](/extending/share-agents-and-skills).
+
+## 6. Test it
+
+The starter's tests cover the file format (including that the starter note writes back byte for byte), the manifest, the entry's safety, and the view itself:
+
+```bash
+npm install
+npm test
+```
+
+The view test runs your entry against the real Rundock UI, which ships inside Rundock rather than with your extension, so point it at a Rundock checkout:
+
+```bash
+RUNDOCK_UI=/path/to/rundock/public/rundock-ui.js npm test
+```
+
+Without it, that one test is skipped and says why; the others always run.
+
+## 7. Install it in Rundock
+
+Push the repository to GitHub and create a tag, for example `v0.1.0`. Then, in Rundock, open **Settings**, choose **Packages**, and paste:
+
+```
+your-name/my-tracker@v0.1.0
+```
+
+The confirmation screen lists what your extension asks for, read from the package itself: the notes it claims and that it can change them. If this Rundock provides an older Rundock UI than the one you declared, the install is refused with the reason. Install it, accept the skill and the starter note on the next screen, and open `Tracker.md`.
+
+An extension is always installed from a tag or an exact commit, never a branch. To try a change, push it, tag it, then use **Check for updates** on the package's card in Packages, or paste the new tag.
+
+## Hand the view several files
+
+A dashboard needs more than one file. A note can name the files its view should be handed, in its frontmatter, and the view receives each one's text alongside its own:
+
+```yaml
+---
+my-dashboard: true
+sources:
+  - Investments/Holdings.csv
+  - Investments/Limits.csv
+---
+```
+
+Opt in by setting `"sources": true` in the manifest, alongside `declares`: a view is handed a note's sources only when it claimed that note by its marker. `init` then carries a `sources` array, one entry per name in the note's order, each `{ path, content }` for a file handed over or `{ path, refused }` naming the rule that refused it, such as a hidden, linked or missing file. `path` is the name as the note wrote it.
+
+```js
+if (data.type === 'init' || data.type === 'sources') {
+  data.sources.forEach(function (source) {
+    if ('content' in source) show(source.path, source.content);
+    else showRefused(source.path, source.refused);
+  });
+}
+```
+
+When a listed file changes on disk, or the note's list does, Rundock sends a `sources` message with the whole list again. Nothing is ever searched for: the only files your view sees are ones the person typed into the note.
+
+With `writes: true` as well, send `changeSource` or `saveSource`, naming the source exactly as the note wrote it, to write one back. No write your view causes may change the note's own `sources:` list. The full rules are in [Named sources](/reference/extension-contract#named-sources).
+
+## Draft a message to an agent
+
+A view can put a question to one of the person's agents without ever reaching the agent itself. Name the agents it may ask in the manifest, up to four:
+
+```json
+"asks": ["lead-partner"]
+```
+
+Then, from a click inside the view:
+
+```js
+ui.button({
+  label: 'Ask Lead Partner about this',
+  onClick: function () {
+    send({ type: 'ask', agent: 'lead-partner', message: 'Review my three largest positions against my limits.' });
+  },
+});
+```
+
+Rundock opens a new conversation with that agent and puts the message in the box, unsent, with a line saying your extension drafted it. The person sends it, changes it, or leaves it. Your view hears nothing back: not the conversation, not the reply, not whether the draft was sent. An agent the manifest does not name, or one not on the person's team, is refused. See [Asking an agent](/reference/extension-contract#asking-an-agent).
+
+`ask`, `open` and `openExternal` each need the person's click inside your view, and one click authorises one request. If Rundock cannot tell that a request came from a fresh click in your view, it asks the person in its own bar above the view; if there was no click at all, it refuses and tells the person. Rundock shows those notices itself, so do not show your own for a refused `open`, `openExternal` or `ask`. See [One click, one request](/reference/extension-contract#one-click-one-request).
+
+## Claiming a kind of note
+
+The starter claims notes with `match` `*.md` and `declares` `my-tracker`, so only notes carrying that frontmatter key open in its view. This is the same way Rundock's own board view recognises a board by its `kanban-plugin` key, and for that reason `kanban-plugin` itself cannot be declared. A claim with `declares` beats another extension's claim on the same file type without one. If two installed extensions declare the same key, the one listed first on the Extensions page wins, and the other's row says why it is not claiming anything.
+
+If a save from your view takes the marker out while the note is open, the note stops claiming your view: Rundock removes it and shows the note on the plain rendering, with the reason named. A change made anywhere else reopens the note, which then opens in whatever claims it.
+
+To draw a whole file type instead, such as every `.csv` file, set `match` to `*.csv` and leave out `declares`.
+
+## Show up inside other notes
+
+A note can embed a file your extension claims the way Obsidian writes an embed, `![[Tracker.md]]`, on a line of its own. A line holding nothing but embeds becomes a row of panels beneath it, each headed with the file's name, and each drawn by whatever extension claims that file, exactly as it would be if the file were opened directly:
+
+```
+![[Tracker.md]] ![[Holdings.csv]] ![[Risk.md]]
+```
+
+- **Up to three to a row.** A fourth embed on the line starts a new row. On a narrow window the panels stack.
+- **Height.** A panel is 240 pixels tall unless the embed sets one, as in `![[Tracker.md|400]]`, which is held between 80 and 800.
+- **An embed inside a sentence stays a link.** Only a line of nothing but embeds draws panels, and the line itself is left as written: Rundock never writes the panels into the note.
+- **Depth one.** An embedded note is drawn as a note, and any embeds inside it show as links. A note that embeds itself shows a link.
+- **Never blank.** A file nothing claims shows its text if it is text, and a link if it is not. A missing file says so, and a file in a hidden folder is never shown.
+
+Each embedded view is mounted on its own file only and receives only that file's text. An embedded view is read-only whatever your manifest declares: `save`, `change`, `open` and `ask` from an embed are all refused, it is handed no named sources, and the person edits by opening the file. Rundock adds `rundock-embedded` to the embedded view's `body`, which drops the padding because the panel already pads it. Your extension needs no extra code for this, but it should draw sensibly at a third of the pane's width.
+
+## Draw a fenced block instead of a file
+
+An extension can also draw fenced code blocks inside notes, the way a diagram language is drawn, rather than whole files. Declare the fence's language with `draws` instead of, or as well as, `match`:
+
+```json
+{
+  "name": "timeline",
+  "version": "1.0.0",
+  "extension": {
+    "entry": "ui/index.js",
+    "draws": "timeline"
+  }
+}
+```
+
+This kind of extension computes rather than draws. It runs in one hidden frame for the life of the app, shared by every note that uses it, says `ready`, and then receives `{ type: 'render', requestId, source }` for each block, where `source` is the block's text. It answers `{ type: 'rendered', requestId, svg }` with an SVG string, or `{ type: 'renderFailed', requestId, message }` when a block cannot be drawn, echoing the `requestId` it was sent. Rundock puts the drawing in the note itself, and a block that fails shows its reason in place without affecting the rest of the page. If the extension cannot draw anything at all, it sends `{ type: 'error', message }` with no `requestId`, and every block it draws shows the failure with an offer to restart it.
+
+Rundock rebuilds the SVG from the drawing elements it understands, such as paths, shapes, text, gradients and markers. Scripts, `foreignObject`, images, `use`, links and event handlers are never built, and a `url()` reference must point inside the drawing, as in `url(#arrow)`. An answer that takes more than ten seconds counts as the extension failing, not the block.
+
+## Before you publish
+
+- Open the repository in a fresh workspace and install it from the link, the way a stranger would.
+- Open a file your extension claims in both themes, and compare your controls with the same components in the gallery at `/rundock-ui/gallery`.
+- Work the view from the keyboard alone.
+- Open an empty file, a very large file, and one that is not in the format you expect. Show a sentence, or `ui.emptyState`, rather than a blank frame, and send `error` with a reason if you cannot draw at all.
+- Save a note you did not change and check its bytes are exactly as they were.
+
+Then [publish it and get it listed](/extending/publishing).

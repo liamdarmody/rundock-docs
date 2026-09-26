@@ -90,6 +90,8 @@ Each routine has a `lastRun` guard. Daily routines do not re-fire the same calen
 
 When a routine fires, Rundock spawns a headless Claude Code subprocess with the routine's prompt as the input message. The subprocess runs with `--dangerously-skip-permissions` because there is no user available to approve tool calls in real time.
 
+**Where a routine's permission card appears.** Claude Code's permission hooks still run for a routine, so a routine's agent can still raise a card. A routine has no conversation, so the card is matched to its run and shown in the **approvals dock**, over whatever screen is open, under the routine's name and the agent's, such as "Morning Briefing, run by Ada". It never appears inside a conversation. A request Rundock cannot match to a run is shown in the same dock as unattributed. An unanswered card is denied at the usual timeout, and once a request has timed out, been answered in any window, or lost the process that asked, its card says so and can no longer be answered.
+
 ## Routines fire only while Rundock is running
 
 This is the central limit and it shapes everything else.
@@ -116,15 +118,42 @@ When a routine fires, the spawned Claude Code subprocess produces output on stdo
 What Rundock records instead:
 
 - The routine's `lastRun` timestamp.
-- The routine's `status`: `running`, `completed`, `failed`, `cancelled`, or `interrupted`. `completed` and `failed` follow the subprocess exit code. `cancelled` is written when the run was stopped from outside it (see [Routines](/concepts/routines#stop-a-run-in-progress)), which is recorded as its own outcome rather than as a failure. `interrupted` is written when a run left marked `running` is loaded back and nothing answers for it, meaning Rundock closed mid-run: this is distinguishable from a run that actually failed.
+- The routine's `status`: `running`, `completed`, `failed`, `cancelled`, or `interrupted`. `completed` and `failed` follow the subprocess exit code, except that a run whose agent declares a failure is recorded as `failed` (see [Declaring that a run failed](#declaring-that-a-run-failed)). `cancelled` is written when the run was stopped from outside it (see [Routines](/concepts/routines#stop-a-run-in-progress)), which is recorded as its own outcome rather than as a failure. `interrupted` is written when a run left marked `running` is loaded back and nothing answers for it, meaning Rundock closed mid-run: this is distinguishable from a run that actually failed.
 - The routine's `duration` in seconds.
 - A separate record under `.rundock/runs/` of the files the run changed: the path, the tool that touched it, whether it was created or edited, and when.
 
 These fields update in the routines panel and on the agent profile in real time over the WebSocket.
 
-The practical implication: any routine that needs to leave a trace must write that trace itself, through the agent's tools. A morning briefing creates a file in the daily note. A research digest writes a markdown report. An end-of-day sync updates Todoist via MCP. A routine that asks the model to think out loud will produce output nobody ever reads.
+The practical implication: any routine that needs to leave a trace must write that trace itself, through the agent's tools. A morning briefing creates a file in the daily note. A research digest writes a markdown report. An end-of-day summary adds tasks through a tasks connector over MCP. A routine that asks the model to think out loud will produce output nobody ever reads.
 
-There is no built-in notification when a routine completes. You notice a routine ran by either seeing the row update in the routines panel, or seeing the file the agent wrote, or seeing the Todoist tasks the agent created.
+There is no built-in notification when a routine completes. You notice a routine ran by either seeing the row update in the routines panel, or seeing the file the agent wrote, or seeing the tasks the agent created.
+
+### Declaring that a run failed
+
+A run's status follows how the process ended, so an agent that hits a problem, says so, and exits cleanly is recorded as `completed`. When your routine's skill can fail in a way the process cannot see, such as finishing without doing its job, have the agent declare it. Make the last line of the agent's final message:
+
+```
+RUN STATUS: failed: <reason>
+```
+
+For example:
+
+```
+RUN STATUS: failed: labels could not be applied (the keychain was unavailable)
+```
+
+Rundock records that run as `failed`, with the reason as its error, and the routine's own status reads `failed` too. The routines panel shows it as **Failed**, and the run's record shows **Reported failed**, headed "The agent reported that this run failed." with "The reason it gave:" and your reason. A run whose process itself failed reads **Stopped early** instead, so the two are told apart. The reason is optional: `RUN STATUS: failed` on its own records the failure and says no reason was given.
+
+The rules, exactly:
+
+- Only the **last non-empty line** of the **final** message counts. A declaration followed by more text, or a run that ends on a tool call rather than a message, declares nothing.
+- `RUN STATUS` is matched without regard to case, and markdown emphasis or a code span around the line is ignored. Any other wording is not a declaration.
+- `RUN STATUS: succeeded` is accepted and changes nothing.
+- A run that declares nothing is recorded exactly as before, so no existing routine changes state.
+- A run that was stopped from outside stays `cancelled`, whatever it declared.
+- It is read from the run's session transcript, so it applies to Claude runs. A Codex run leaves no transcript and cannot declare a failure this way yet.
+
+Packaged skills that run on a schedule should use this, so a person who installed them hears about a failure from Rundock rather than by noticing that nothing happened.
 
 ## The routines panel
 
@@ -169,13 +198,13 @@ order: 0
 icon: ★
 colour: "#E87A5A"
 description: >
-  Chief orchestrator. Protects Liam's time, routes work to specialists,
+  Chief orchestrator. Protects the user's time, routes work to specialists,
   manages priorities, and runs daily briefings.
 capabilities:
   does: Routes work to specialists, manages priorities, daily briefings, session starts, challenges low-leverage tasks
-  reads: Entire workspace, Todoist tasks, Google Calendar, Notion, Granola meeting notes, Readwise highlights
+  reads: Entire workspace, task list, calendar, meeting notes, saved highlights
   writes: Daily briefings, meeting notes, knowledge graph updates, task management
-  connectors: Todoist, Google Calendar, Notion, Granola, Readwise
+  connectors: Tasks, Calendar, Notes
 routines:
   - name: Morning briefing
     schedule: every day at 05:00
@@ -208,14 +237,14 @@ routines:
     description: Triage today's tasks, calendar, and content pipeline at 5am.
 ```
 
-### End-of-day sync
+### End-of-day summary
 
 ```yaml
 routines:
-  - name: Granola EOD sync
+  - name: End-of-day summary
     schedule: every day at 21:00
     enabled: true
-    prompt: Run the Granola end-of-day sync
+    prompt: Run the end-of-day summary
     description: Pull today's meetings and write notes, tasks, and people updates.
 ```
 

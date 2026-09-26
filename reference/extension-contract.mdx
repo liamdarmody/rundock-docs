@@ -1,0 +1,177 @@
+---
+title: 'Extension host contract'
+description: 'Every message an extension view can send to Rundock and receive from it, with its exact shape.'
+---
+
+An extension's view talks to Rundock only by `postMessage`. This page is the whole of that surface. If a message is not in these tables, Rundock does not carry it: it is refused, and the refusal is sent back so you can see what went wrong.
+
+For a worked example of these messages in use, see [Build an extension](/extending/build-an-extension).
+
+## Sending a message
+
+Post to the parent window with a wildcard target. Your view's origin is opaque, so it cannot name Rundock's origin, and Rundock checks the sending window instead.
+
+```js
+window.parent.postMessage({ type: 'resize', height: 320 }, '*');
+```
+
+When listening, accept only messages whose `event.source` is `window.parent`.
+
+## What a view can send
+
+| Type | Shape | What it does |
+|---|---|---|
+| `ready` | `{ type: 'ready', handles: <array> }` | Says the view has booted. Rundock answers with `init`. A view that never sends it is removed after a few seconds and the plain rendering comes back. Send it once: a second `ready` from the same frame ends the view. `handles` is optional, and names the messages from Rundock the view answers beyond the ones every view gets. The only one is `'theme'`: a view that names it is restyled in place when the theme changes, and one that does not is rebuilt. See [Theme changes](#theme-changes). |
+| `resize` | `{ type: 'resize', height: <number> }` | Asks for a frame height in pixels. Clamped between 40 and 4000. |
+| `error` | `{ type: 'error', message: <string> }` | Says the view has failed. Rundock removes it and shows the plain rendering with your message beside it. An uncaught error in your script is sent as `error` for you. |
+| `open` | `{ type: 'open', target: <string> }` | Asks Rundock to open a workspace file, the way a link in a note would. Needs a click inside the view, under [one click, one request](#one-click-one-request). Rundock opens the file itself; the view never navigates anything. |
+| `openExternal` | `{ type: 'openExternal', url: <string> }` | Asks Rundock to open a web address in the system browser, or a new tab when Rundock runs in a browser. `http` and `https` only, and it needs a click inside the view, under the same rule as `open`. The frame itself may not navigate, so this is how a view offers a link. |
+| `save` | `{ type: 'save', content: <string> }` | Hands back the whole new text of the file the view was opened on, for Rundock to write. There is no path. Honoured only when the manifest sets `writes: true`. Use it for an explicit "save now". |
+| `change` | `{ type: 'change', content: <string> }` | Says the view has changed, with the whole new text of the file the view was opened on. Rundock writes it once the changes pause, through the same save its own editors use, so a view that sends `change` on every keystroke writes once. There is no path. Honoured only when the manifest sets `writes: true`. |
+| `saveSource` | `{ type: 'saveSource', source: <string>, content: <string> }` | Hands back the whole new text of one of the note's [named sources](#named-sources), for Rundock to write. `source` is the name exactly as the note wrote it and as `init` or `sources` carried it. Honoured only when the manifest declares both `sources` and `writes: true`, and only for a source that was handed over. |
+| `changeSource` | `{ type: 'changeSource', source: <string>, content: <string> }` | To `saveSource` what `change` is to `save`: Rundock writes the source once the changes pause. The same conditions as `saveSource`. |
+| `ask` | `{ type: 'ask', agent: <string>, message: <string> }` | Opens a new conversation with an agent and puts `message` in the message box, unsent. See [Asking an agent](#asking-an-agent). `agent` must be named in the manifest's `asks` and be on the person's team; `message` is 1 to 4000 characters. Needs a click inside the view. Nothing is sent back when it is honoured. |
+| `setState` | `{ type: 'setState', state: <object> }` | Keeps the view's own state for this note: the whole state object, plain JSON, at most 64 KB. There is no extension, note or path in it: Rundock keeps it for the extension and the note the view was opened on, in its own folder, never in the note. Written once the changes pause. Refused from an embedded view. A view built on Rundock UI uses `Rundock.viewState` instead of sending this itself. See [A view's own state](#a-views-own-state). |
+
+A writable view keeps no save timer of its own: send `change` as the person edits, and Rundock decides when to write. It writes the file the change was made in even if the person has moved to another, and at once when the file is closed with an edit still waiting.
+
+## What Rundock sends a view
+
+| Type | Shape | What it means |
+|---|---|---|
+| `init` | `{ type: 'init', path: <string>, content: <string>, theme: <string>, sources: <array>, state: <object> }` | Sent once, after `ready`. `path` is the file's path in the workspace, `content` is its full text, and `theme` is `'light'` or `'dark'`. The text is a copy: changing it changes nothing on disk. `sources` is the note's [named sources](#named-sources), and is empty unless the view is entitled to them. `state` is the view's [own state](#a-views-own-state) for this note as last kept, or `null`. |
+| `sources` | `{ type: 'sources', sources: <array> }` | The note's named sources again, resolved from scratch, whenever a listed file or the note's own list changes on disk. It replaces the list `init` carried. |
+| `refused` | `{ type: 'refused', of: <string>, reason: <string> }` | The answer to any message Rundock will not carry. `of` names the message type and `reason` says why. |
+| `theme` | `{ type: 'theme', theme: <string>, tokens: <array> }` | Sent when the theme changes while the view is open, only to a view whose `ready` named `'theme'` in `handles`, and only after its `init`. `theme` is `'light'` or `'dark'`, and `tokens` is Rundock's colours for that theme as `[name, value]` pairs. Rundock applies them in the frame before your listener sees the message. |
+
+That is everything a view is told. It learns nothing else about the workspace or the page around it, and nothing about a conversation: an honoured `ask` is answered with nothing, and no conversation, reply or connection ever reaches a view.
+
+## Named sources
+
+A dashboard over several files is built by naming them. The person lists the files in the dashboard note's frontmatter, as exact paths from the workspace root:
+
+```yaml
+---
+portfolio-dashboard: true
+sources:
+  - Investments/Holdings.csv
+  - Investments/Limits.csv
+---
+```
+
+A block list or a flow list (`sources: [a.csv, b.csv]`) both work, and `"[[Investments/Holdings.csv]]"` is read as a spelling of that exact path. Nothing is searched for or matched by pattern, so the only files a view is ever handed are ones a person typed.
+
+A view is handed its note's sources only when all three hold:
+
+1. The manifest declares `"sources": true`, which it may do only together with `declares`. `sources` is a common frontmatter key, so an extension claiming every note of a type could otherwise collect every note's list.
+2. The view claimed this note by that `declares` marker.
+3. The note lists files.
+
+Each entry in `init.sources` and `sources.sources` is one name the note lists, in its order: `{ path, content }` for a file handed over, or `{ path, refused }` naming the rule that refused it. `path` is the name as the note wrote it, never where the file really lives, and nothing else about a file is sent.
+
+A name is refused, with the rule named and never the target, when it is absolute, starts with `~` or a drive letter, uses a backslash, has a `.`, `..` or empty segment, contains a pattern character, an alias or a heading (`|`, `#`), has any segment starting with a dot, is a linked file or passes through a linked folder, is a file with a second name elsewhere (a hard link), is a folder, is missing, is listed twice, or is the note itself under any spelling. A note may list at most 12 names.
+
+**No write a view causes may change the `sources` list of the file it writes.** That holds for `save`, `change`, `saveSource` and `changeSource`, and whether or not the extension declared `sources`, because a view that could rewrite its note's list could name any file and be handed it next time. An edit that keeps the list is allowed. A view embedded in another note is always handed an empty list.
+
+## Asking an agent
+
+A view can offer the person a way to ask an agent about what it shows. It never reaches the agent itself: it drafts, and the person decides.
+
+The manifest names the agents the view may ask, as `asks`: one to four agent ids, checked at install. After a click inside the view, `ask` opens a **new** conversation with that agent (never the open one), puts the message in the message box, and shows a line saying which extension drafted it from which file and that nothing has been sent. The person sends it, changes it or leaves it, and a conversation nobody sends is never saved. Anything the person had typed and not sent in another conversation stays there.
+
+Before the message reaches the box, control characters other than tab and newline, bidirectional marks, overrides and isolates, and zero-width characters are removed, so the box shows exactly what would be sent.
+
+An `ask` is refused, with a reason, without a click inside the view, for an agent the manifest did not name, for a named agent that is not on the team, from an embedded view, and for a shape the table does not allow. On success nothing comes back: the view never learns a conversation, the reply, or whether the person sent the draft.
+
+## A view's own state
+
+A view has preferences that are nobody's data: the widths someone dragged, a tab they chose. Rundock keeps them for the view, one state per extension per note, so a view never has to write them into the person's note. Every extension gets this, with nothing to declare, and the install screen says so.
+
+A view sends its whole state with `setState`, and receives it back in `init.state` the next time it opens the note. A view built on Rundock UI uses [`Rundock.viewState`](/extending/rundock-ui#view-state), which also has the state ready before `init` arrives.
+
+- **Plain JSON only.** Objects with string keys, arrays, strings, finite numbers, booleans and `null`, at most 16 levels deep and 64 KB once serialised. A `Date`, `Map`, `Set`, typed array, `RegExp`, `Blob`, `undefined`, a hole in an array, `NaN`, `Infinity`, an object that is not plain, or a cycle is refused. Each extension's state is also capped in total, at 1 MB and 1,000 notes. A write that would pass either is refused, and a write that shrinks or removes state is always allowed.
+- **Every refusal is named.** The view receives `refused` with `of: 'setState'` and the reason, such as "the view state is larger than 64 KB".
+- **Written after a pause.** A burst of changes, such as a column being dragged, is written once, and a pending write is made when the person opens another file.
+- **Embedded views read, never write.** A view shown inside another note receives its state, and every `setState` from it is refused.
+- **The last write wins.** Two views of one note, one opened and one embedded, each read the state once, when they open, and neither is told about the other's writes.
+- **Stored per machine.** The state lives in `.rundock/extension-state/<extension>/`, one file per note. `.rundock/` is not meant to sync, so a workspace opened on another machine may not carry it. A state file is never handed to any view.
+- **Renames start afresh.** A note's state is kept under its path, so renaming or moving the note starts its state again.
+- **Kept on update and when switched off, removed on uninstall.** Uninstalling the package removes the extension's whole state folder, and leaves every other extension's state as it was.
+
+## One click, one request
+
+`open`, `openExternal` and `ask` each act outside the view, so each needs the person's click inside it.
+
+- **One click authorises one request, across every view.** Once any view's `open`, `openExternal` or `ask` is honoured on a click, that click is used up for every view until the browser reports that it has lapsed, a few seconds later.
+- **A view opened by a click does not inherit it.** A view that appears while a click is still live, such as the note another view's button just opened, cannot use that click as its own.
+- **A person's first click works** whenever no earlier click is still live.
+
+When a request arrives on a live click that Rundock cannot attribute to a fresh click in that view, Rundock does not guess. It asks the person in its own bar, directly above the view: "Open Investment Dashboard.md?", "Open https://example.org/ in a new tab?" or "Start a conversation with Quill with a drafted message?", with **Open** and **Dismiss**. The bar belongs to Rundock's page, so the view cannot draw it, read it or press it. **Open** does what the view asked. **Dismiss** tells the view `you dismissed this in Rundock`. One request waits at a time; any other is refused with `Rundock is already asking you about another request`. Leaving the file clears the bar.
+
+A request with no click in the view at all is refused, and Rundock says so in the same place: "The investment-partner extension tried to open Investment Dashboard.md without you asking, so Rundock stopped it." The view is told `Rundock stopped this because it did not come from your click`.
+
+These reasons are written for the person, because a view may show them. Rundock has already told the person about a refused `open`, `openExternal` or `ask`, so a view should not show a notice of its own for one.
+
+## Limits
+
+| Limit | Value |
+|---|---|
+| Largest file handed to a view | 2,000,000 characters. A larger file opens in the plain rendering, with the limit named. |
+| Frame height | Between 40 and 4000 pixels. |
+| Time to send `ready` | About five seconds. |
+| Named sources per note | 12. The note and its sources together are held to the 2,000,000 character limit; a source past it is refused. |
+| Agents in `asks` | 1 to 4. |
+| A view's own state | 64 KB of plain JSON per note, at most 16 levels deep. |
+| All of an extension's state | 1 MB, across at most 1,000 notes. |
+| Length of an `ask` message | 1 to 4000 characters. |
+| Frame sandbox | `allow-scripts` only. |
+| Content security policy | `default-src 'none'`, with inline scripts and styles, and `data:` images. |
+
+## The lifecycle
+
+- **Opening a file** creates a fresh view: `ready`, then `init`.
+- **Changing theme** restyles a view that named `'theme'` in `ready`'s `handles`, in place, and it keeps everything it holds, including edits not yet saved. A view that did not name it is rebuilt from scratch with the new theme's colours and receives a new `init`, and nothing held in memory survives. See [Theme changes](#theme-changes).
+- **A note that stops claiming the view** releases it. If the open file loses the marker the extension claimed it by, for example because a save took the marker out, or the claims change, the view is removed and the file is shown on the plain rendering with the reason named. A file now claimed by another extension opens in that one.
+- **Updating** the extension's package while its view is open swaps the view to the new code, including when only the commit changed and the version did not. An edit the view was still waiting to save is saved first.
+- **Switching off or uninstalling** the extension while its view is open removes the view cleanly. A message that arrives afterwards from the old view is ignored.
+- **Embedding** a file in another note mounts a separate, read-only view on that file alone: `save`, `change`, `open` and `ask` from it are refused, and it is handed no sources.
+- **Failing**, by sending `error`, throwing, or never sending `ready`, removes the view and brings the plain rendering back, with the reason shown. A failing extension cannot break the pane it was drawn in.
+
+## Theme changes
+
+A view that can take a theme change without being rebuilt says so in its `ready`:
+
+```js
+window.parent.postMessage({ type: 'ready', handles: ['theme'] }, '*');
+```
+
+When the person switches theme, Rundock sends that view a `theme` message carrying the new theme and the colour values read from the page at that moment. Before your own listener sees it, Rundock rewrites the block of colours in the frame and sets or clears the `light` class on the body, so [Rundock UI](/extending/rundock-ui) and every style you wrote with `var(--...)` follow with nothing rebuilt. Your listener then sees the same message, for anything you drew from `init`'s `theme` yourself. The view keeps its state, including edits it has not yet sent.
+
+A view that does not name `'theme'` is rebuilt instead: a fresh frame with the new theme's colours, a fresh `ready`, and an `init` carrying the new theme and the file as Rundock last handed it. It loses anything held only in memory, such as scroll position, and an editing view loses anything it had not yet sent. **A view that edits should name `'theme'`.**
+
+## What Rundock puts in the view
+
+Before your code, Rundock inlines, in this order:
+
+1. **Rundock's colours** as CSS custom properties on `:root`, with the values of the theme showing, such as `--text-1`, `--text-2`, `--border`, `--accent`, `--accent-action`, `--accent-control`, `--base`, `--card` and `--elevated`.
+2. **A floor of element styles** so plain HTML, including headings, paragraphs, tables and lists, looks like Rundock.
+3. **[Rundock UI](/extending/rundock-ui)'s stylesheet.**
+4. **Your declared `styles`.**
+
+Then, in the body, Rundock's error reporting, the Rundock UI library, and your entry script, so `window.Rundock.ui` exists when your script starts.
+
+The floor uses element selectors only and Rundock UI's classes all start with `rui-`, so your own rules override both. In the light theme the body carries the class `light`. The frame fills the pane and your body carries a note's padding: see [Where a view sits](/extending/rundock-ui#where-a-view-sits-full-bleed).
+
+## Fenced blocks
+
+An extension that sets `draws` in its manifest runs in a hidden frame and exchanges a different set of messages.
+
+| Direction | Shape | What it means |
+|---|---|---|
+| View to Rundock | `{ type: 'ready' }` | The view is listening. Blocks waiting to be drawn are sent in document order. |
+| Rundock to view | `{ type: 'render', requestId: <string>, source: <string> }` | Draw this block. `source` is the block's text as written. |
+| View to Rundock | `{ type: 'rendered', requestId: <string>, svg: <string> }` | The drawing, as an SVG string. |
+| View to Rundock | `{ type: 'renderFailed', requestId: <string>, message: <string> }` | This block cannot be drawn, and why. Only this block shows the failure. |
+| View to Rundock | `{ type: 'error', message: <string> }` | With no `requestId`: the whole extension has failed, and every block it draws shows the failure with a way to restart it. |
+
+Answer within ten seconds, or the request counts as the extension failing. Rundock builds the drawing afresh from the SVG elements and attributes it understands, so scripts, `foreignObject`, images, `use`, links and event handlers never appear on the page, and a `url()` reference must point inside the drawing.

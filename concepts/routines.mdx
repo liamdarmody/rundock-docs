@@ -61,7 +61,7 @@ Three patterns that work well in practice.
 
 **Morning briefing on the orchestrator.** Fires at 5am, runs whatever the orchestrator's body defines as "session start". Writes the briefing to the day's note so the user sees it when they open the workspace.
 
-**End-of-day sync on the executive assistant.** Fires at 9pm, pulls the day's meetings from a meeting tool, writes meeting notes, creates Todoist action items, updates the people graph.
+**End-of-day sync on the executive assistant.** Fires at 9pm, pulls the day's meetings from a meeting tool, writes meeting notes, creates action items through a tasks connector, updates the people graph.
 
 **Weekly research digest on a research-focused agent.** Fires once a week before the user is awake. Runs a long pipeline (LinkedIn analysis, competitor scan, trending research) and writes a digest to a known folder.
 
@@ -75,6 +75,10 @@ Each routine has a `lastRun` guard so daily routines do not re-fire the same cal
 
 When a routine fires, Rundock spawns a headless Claude Code subprocess with the routine's prompt as the input message. The subprocess runs with skipped permissions, because there is no user available to approve tool calls in real time.
 
+If the routine's agent does raise a permission card, it appears in the **approvals dock**, over whatever screen you have open, naming the routine and the agent. It never lands in a conversation, and a card nobody answers is denied at the usual timeout. See [Routine format](/reference/routine-format#scheduler-behaviour) for the detail.
+
+A run whose agent finishes cleanly but could not do its job can say so: if the last line of its final message is `RUN STATUS: failed: <reason>`, the run is recorded as failed with that reason. See [Declaring that a run failed](/reference/routine-format#declaring-that-a-run-failed).
+
 ## Limits worth knowing
 
 Be honest before getting attached to routines.
@@ -86,7 +90,7 @@ Be honest before getting attached to routines.
 <Warning>
 **Routine output itself is not captured to a visible conversation.** When a routine fires, the spawned Claude Code subprocess produces output on stdout and stderr, and Rundock discards both. It records the routine's `lastRun` timestamp, status, and duration, and a separate record of the files the run changed (see above), but it does not surface the model's response or its running commentary in a Rundock conversation.
 
-Practical implication: any routine that needs to leave a trace must write that trace itself, through tools. A morning briefing writes to the day's note. A digest writes a markdown file to a known folder. An end-of-day sync writes Todoist tasks via MCP. A routine that asks the model to think out loud will produce output nobody ever reads.
+Practical implication: any routine that needs to leave a trace must write that trace itself, through tools. A morning briefing writes to the day's note. A digest writes a markdown file to a known folder. An end-of-day sync writes tasks through a connector via MCP. A routine that asks the model to think out loud will produce output nobody ever reads.
 </Warning>
 
 <Note>
