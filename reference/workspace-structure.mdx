@@ -179,7 +179,7 @@ Workspace mode is a workspace-level setting that changes agent behaviour at the 
 | Mode | What it changes |
 |---|---|
 | **Notes** (default) | Restricts file writes for executable file types (`.js`, `.py`, `.sh`, etc) so agents cannot accidentally write or modify code in a workspace of notes and documents. Commands that change something ask first. |
-| **Code** | Removes the executable-file write restriction. Auto-approves common build and dev tools so agents can iterate on code without permission card interruptions. Used for software project workspaces. |
+| **Code** | Removes the executable-file write restriction. Everyday development commands, such as git, installs, test runs and builds, run without a card in your workspace and working folders. Commands that can't be undone, such as a force push or `sudo`, ask every time. A few that other people see first, such as pushing to the default branch, ask once and can be remembered; each is listed under **Settings**, **Permissions**, where you can revoke it. Used for software project workspaces. |
 
 Mode is set in **Settings**, under **Permissions**, where it is the question **What are you working on?**, or by editing `.rundock/state.json` directly:
 
@@ -229,7 +229,7 @@ Under the switch is a list of folders agents can change as well as the workspace
 - **Switch off, Code:** agents can change files in these folders without asking. Anywhere else, Rundock asks before a file edit, and before a command it can see reaching outside.
 - **Switch off, Notes:** agents can edit files in these folders without asking. Anywhere else, changes need your approval.
 
-A permission card for a file outside the workspace offers **Always allow this folder**, which adds that folder to the same list, for this workspace only. A folder that has gone, such as a drive that is not mounted, stays named and starts covering again if it comes back. Codex agents are unaffected by the list, and `~/.claude` is never included, so your credentials always ask. Removing a folder applies to new conversations; one already running keeps the folders it started with.
+A permission card for a file outside the workspace offers **Always allow this folder**, which adds that folder to the same list, for this workspace only. A folder that has gone, such as a drive that is not mounted, stays named and starts covering again if it comes back. Codex agents' file changes in these folders don't ask either, in Notes or Code, and `~/.claude` is never included, so your credentials always ask. Removing a folder applies to new conversations; one already running keeps the folders it started with.
 
 The list is stored in `.rundock/state.json` as `workingFolders`.
 
