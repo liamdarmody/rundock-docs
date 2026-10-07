@@ -7,8 +7,8 @@ A routine is a scheduled prompt sent to a specific agent on a cadence. The same 
 
 Routines power the kind of automation that needs to happen unattended: a morning briefing on the orchestrator, an end-of-day sync that processes the day's meeting notes, a weekly research digest that runs before the user is awake. They are the scheduled equivalent of clicking "send" on a prompt every day.
 
-<Frame caption="Four routines across different agents, each in a different run state: ran on time, caught up after a missed slot, missed, and failed.">
-  <img src="/images/routines.png" alt="Rundock routines list showing four scheduled routines across different agents, one that ran on time, one caught up after a missed slot, one missed, and one failed." />
+<Frame caption="Routines in different run states, each with Run now on its row.">
+  <img src="/images/routines.png" alt="Rundock routines list showing five scheduled routines across different agents: one still going, with Run now greyed out, and others that ran on time, caught up after a missed slot, missed, and failed, each row with Run now, pause, edit and delete controls." />
 </Frame>
 
 ## Add a routine
@@ -90,6 +90,10 @@ Each routine has a `lastRun` guard so daily routines do not re-fire the same cal
 When a routine fires, it runs on its agent's runtime. For a Claude Code agent, Rundock spawns a headless Claude Code subprocess with the routine's prompt as the input message, running with skipped permissions because there is no user available to approve tool calls in real time. A routine on a Codex agent runs as a turn on the Codex CLI.
 
 If the routine's agent does raise a permission card, it appears in the **approvals dock**, over whatever screen you have open, naming the routine and the agent. It never lands in a conversation, and a card nobody answers is denied at the usual timeout. See [Routine format](/reference/routine-format#scheduler-behaviour) for the detail.
+
+<Frame caption="A routine's permission card waits in the approvals dock, named for the routine and its agent.">
+  <img src="/images/routine-approvals-dock.png" alt="Rundock approvals dock floating over the Team view, holding one card from the Publish check routine, run by Ana, asking to write a file outside the workspace." />
+</Frame>
 
 A run whose agent finishes cleanly but could not do its job can say so: if the last line of its final message is `RUN STATUS: failed: <reason>`, the run is recorded as failed with that reason. See [Declaring that a run failed](/reference/routine-format#declaring-that-a-run-failed).
 

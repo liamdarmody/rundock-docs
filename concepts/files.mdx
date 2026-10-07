@@ -27,17 +27,52 @@ Open an HTML or SVG file and Rundock shows the real rendered page, with its own 
 
 A markdown file that is an Obsidian Kanban board opens as a real column board. Drag cards between columns, add and edit cards in place, tick them off, and rename, move, sort, archive, or delete columns. Everything writes back as the exact markdown the Obsidian Kanban plugin produces, so the same board edits interchangeably in Rundock and Obsidian.
 
+<Frame caption="An Obsidian Kanban board open in Rundock. Drag a card and the markdown updates.">
+  <img src="/images/boards.png" alt="Rundock Kanban board open in the main pane: columns of cards with checkboxes, a tagged card, and ticked cards struck through in the last column." />
+</Frame>
+
 ## Reviewing agent work
 
 When an agent produces a file, you review it where it lives. Select a passage and press Comment to leave anchored feedback. Agents propose inline edits with Accept and Reject buttons, replies thread and resolve, and a review panel lists everything open. Feedback is stored in the file itself as CriticMarkup, a small block of plain text readable in any editor, attributed honestly: you show as "Me", agents under their names. The same review flow now covers rendered HTML and SVG files, not only markdown.
 
-## Pins, connections and the Map
+<Frame caption="Anchored comments on a rendered HTML page, with replies and resolve in the review panel.">
+  <img src="/images/review.png" alt="Rundock showing an HTML page rendered in the main pane with a review panel beside it holding anchored comment threads with reply and resolve controls." />
+</Frame>
 
-**Pins** sits in the rail directly below Files. Pin the file you have open with the pin at the top right, or right-click a file in the sidebar and choose Pin. Pins are kept in `.rundock/pins.json` in the workspace.
+## Pins
 
-The file view carries a **connections** list: what links to the open file, and what it links to. Clicking an entry opens that file.
+**Pins** sits in the rail directly below Files. It is the short list of files you come back to every day.
 
-**Map**, last in the rail, draws the workspace as a graph: every file a node and every resolved link between files an edge. Type a keyword to narrow it, and click a node to open the file.
+Pin the file you have open with the pin at the top right, or right-click a file in the sidebar and choose **Pin**. The Pins list shows your pinned files in the order you pinned them, each with its folder underneath (a file at the top of the workspace shows none). Hover a row to unpin it. Opening a file from Pins keeps Pins lit, and arriving at Pins opens the first pin.
+
+Pins are kept with the workspace, in `.rundock/pins.json`, so they follow the folder to another machine when it syncs, or when you rename it. That folder is ignored by git, so a shared repository never hands your list to everyone else. A pinned file that has since been moved or deleted stays in the list, struck through with the reason and a **Remove**, rather than disappearing.
+
+<Frame caption="Four pinned files, with the Roadmap board open. Pinned boards open as boards.">
+  <img src="/images/pins.png" alt="Rundock Pins view: the Pins rail entry lit, four pinned files in the sidebar, two with their folder underneath, and the Roadmap Kanban board open in the main pane with Now, Next and Done columns of cards." />
+</Frame>
+
+## Connections
+
+The file view carries a **connections** list: what links to the open file, and what it links to. Clicking an entry opens that file, the same file the link inside the document opens. A file that cannot contain links shows only what links to it.
+
+<Frame caption="The connections list under a note: it links to two files, and three link to it.">
+  <img src="/images/connections.png" alt="Rundock connections list at the foot of a note, with a Links to group of two notes and a Linked from group of three." />
+</Frame>
+
+## Map
+
+**Map**, below Pins in the rail, draws the whole workspace as a graph: every file a node, every resolved link between files a line.
+
+- **Clusters.** Files that link to each other gather together, and bigger clusters get more room. Files nothing links to sit in a ring around the outside.
+- **Size and light.** A node grows with the number of links it has. The workspace's most recently changed files are drawn warmest and its oldest dimmest, ranked against each other rather than by date.
+- **Moving around.** Drag or two-finger scroll to pan. Pinch, or hold Ctrl and use the wheel, to zoom. More of the workspace comes into view as you zoom in.
+- **Finding and opening.** Type a keyword to narrow the map to matching files. Hover a node to see its name and its neighbours' names, with the count of its connections in the readout, and click it to open the file.
+
+Just after a workspace opens, Map waits for the link index to finish and says so, then draws.
+
+<Frame caption="A workspace as a graph. Linked notes cluster, unlinked files ring the edge, and recent work is brightest.">
+  <img src="/images/map.png" alt="Rundock Map filling the pane: clusters of linked notes of different sizes, unlinked files scattered around the edge, warmer nodes for recently changed files, and a readout at the foot counting files, connections and unlinked files." />
+</Frame>
 
 ## Files opened by an extension
 

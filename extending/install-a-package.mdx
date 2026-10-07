@@ -59,6 +59,10 @@ The confirmation screen is headed **Install** followed by the extension's name a
 - **What will run.** Which files the extension asks to render, and what its view can and cannot do. Every extension's view runs in a sandbox with no access to Rundock's page or your other files, and it cannot load pages or make requests. The screen also says that peer-to-peer connections are blocked only in the desktop app. The screen also says it can keep up to 64 KB of its own settings for each note it opens, in Rundock's folder, never in your notes, and that uninstalling it removes them. Separate lines say so if the extension asked to edit the files it opens, to read the files a note lists under `sources:`, or to draft messages to named agents on your team, and that nothing it drafts is sent until you send it.
 - **What you will keep.** Where the extension's own files go, and whether the repository also carries agents, skills and starter files. Those are never added by this step. Once the extension is installed you are offered them separately, on the screen described above, and nothing about them lands until you answer.
 
+<Frame caption="Install, followed by the extension's name and version. Every line is read from the package.">
+  <img src="/images/install-review.png" width="496" alt="Rundock install review for the Investment Partner package: the heading names the package and version with the commit it resolved to, a What will run section describing the sandboxed extension, a What you will keep section, and the Install it and No, remove what was fetched buttons." />
+</Frame>
+
 Choose **Install it** to install, or **No, remove what was fetched** to leave nothing behind.
 
 For the full list of what the sandbox enforces, see [Data, privacy, and security](/trust/data-privacy-security#extensions-and-packages).
@@ -72,6 +76,10 @@ The Packages page shows one card for each package you have installed, under **In
 - **What it said last time it checked**, such as "Up to date" or "Update available: v1.3.0".
 - **What it carries**: a count of its agents, skills, routines, starter files and extension, and each one by name, linking to where it lives. An item you have since removed stays listed, marked removed, and one the package no longer carries is marked too.
 - **Check for updates**, or **Update to** a newer version once one is known, and **Uninstall**.
+
+<Frame caption="Two installed packages, each with its version, update status and what it brought.">
+  <img src="/images/packages.png" alt="Rundock Settings open at Packages: an empty Add a package field, then two installed package cards, Investment Partner up to date with its agents, skills, starter files and extension listed, and Lean Agent Team showing an update available." />
+</Frame>
 
 ## Update a package
 
@@ -125,6 +133,10 @@ The package then leaves the Packages page. The receipts that recorded it go with
 - **Its package.** "From the Reading List package" links to that package's card on the Packages page. Where Rundock knows a newer release of the package exists, the row says **Update available in Packages**. Updates happen there, never on this page.
 - **What it claims.** An extension that claims only notes carrying a frontmatter marker says which, and one whose claim Rundock could not honour says why.
 - **An extension that couldn't load** has no switch. It says "Rundock couldn't load this extension." and links to its package, where you can uninstall it.
+
+<Frame caption="Each extension with its own switch, and Pause all extensions below.">
+  <img src="/images/extensions.png" width="560" alt="Rundock Settings open at Extensions: Investment Partner switched on and CSV Viewer switched off, each with its version, date and a link to its package, and Pause all extensions below the list." />
+</Frame>
 
 An extension leaves only with its package: the Extensions page has no Uninstall of its own.
 

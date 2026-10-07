@@ -72,6 +72,24 @@ The split as a quick table:
 Moving conversation history out of the workspace folder, so that excluding it is no longer necessary, is planned work. Until it lands, treat the exclusion as required setup on any cloud sync tool. `.mcp.json` stays where it is: it is shared workspace configuration, so check it holds no keys before you share the folder.
 </Note>
 
+## Connectors
+
+Connectors are the MCP servers your agents can reach: a calendar, a task manager, a CRM. **Settings**, **Connectors** lists every one, gathered from the four places they can be configured: this workspace's `.mcp.json`, the Codex equivalent, and the machine-wide settings of each runtime.
+
+Each connector appears once and says:
+
+- **Which runtimes reach it:** Claude Code, Codex, or both.
+- **Where it lives:** in the workspace, so it travels with the folder, or on this machine only.
+- **Which credential keys it uses**, by name only. Values are never shown.
+
+If the two runtimes define the same connector differently, the row says so and shows both. A configuration file that is broken is shown as an error, never as an empty list.
+
+To add a connector, choose **Talk to Doc** on the same page. Connectors differ in what they need to start, so Doc works out which kind yours is, writes it, and tells you what is still missing. Connectors added at claude.ai are not listed, because Rundock cannot read their state from your machine; the page says where to manage them.
+
+<Frame caption="Settings, Connectors: two connectors, one shared by both runtimes and kept with the workspace.">
+  <img src="/images/connectors.png" width="560" alt="Rundock Settings open at Connectors, listing two connectors: a calendar reached by Claude Code and Codex and kept in the workspace, and a task manager reached by Claude Code on this machine, each naming its credential keys without values." />
+</Frame>
+
 ## Single-workspace model today
 
 Rundock's current model is one workspace per team. Every member of the team sees the same agents and skills, with no per-team or per-role permission tiering inside the workspace.
