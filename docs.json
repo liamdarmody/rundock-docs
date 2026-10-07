@@ -32,6 +32,7 @@
           "concepts/files",
           "concepts/search",
           "concepts/runtimes",
+          "concepts/permissions",
           "concepts/routines"
         ]
       },

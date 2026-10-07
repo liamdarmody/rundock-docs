@@ -221,6 +221,10 @@ Where something other than Rundock decides, the row is read-only, with a lock an
 
 The switch is stored in `.rundock/state.json` as `sandboxSwitch`, and applied through the sandbox block Rundock writes into `.claude/settings.local.json`.
 
+<Frame caption="The switch and its working folders in Settings, Permissions.">
+  <img src="/images/settings-permissions.png" width="560" alt="Rundock Settings open at Permissions: Code selected, the Keep agents inside this workspace switch on with ~/Projects listed as a folder agents can also change, and two entries under Tools allowed without asking." />
+</Frame>
+
 ### Folders agents can also change
 
 Under the switch is a list of folders agents can change as well as the workspace, such as a projects folder beside it. Naming a parent, such as `~/Projects`, covers everything inside it, including folders created later. The list is in force whether the switch is on or off, and the line above it says what it does in each case:
