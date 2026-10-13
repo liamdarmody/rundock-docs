@@ -47,6 +47,8 @@ Get the `.exe` installer from [rundock.ai/download](https://rundock.ai/download)
 
 The build is unsigned for now, so Windows SmartScreen shows a one-time prompt the first time you run it. Click **More info**, then **Run anyway**. Finish the installer; it adds a Desktop shortcut and a Start Menu entry.
 
+If the message comes from **Smart App Control** instead and there is no **Run anyway**, see [Smart App Control](#smart-app-control) below.
+
 ### 3. Open Rundock and sign in
 
 Open Rundock from the Desktop shortcut or Start Menu. The setup wizard:
@@ -56,6 +58,19 @@ Open Rundock from the Desktop shortcut or Start Menu. The setup wizard:
 - Gives you a one-click **Sign in to Claude** button. It opens a terminal window running Claude Code's sign-in, which hands off to your browser. Follow its prompts; there are no commands to type.
 
 Once the wizard shows both steps complete, continue to [first-run setup](/first-run).
+
+### Smart App Control
+
+Smart App Control is a Windows 11 security feature that only lets an app run when Windows can verify it. Until the Windows build is signed, it blocks the Rundock installer. The message says Windows couldn't verify the app's publisher, and its only choices are to close it or to get apps from the Microsoft Store. There is no **Run anyway**, and Smart App Control has no way to allow a single app.
+
+Keep Smart App Control on. Turning it off to install Rundock would also stop it protecting you from every other unverified app. If you choose to switch it off anyway, read Microsoft's [Smart App Control FAQ](https://support.microsoft.com/windows/smart-app-control-faq-285ea03d-fa88-4d56-882e-6698afdb7003) first.
+
+Until the signed build is out, you can run your team in Claude Code, which Anthropic signs for Windows:
+
+1. Install Claude Code: open PowerShell and run `winget install Anthropic.ClaudeCode`. Claude Code's [setup guide](https://code.claude.com/docs/en/setup) lists the other ways to install it.
+2. In PowerShell, go to your workspace folder (the one that contains the `.claude` folder) and run `claude`. Sign in when it asks. To start as a particular agent, such as your orchestrator, run `claude --agent <slug>` instead.
+
+Your agents, skills and `CLAUDE.md` are the same files Rundock reads, so there is nothing to convert (see [Agents are portable](/concepts/agents#agents-are-portable)). What you don't get in the terminal is Rundock itself: the visual workspace, the org chart and routines. When the signed build is out, install it and open the same folder.
 
 <Note>
 The Windows build is unsigned for now, which is why SmartScreen prompts on first launch. The click-through above is safe and only appears once. Signing is on the roadmap.
