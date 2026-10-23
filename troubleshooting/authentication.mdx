@@ -1,47 +1,59 @@
 ---
 title: 'Authentication errors'
-description: 'What to do when Rundock shows a sign-in or 401 authentication error.'
+description: 'What to do when Rundock says Claude needs reconnecting, or shows a 401 authentication error.'
 ---
 
-Rundock runs your agents through Claude Code, using the sign-in already on your machine. When that Claude Code sign-in expires, the next message fails with an authentication error and Rundock shows a recovery card explaining what to do.
+Rundock runs your agents through Claude Code, using the Claude Code session already on your computer. Claude Code sessions end from time to time, and Rundock cannot keep them alive. When yours has ended, the next message fails and Rundock shows a card: **Claude needs reconnecting**.
 
-This is expected from time to time: Claude Code sessions expire on their own, and Rundock cannot keep them alive. The fix takes under a minute, and your conversations are safe.
+Reconnecting takes under a minute, and your conversations are safe. Nothing is wrong with Rundock, and no work is lost.
 
-## What you will see
+## How to reconnect
 
-A message like this, in the app or in the underlying error:
+1. **Press Reconnect Claude** on the card. A window opens and runs Claude Code's login for you. You type nothing.
+2. **Finish in your browser.** Claude Code opens a page where you confirm your Anthropic account. Once it is done, you can close the window.
+3. **Back in Rundock, press I've reconnected.** Rundock checks that Claude Code is connected again.
+4. **Resend your message.** It will work normally.
+
+If Rundock says Claude Code isn't connected yet, finish in the browser, then press **I've reconnected** again. If you closed the window before finishing, press **Open the window again**.
+
+## If Rundock can't open the window
+
+On some computers, such as Linux without a desktop terminal, Rundock cannot open a window, and the card shows the step to run instead:
+
+1. **Open a terminal.**
+2. **Run `claude auth login`** and finish in your browser.
+3. **Return to Rundock and resend your message.**
+
+If Rundock says Claude Code was not found, check that Claude Code is installed (see [Installation](/installation)), then press **Try again**.
+
+## Accounts billed through the Anthropic Console
+
+The window logs in with a Claude subscription, which is what most people use. If you pay for Claude Code through the Anthropic Console instead, run this in a terminal and finish in your browser:
+
+```
+claude auth login --console
+```
+
+Then return to Rundock and resend your message.
+
+## What is behind the card
+
+Underneath, Claude Code has rejected the request with an error like this one:
 
 ```
 Failed to authenticate. API Error: 401
 {"type":"error","error":{"type":"authentication_error","message":"Invalid authentication credentials"}}
 ```
 
-It means your Claude Code sign-in has ended. It does not mean anything is wrong with Rundock or that you have lost any work.
-
-## How to fix it
-
-1. **Open a terminal.**
-2. **Run `claude`.** This starts Claude Code and shows whether you are signed in.
-3. **If you are already signed in, sign out and back in:**
-   ```
-   claude auth logout
-   claude auth login
-   ```
-   Follow the prompts to sign in to your Anthropic account.
-4. **Return to Rundock and resend your message.** It will work normally again.
-
-## Why this happens
-
-Rundock does not store your Anthropic credentials. It relies entirely on the Claude Code sign-in on your machine, the same one you use when you run `claude` directly. When that sign-in expires (or you have signed in elsewhere), Claude Code rejects the request with a 401, and Rundock surfaces it as the recovery card above.
-
-Because the sign-in lives with Claude Code, the fix also lives there: re-running `claude` and signing in refreshes the session for both Claude Code and Rundock.
+Rundock does not store your Anthropic credentials. It relies on the Claude Code session on your computer, the same one you use when you run `claude` directly. When that session ends, Claude Code rejects the request, and Rundock shows the card above. Because the session lives with Claude Code, so does the fix: logging in again refreshes it for both Claude Code and Rundock.
 
 ## Agents on Codex
 
-This page is about the Claude Code sign-in. An agent with `runtime: codex` runs on the Codex CLI, which holds its own sign-in with your ChatGPT account. Rundock shows Codex as signed in, under Settings, Workspace, Runtimes, when the Codex CLI's credentials file exists; it never reads the file. If Codex is not signed in, run `codex login` in a terminal, then resend your message. See [Runtimes](/concepts/runtimes).
+This page is about the Claude Code session. An agent with `runtime: codex` runs on the Codex CLI, which holds its own sign-in with your ChatGPT account. Rundock shows Codex as signed in, under Settings, Workspace, Runtimes, when the Codex CLI's credentials file exists; it never reads the file. If Codex is not signed in, run `codex login` in a terminal, then resend your message. See [Runtimes](/concepts/runtimes).
 
 ## Still stuck?
 
-- Confirm Claude Code itself works: run `claude` in a terminal and send it a message. If that also fails to authenticate, the issue is with the Claude Code sign-in, not Rundock.
-- Check your sign-in status directly with `claude auth status`.
-- If `claude` works in the terminal but Rundock still shows the error, fully quit and reopen Rundock so it picks up the refreshed session.
+- Check that Claude Code itself works: run `claude` in a terminal and send it a message. If that also fails to authenticate, the issue is with the Claude Code session, not Rundock.
+- See whether the session has ended from inside Claude Code: run `claude`, then type `/status`. Its Login row says if the session has expired.
+- If Claude Code works in the terminal but Rundock still shows the card, fully quit and reopen Rundock so it picks up the new session.
+- If the same error returns straight after you log in, your account or organization may no longer have access. Ask your administrator.
